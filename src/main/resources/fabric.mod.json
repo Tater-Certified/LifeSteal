@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "lifesteal",
+  "version": "${version}",
+  "name": "lifesteal",
+  "description": "A fabric server side implementation of the LifeSteal SMP.",
+  "authors": [
+    "QPCrummer"
+  ],
+  "contact": {},
+  "license": "Apache License v2",
+  "icon": "assets/lifesteal/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.tatercertified.lifesteal.Loader"
+    ]
+  },
+  "mixins": [
+    "lifesteal.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.14.9",
+    "fabric": "*",
+    "minecraft": "1.19.x",
+    "java": ">=17"
+  }
+}

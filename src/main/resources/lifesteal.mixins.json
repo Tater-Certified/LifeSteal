@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.modernadventurer.lifesteal.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
