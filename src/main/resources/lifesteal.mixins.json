@@ -4,7 +4,7 @@
   "package": "com.github.tatercertified.lifesteal.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityMixin"
+    "ServerPlayerEntityMixin"
   ],
   "client": [
   ],
