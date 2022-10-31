@@ -1,16 +1,30 @@
 package com.github.tatercertified.lifesteal.item;
 
+import com.github.tatercertified.lifesteal.Loader;
 import com.github.tatercertified.lifesteal.util.ModelledPolymerItem;
 import eu.pb4.polymer.api.resourcepack.PolymerModelData;
-import com.github.tatercertified.lifesteal.Loader;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.CandleBlock;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUsageContext;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.LogManager;
+
+import java.io.File;
+import java.util.Objects;
 
 public class HeartItem extends ModelledPolymerItem {
 
@@ -21,9 +35,93 @@ public class HeartItem extends ModelledPolymerItem {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        user.getStackInHand(hand).decrement(1);
-        updateValueOf(user, world.getGameRules().getInt(Loader.HEARTBONUS));
+        if (!user.isSneaking()) {
+            user.getStackInHand(hand).decrement(1);
+            updateValueOf(user, world.getGameRules().getInt(Loader.HEARTBONUS));
+        }
         return super.use(world, user, hand);
+    }
+
+    @Override
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        PlayerEntity player =  context.getPlayer();
+        BlockPos pos = new BlockPos.Mutable(context.getBlockPos().getX(), context.getBlockPos().getY(), context.getBlockPos().getZ());
+        assert player != null;
+        String playername = context.getStack().getName().getString();
+        if (player.isSneaking() && context.getWorld().getBlockState(pos).getBlock() == Blocks.NETHERITE_BLOCK) {
+            if (!Objects.equals(playername, "Heart")
+                    && !playername.equalsIgnoreCase(player.getDisplayName().getString())
+                    && context.getWorld().getBlockState(pos.north()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+                    && context.getWorld().getBlockState(pos.east()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+                    && context.getWorld().getBlockState(pos.south()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+                    && context.getWorld().getBlockState(pos.west()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)) {
+
+                MinecraftServer server = context.getWorld().getServer();
+                assert server != null;
+
+                ServerPlayerEntity onlineplayer = server.getPlayerManager().getPlayer(playername);
+                ServerPlayerEntity offlineplayer;
+
+                if (onlineplayer != null && onlineplayer.isSpectator()) {
+                    revive(onlineplayer, context);
+                } else if(server.getUserCache().findByName(playername).isPresent()) {
+                    offlineplayer = server.getPlayerManager().createPlayer(server.getUserCache().findByName(playername).get(), null);
+                    NbtCompound data = server.getPlayerManager().loadPlayerData(offlineplayer);
+                    offlineplayer.readNbt(data);
+                    if (data != null && data.getInt("playerGameType") == 3) {
+                        reviveOffline(offlineplayer, context, data);
+                    } else {
+                        if(data != null && data.getInt("playerGameType") != 3) {
+                            player.sendMessage(Text.of(playername + " is still alive" ), true);
+                        } else {
+                            player.sendMessage(Text.of(playername + " does not exist"), true);
+                        }
+                    }
+                } else {
+                    if(onlineplayer != null && !onlineplayer.isSpectator()) {
+                        player.sendMessage(Text.of(playername + " is still alive"), true);
+                    } else {
+                        player.sendMessage(Text.of(playername + " does not exist"), true);
+                    }
+                }
+            }
+        }
+        return super.useOnBlock(context);
+    }
+
+    private static void revive(ServerPlayerEntity player, ItemUsageContext context) {
+        player.teleport(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5);
+        player.changeGameMode(GameMode.SURVIVAL);
+        player.sendMessage(Text.of(context.getPlayer().getDisplayName().getString() + " has revived you!"));
+        player.getWorld().playSound(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1, 1, true);
+        context.getStack().decrement(1);
+        context.getPlayer().sendMessage(Text.of("You revived " + player.getDisplayName().getString()), true);
+    }
+
+    private static void reviveOffline(ServerPlayerEntity player, ItemUsageContext context, NbtCompound data) {
+        player.setPosition(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5);
+        data.putInt("playerGameType", 0);
+        player.setGameMode(data);
+        savePlayerData(player);
+        player.getWorld().playSound(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1, 1, true);
+        context.getStack().decrement(1);
+        context.getPlayer().sendMessage(Text.of("You revived " + player.getDisplayName().getString() + "; Set GameMode to: " + data.getInt("playerGameType")), true);
+    }
+
+
+    //Thanks to PotatoBoy for helping me out!
+    public static void savePlayerData(ServerPlayerEntity player) {
+        File playerDataDir = player.getServer().getSavePath(WorldSavePath.PLAYERDATA).toFile();
+        try {
+            NbtCompound compoundTag = player.writeNbt(new NbtCompound());
+            File file = File.createTempFile(player.getUuidAsString() + "-", ".dat", playerDataDir);
+            NbtIo.writeCompressed(compoundTag, file);
+            File file2 = new File(playerDataDir, player.getUuidAsString() + ".dat");
+            File file3 = new File(playerDataDir, player.getUuidAsString() + ".dat_old");
+            Util.backupAndReplace(file2, file, file3);
+        } catch (Exception var6) {
+            LogManager.getLogger().warn("Failed to save player data for {}", player.getName().getString());
+        }
     }
 
     private static void updateValueOf(PlayerEntity of, float by) {

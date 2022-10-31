@@ -12,6 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -63,6 +64,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 		assert health != null;
 		if (world.getGameRules().getBoolean(Loader.BANWHENMINHEALTH) && health.getBaseValue() < minHealth) {
 			player.networkHandler.connection.send(new net.minecraft.network.packet.s2c.play.DisconnectS2CPacket(Text.of("You lost your last life")));
+		} else if(health.getBaseValue() < minHealth){
+			player.changeGameMode(GameMode.SPECTATOR);
+			player.sendMessage(Text.of("You lost your last life. You now must be revived"), true);
 		}
 	}
 	

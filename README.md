@@ -24,3 +24,4 @@ Additional Config options:
 
 ## Aditional Notes:
 - In order to get the textures, run /polymer generate-pack. This will create the resourcepack in the main server's directory, which you can then put in your resourcepack folder
+- To revive a player, put lit candles in all 4 directions with a netherite block in the center. Then rename a heart to the player's name and shift right-click on the netherite block
