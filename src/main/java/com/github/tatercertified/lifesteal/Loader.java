@@ -1,7 +1,7 @@
 package com.github.tatercertified.lifesteal;
 
 import com.github.tatercertified.lifesteal.item.ModItems;
-import com.github.tatercertified.lifesteal.world.features.ModConfiguredFeatures;
+import com.github.tatercertified.lifesteal.world.features.Ores;
 import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
 import com.github.tatercertified.lifesteal.block.ModBlocks;
 import net.fabricmc.api.ModInitializer;
@@ -15,20 +15,6 @@ import java.nio.file.Files;
 import java.util.Objects;
 import java.util.Properties;
 
-/**
- * Copyright 2021 BradBot_1
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 //NOTICE: This file was modified to remove all configuration setup and instead establish gamerules.
 
 public class Loader implements ModInitializer {
@@ -40,6 +26,9 @@ public class Loader implements ModInitializer {
 
 	public static final GameRules.Key<GameRules.BooleanRule> BANWHENMINHEALTH =
 			GameRuleRegistry.register(MOD_ID + ":banWhenMinHealth", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
+
+	public static final GameRules.Key<GameRules.BooleanRule> GIFTHEARTS =
+			GameRuleRegistry.register(MOD_ID + ":giftHearts", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
 
 	public static final GameRules.Key<GameRules.IntRule> STEALAMOUNT =
 			GameRuleRegistry.register(MOD_ID + ":stealAmount", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2));
@@ -57,8 +46,8 @@ public class Loader implements ModInitializer {
 	public static int veins_per_chunk;
 	public static int vein_size_deep;
 	public static int veins_per_chunk_deep;
+	public static String revival_block;
 	public static String cfgver;
-
 	public static Properties properties = new Properties();
 
 	@Override
@@ -79,7 +68,7 @@ public class Loader implements ModInitializer {
 				e.printStackTrace();
 			}
 			cfgver = properties.getProperty("config-version");
-			if (!(Objects.equals(cfgver, "1.0"))) {
+			if (!(Objects.equals(cfgver, "1.1"))) {
 				try {
 					mkfile();
 				} catch (IOException e) {
@@ -89,20 +78,21 @@ public class Loader implements ModInitializer {
 				parse();
 			}
 		}
-
 		ModItems.init();
 		ModBlocks.registerBlocks();
-		ModConfiguredFeatures.registerOres();
+		fixOres();
+		Ores.initOres();
 		PolymerRPUtils.addAssetSource(MOD_ID);
 	}
 
 	public void mkfile() throws IOException {
 		OutputStream output = new FileOutputStream(String.valueOf(FabricLoader.getInstance().getConfigDir().resolve("lifesteal.properties")));
-		if (!properties.contains("config-version")) {properties.setProperty("config-version", "1.0");}
-		if (!properties.contains("vein-size")) {properties.setProperty("vein-size", "1");}
+		if (!properties.contains("config-version")) {properties.setProperty("config-version", "1.1");}
+		if (!properties.contains("vein-size")) {properties.setProperty("vein-size", "5");}
 		if (!properties.contains("veins-per-chunk")) {properties.setProperty("veins-per-chunk", "1");}
-		if (!properties.contains("vein-size-deepslate")) {properties.setProperty("vein-size-deepslate", "1");}
+		if (!properties.contains("vein-size-deepslate")) {properties.setProperty("vein-size-deepslate", "5");}
 		if (!properties.contains("veins-per-chunk-deepslate")) {properties.setProperty("veins-per-chunk-deepslate", "1");}
+		if (!properties.contains("revival_block")) {properties.setProperty("revival_block", "minecraft:netherite_block");}
 		properties.store(output, null);
 		parse();
 		output.close();
@@ -120,5 +110,15 @@ public class Loader implements ModInitializer {
 		veins_per_chunk = Integer.parseInt(properties.getProperty("veins-per-chunk"));
 		vein_size_deep = Integer.parseInt(properties.getProperty("vein-size-deepslate"));
 		veins_per_chunk_deep = Integer.parseInt(properties.getProperty("veins-per-chunk-deepslate"));
+		revival_block = properties.getProperty("revival_block");
+	}
+
+	public void fixOres() {
+		if (vein_size < 5) {
+			vein_size = 5;
+		}
+		if (vein_size_deep < 5) {
+			vein_size_deep = 5;
+		}
 	}
 }
