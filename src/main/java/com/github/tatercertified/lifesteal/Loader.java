@@ -1,19 +1,31 @@
 package com.github.tatercertified.lifesteal;
 
+import com.github.tatercertified.lifesteal.block.ModBlocks;
+import com.github.tatercertified.lifesteal.item.HeartItem;
 import com.github.tatercertified.lifesteal.item.ModItems;
 import com.github.tatercertified.lifesteal.world.features.Ores;
 import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
-import com.github.tatercertified.lifesteal.block.ModBlocks;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.GameRules;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.Properties;
+
+import static com.github.tatercertified.lifesteal.item.HeartItem.isAltar;
+import static com.github.tatercertified.lifesteal.item.HeartItem.updateValueOf;
+import static com.github.tatercertified.lifesteal.item.ModItems.HEART;
 
 //NOTICE: This file was modified to remove all configuration setup and instead establish gamerules.
 
@@ -83,6 +95,19 @@ public class Loader implements ModInitializer {
 		fixOres();
 		Ores.initOres();
 		PolymerRPUtils.addAssetSource(MOD_ID);
+
+		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+			if (player.getMainHandStack().getItem() == Items.GLASS_BOTTLE && isAltar(world, hitResult.getBlockPos())) {
+				if (player.getHealth() > 2) {
+					updateValueOf(player, -2.0F);
+					player.giveItemStack(new ItemStack(HEART));
+					player.sendMessage(Text.of("You converted one heart"), true);
+				} else {
+					player.sendMessage(Text.of("You don't have enough health!"));
+				}
+			}
+			return ActionResult.PASS;
+		});
 	}
 
 	public void mkfile() throws IOException {

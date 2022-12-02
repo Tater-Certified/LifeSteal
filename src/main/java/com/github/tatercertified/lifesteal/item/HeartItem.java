@@ -57,10 +57,7 @@ public class HeartItem extends ModelledPolymerItem {
         String playername = context.getStack().getName().getString();
         if (player.isSneaking() && context.getWorld().getBlockState(pos).getBlock() == block_from_config) {
             if (!Objects.equals(playername, "Heart")
-                    && context.getWorld().getBlockState(pos.north()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                    && context.getWorld().getBlockState(pos.east()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                    && context.getWorld().getBlockState(pos.south()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                    && context.getWorld().getBlockState(pos.west()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)) {
+                    && isAltar(context.getWorld(), pos)) {
 
                 MinecraftServer server = context.getWorld().getServer();
                 assert server != null;
@@ -146,7 +143,7 @@ public class HeartItem extends ModelledPolymerItem {
         }
     }
 
-    private static void updateValueOf(PlayerEntity of, float by) {
+    public static void updateValueOf(PlayerEntity of, float by) {
         EntityAttributeInstance health = of.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         assert health != null;
         float oldHealth = (float) health.getValue();
@@ -166,5 +163,15 @@ public class HeartItem extends ModelledPolymerItem {
             of.setHealth(of.getHealth() + by);
             if(of.getHealth() > maxHealth) of.setHealth(maxHealth);
         }
+    }
+
+    public static boolean isAltar(World world, BlockPos pos) {
+        if (world.getBlockState(pos.north()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+                && world.getBlockState(pos.east()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+                && world.getBlockState(pos.south()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+                && world.getBlockState(pos.west()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)) {
+            return true;
+        }
+        return false;
     }
 }
