@@ -97,7 +97,7 @@ public class Loader implements ModInitializer {
 		PolymerRPUtils.addAssetSource(MOD_ID);
 
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-			if (player.getMainHandStack().getItem() == Items.GLASS_BOTTLE && isAltar(world, hitResult.getBlockPos())) {
+			if (player.getMainHandStack().isEmpty() && isAltar(world, hitResult.getBlockPos())) {
 				if (player.getHealth() > 2) {
 					updateValueOf(player, -2.0F);
 					player.giveItemStack(new ItemStack(HEART));
