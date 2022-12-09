@@ -43,7 +43,7 @@ public class HeartItem extends ModelledPolymerItem {
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if (!user.isSneaking()) {
             user.getStackInHand(hand).decrement(1);
-            updateValueOf(user, world.getGameRules().getInt(Loader.HEARTBONUS));
+            updateValueOf(user, world.getGameRules().getInt(Loader.HEARTBONUS), true);
         }
         return super.use(world, user, hand);
     }
@@ -70,7 +70,7 @@ public class HeartItem extends ModelledPolymerItem {
                     }
 
                     if (player.getHealth() > 2) {
-                        updateValueOf(player, -2);
+                        updateValueOf(player, -2, true);
                         context.getStack().increment(1);
                         player.sendMessage(Text.of("Traded 1 Heart"));
                     } else {
@@ -113,6 +113,7 @@ public class HeartItem extends ModelledPolymerItem {
         player.changeGameMode(GameMode.SURVIVAL);
         player.sendMessage(Text.of(context.getPlayer().getDisplayName().getString() + " has revived you!"));
         player.getWorld().playSound(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1, 1, true);
+        updateValueOf(player, 1, true);
         context.getStack().decrement(1);
         context.getPlayer().sendMessage(Text.of("You revived " + player.getDisplayName().getString()), true);
     }
@@ -121,8 +122,8 @@ public class HeartItem extends ModelledPolymerItem {
         player.setPosition(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5);
         data.putInt("playerGameType", 0);
         player.setGameMode(data);
+        updateValueOf(player, 1, false);
         savePlayerData(player);
-        player.getWorld().playSound(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1, 1, true);
         context.getStack().decrement(1);
         context.getPlayer().sendMessage(Text.of("You revived " + player.getDisplayName().getString()), true);
     }
@@ -143,7 +144,7 @@ public class HeartItem extends ModelledPolymerItem {
         }
     }
 
-    public static void updateValueOf(PlayerEntity of, float by) {
+    public static void updateValueOf(PlayerEntity of, float by, boolean online) {
         EntityAttributeInstance health = of.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         assert health != null;
         float oldHealth = (float) health.getValue();
@@ -154,14 +155,16 @@ public class HeartItem extends ModelledPolymerItem {
             newHealth = (float) maxHealth;
         }
         health.setBaseValue(newHealth);
-        of.sendMessage(Text.of("Your max health is now " + newHealth), true);
-        if(oldHealth == (float) maxHealth) {
-            of.giveItemStack(new ItemStack(ModItems.HEART, 1));
-            of.getInventory().updateItems();
-            of.sendMessage(Text.of("You are already at the maximum amount of health!"), true);
-        } else {
-            of.setHealth(of.getHealth() + by);
-            if(of.getHealth() > maxHealth) of.setHealth(maxHealth);
+        if (online) {
+            of.sendMessage(Text.of("Your max health is now " + newHealth), true);
+            if (oldHealth == (float) maxHealth) {
+                of.giveItemStack(new ItemStack(ModItems.HEART, 1));
+                of.getInventory().updateItems();
+                of.sendMessage(Text.of("You are already at the maximum amount of health!"), true);
+            } else {
+                of.setHealth(of.getHealth() + by);
+                if (of.getHealth() > maxHealth) of.setHealth(maxHealth);
+            }
         }
     }
 
