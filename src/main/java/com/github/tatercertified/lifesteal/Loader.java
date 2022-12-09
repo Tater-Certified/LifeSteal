@@ -1,21 +1,22 @@
 package com.github.tatercertified.lifesteal;
 
 import com.github.tatercertified.lifesteal.block.ModBlocks;
-import com.github.tatercertified.lifesteal.item.HeartItem;
 import com.github.tatercertified.lifesteal.item.ModItems;
 import com.github.tatercertified.lifesteal.world.features.Ores;
 import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.world.GameRules;
 
 import java.io.*;
@@ -24,7 +25,6 @@ import java.util.Objects;
 import java.util.Properties;
 
 import static com.github.tatercertified.lifesteal.item.HeartItem.isAltar;
-import static com.github.tatercertified.lifesteal.item.HeartItem.updateValueOf;
 import static com.github.tatercertified.lifesteal.item.ModItems.HEART;
 
 //NOTICE: This file was modified to remove all configuration setup and instead establish gamerules.
@@ -80,7 +80,7 @@ public class Loader implements ModInitializer {
 				e.printStackTrace();
 			}
 			cfgver = properties.getProperty("config-version");
-			if (!(Objects.equals(cfgver, "1.1"))) {
+			if (!(Objects.equals(cfgver, "1.2"))) {
 				try {
 					mkfile();
 				} catch (IOException e) {
@@ -97,22 +97,31 @@ public class Loader implements ModInitializer {
 		PolymerRPUtils.addAssetSource(MOD_ID);
 
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-			if (player.getMainHandStack().isEmpty() && isAltar(world, hitResult.getBlockPos())) {
-				if (player.getHealth() > 2) {
-					updateValueOf(player, -2.0F);
-					player.giveItemStack(new ItemStack(HEART));
-					player.sendMessage(Text.of("You converted one heart"), true);
-				} else {
-					player.sendMessage(Text.of("You don't have enough health!"));
-				}
+			if (hand == player.getActiveHand() && player.getStackInHand(hand).isEmpty() && isAltar(world, hitResult.getBlockPos())) {
+				convertHealth(2, player, hand);
 			}
 			return ActionResult.PASS;
 		});
 	}
 
+	public void convertHealth(double amount, PlayerEntity player, Hand hand) {
+		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+		assert health != null;
+		float current = player.getHealth();
+		double newhealth = health.getValue() - amount;
+		if (current > amount) {
+			health.setBaseValue(newhealth);
+			player.setHealth((float) (current - amount));
+			player.setStackInHand(hand, new ItemStack(HEART));
+			player.sendMessage(Text.of("You converted "+ amount +" health"), true);
+		} else {
+			player.sendMessage(Text.of("You don't have enough health!"));
+		}
+	}
+
 	public void mkfile() throws IOException {
 		OutputStream output = new FileOutputStream(String.valueOf(FabricLoader.getInstance().getConfigDir().resolve("lifesteal.properties")));
-		if (!properties.contains("config-version")) {properties.setProperty("config-version", "1.1");}
+		if (!properties.contains("config-version")) {properties.setProperty("config-version", "1.2");}
 		if (!properties.contains("vein-size")) {properties.setProperty("vein-size", "5");}
 		if (!properties.contains("veins-per-chunk")) {properties.setProperty("veins-per-chunk", "1");}
 		if (!properties.contains("vein-size-deepslate")) {properties.setProperty("vein-size-deepslate", "5");}
