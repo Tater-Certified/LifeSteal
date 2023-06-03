@@ -2,7 +2,7 @@ package com.github.tatercertified.lifesteal.item;
 
 import com.github.tatercertified.lifesteal.Loader;
 import com.github.tatercertified.lifesteal.util.ModelledPolymerItem;
-import eu.pb4.polymer.api.resourcepack.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.CandleBlock;
@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -20,7 +21,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
@@ -36,7 +36,7 @@ public class HeartItem extends ModelledPolymerItem {
         super(settings, customModelData);
     }
 
-    Block block_from_config = Registry.BLOCK.get(Identifier.tryParse(revival_block));
+    Block block_from_config = Registries.BLOCK.get(Identifier.tryParse(revival_block));
 
 
     @Override
@@ -84,7 +84,7 @@ public class HeartItem extends ModelledPolymerItem {
                     if (onlineplayer != null && onlineplayer.isSpectator()) {
                         revive(onlineplayer, context);
                     } else if (server.getUserCache().findByName(playername).isPresent() && onlineplayer == null) {
-                        offlineplayer = server.getPlayerManager().createPlayer(server.getUserCache().findByName(playername).get(), null);
+                        offlineplayer = server.getPlayerManager().createPlayer(server.getUserCache().findByName(playername).get());
                         NbtCompound data = server.getPlayerManager().loadPlayerData(offlineplayer);
                         if (data != null && data.getInt("playerGameType") == 3) {
                             reviveOffline(offlineplayer, context, data);
@@ -169,12 +169,9 @@ public class HeartItem extends ModelledPolymerItem {
     }
 
     public static boolean isAltar(World world, BlockPos pos) {
-        if (world.getBlockState(pos.north()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
+        return world.getBlockState(pos.north()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
                 && world.getBlockState(pos.east()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
                 && world.getBlockState(pos.south()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                && world.getBlockState(pos.west()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)) {
-            return true;
-        }
-        return false;
+                && world.getBlockState(pos.west()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true);
     }
 }

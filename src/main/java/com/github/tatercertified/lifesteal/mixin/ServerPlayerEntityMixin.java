@@ -7,7 +7,6 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.encryption.PlayerPublicKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
@@ -15,7 +14,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,8 +32,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
 	@Shadow @Final public ServerPlayerInteractionManager interactionManager;
 
-	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile, @Nullable PlayerPublicKey publicKey) {
-		super(world, pos, yaw, gameProfile, publicKey);
+	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
+		super(world, pos, yaw, gameProfile);
 	}
 
 	@Inject(method = "copyFrom", at = @At("TAIL"))
@@ -70,7 +68,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
 		assert health != null;
 		if (world.getGameRules().getBoolean(Loader.BANWHENMINHEALTH) && health.getBaseValue() < minHealth) {
-			player.networkHandler.connection.send(new net.minecraft.network.packet.s2c.play.DisconnectS2CPacket(Text.of("You lost your last life")));
+			player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.DisconnectS2CPacket(Text.of("You lost your last life")));
 		} else if(health.getBaseValue() < minHealth){
 			player.changeGameMode(GameMode.SPECTATOR);
 			player.sendMessage(Text.of("You lost your last life. You now must be revived"), true);

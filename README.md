@@ -18,9 +18,13 @@ Configuration is purely managed through gamerules, here is a list of gamerules a
 |lifeSteal:maxPlayerHealth|Integer|The maximum health a player can reach *set to a value of 0 or below to disable*| 40      |
 ```yaml
 Additional Config options:
-- Vein Size: Number of ores per vein
-- Veins Per Chunk: Number of veins per MC chunk
 - Ritual Block: What block to use as the ritual block
+```
+
+```yaml
+Datapack Overriding:
+  - Override "lifesteal\worldgen\configured_feature\heart_ore.json" to change amount of ores per vein
+  - Override "lifesteal\worldgen\placed_feature\heart_ore.json" to change amount of veins per chunk
 ```
 
 ## Aditional Notes:

@@ -1,15 +1,15 @@
 package com.github.tatercertified.lifesteal.util;// Created 2022-13-07T01:12:20
 
-import eu.pb4.polymer.api.resourcepack.PolymerModelData;
-import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.ArmorMaterial;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -29,13 +29,12 @@ public class PolyLustUtils {
      *
      * @param path  The path of the item in the registry.
      * @param mask  The vanilla item to act as the mask.
-     * @param group The item group to put the item in.
      * @return A registered Polymer item ready for use.
      */
-    public static Item ofModelled(@NotNull String path, @NotNull Item mask, ItemGroup group) {
+    public static Item ofModelled(@NotNull String path, @NotNull Item mask) {
         Objects.requireNonNull(path, "Invalid registry path.");
         check(mask);
-        var item = new ModelledPolymerItem(new FabricItemSettings().group(group), getModelData(path, mask));
+        var item = new ModelledPolymerItem(new FabricItemSettings(), getModelData(path, mask));
         registerItem(path, item);
         return item;
     }
@@ -45,15 +44,14 @@ public class PolyLustUtils {
      *
      * @param path        The path of the item in the registry.
      * @param mask        The vanilla item to act as the mask.
-     * @param group       The item group to put the item in.
      * @param constructor The constructor reference or lambda for a custom Item instance.
      * @return A registered custom Polymer item ready for use.
      */
-    public static <T extends Item> T ofModelled(@NotNull String path, @NotNull Item mask, ItemGroup group,
+    public static <T extends Item> T ofModelled(@NotNull String path, @NotNull Item mask,
                                                 BiFunction<Item.Settings, PolymerModelData, T> constructor) {
         Objects.requireNonNull(path, "Invalid registry path.");
         check(mask);
-        T item = constructor.apply(new FabricItemSettings().group(group), getModelData(path, mask));
+        T item = constructor.apply(new FabricItemSettings(), getModelData(path, mask));
         registerItem(path, item);
         return item;
     }
@@ -63,12 +61,11 @@ public class PolyLustUtils {
      *
      * @param path        The path of the item in the registry.
      * @param mask        The vanilla armor to act as the mask.
-     * @param group       The item group to put the item in.
      * @param material    The material for the armor.
      * @param constructor The constructor reference or lambda for a custom ArmorItem instance.
      * @return A registered custom Polymer armor item ready for use.
      */
-    public static <T extends ArmorItem> T ofModelled(@NotNull String path, @NotNull Item mask, ItemGroup group,
+    public static <T extends ArmorItem> T ofModelled(@NotNull String path, @NotNull Item mask,
                                                      @NotNull ArmorMaterial material,
                                                      QuadFunction<ArmorMaterial, EquipmentSlot, Item.Settings,
                                                              PolymerModelData, T> constructor) {
@@ -76,7 +73,7 @@ public class PolyLustUtils {
         Objects.requireNonNull(material, "Invalid armor material.");
         ArmorItem maskArmor = checkArmor(mask);
         var item = constructor.invoke(material, maskArmor.getSlotType(),
-                new FabricItemSettings().group(group).maxCount(1), getModelData(path, mask));
+                new FabricItemSettings().maxCount(1), getModelData(path, mask));
         registerItem(path, item);
         return item;
     }
@@ -89,7 +86,7 @@ public class PolyLustUtils {
      * @return The PolymerModelData referencing the item and model.
      */
     public static PolymerModelData getModelData(String path, Item mask) {
-        return PolymerRPUtils.requestModel(mask, new Identifier(MOD_ID, "item/" + path));
+        return PolymerResourcePackUtils.requestModel(mask, new Identifier(MOD_ID, "item/" + path));
     }
 
     /**
@@ -99,7 +96,7 @@ public class PolyLustUtils {
      * @param item The item to register.
      */
     public static void registerItem(String path, Item item) {
-        Registry.register(Registry.ITEM, new Identifier(MOD_ID, path), item);
+        Registry.register(Registries.ITEM, new Identifier(MOD_ID, path), item);
     }
 
     /**
@@ -116,7 +113,7 @@ public class PolyLustUtils {
      */
     private static void check(Item item) {
         Objects.requireNonNull(item, "Invalid item for mask.");
-        var identifier = Registry.ITEM.getId(item);
+        var identifier = Registries.ITEM.getId(item);
         if (!"minecraft".equals(identifier.getNamespace())) {
             throw new IllegalArgumentException("Non-vanilla item " + item + " (" + identifier + ")");
         }
