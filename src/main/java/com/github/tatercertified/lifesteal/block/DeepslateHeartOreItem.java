@@ -1,8 +1,8 @@
 package com.github.tatercertified.lifesteal.block;
 
-import eu.pb4.polymer.api.item.PolymerItem;
-import eu.pb4.polymer.api.resourcepack.PolymerModelData;
-import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
+import eu.pb4.polymer.core.api.item.PolymerItem;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -20,7 +20,7 @@ public class DeepslateHeartOreItem extends BlockItem implements PolymerItem {
 
     public DeepslateHeartOreItem(Settings settings, Block block, String modelId) {
         super(block, settings);
-        this.polymerModel = PolymerRPUtils.requestModel(Items.BARRIER, new Identifier(MOD_ID, modelId));
+        this.polymerModel = PolymerResourcePackUtils.requestModel(Items.BARRIER, new Identifier(MOD_ID, modelId));
 
     }
 

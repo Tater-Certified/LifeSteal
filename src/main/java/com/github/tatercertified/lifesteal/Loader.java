@@ -3,7 +3,7 @@ package com.github.tatercertified.lifesteal;
 import com.github.tatercertified.lifesteal.block.ModBlocks;
 import com.github.tatercertified.lifesteal.item.ModItems;
 import com.github.tatercertified.lifesteal.world.features.Ores;
-import eu.pb4.polymer.api.resourcepack.PolymerRPUtils;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
@@ -13,7 +13,6 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -54,10 +53,6 @@ public class Loader implements ModInitializer {
 	public static final GameRules.Key<GameRules.IntRule> HEARTBONUS =
 			GameRuleRegistry.register(MOD_ID + ":healthPerUse", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2));
 
-	public static int vein_size;
-	public static int veins_per_chunk;
-	public static int vein_size_deep;
-	public static int veins_per_chunk_deep;
 	public static String revival_block;
 	public static String cfgver;
 	public static Properties properties = new Properties();
@@ -80,7 +75,7 @@ public class Loader implements ModInitializer {
 				e.printStackTrace();
 			}
 			cfgver = properties.getProperty("config-version");
-			if (!(Objects.equals(cfgver, "1.2"))) {
+			if (!(Objects.equals(cfgver, "1.3"))) {
 				try {
 					mkfile();
 				} catch (IOException e) {
@@ -92,9 +87,8 @@ public class Loader implements ModInitializer {
 		}
 		ModItems.init();
 		ModBlocks.registerBlocks();
-		fixOres();
 		Ores.initOres();
-		PolymerRPUtils.addAssetSource(MOD_ID);
+		PolymerResourcePackUtils.addModAssets(MOD_ID);
 
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			if (hand == player.getActiveHand() && player.getStackInHand(hand).isEmpty() && isAltar(world, hitResult.getBlockPos())) {
@@ -121,11 +115,7 @@ public class Loader implements ModInitializer {
 
 	public void mkfile() throws IOException {
 		OutputStream output = new FileOutputStream(String.valueOf(FabricLoader.getInstance().getConfigDir().resolve("lifesteal.properties")));
-		if (!properties.contains("config-version")) {properties.setProperty("config-version", "1.2");}
-		if (!properties.contains("vein-size")) {properties.setProperty("vein-size", "5");}
-		if (!properties.contains("veins-per-chunk")) {properties.setProperty("veins-per-chunk", "1");}
-		if (!properties.contains("vein-size-deepslate")) {properties.setProperty("vein-size-deepslate", "5");}
-		if (!properties.contains("veins-per-chunk-deepslate")) {properties.setProperty("veins-per-chunk-deepslate", "1");}
+		if (!properties.contains("config-version")) {properties.setProperty("config-version", "1.3");}
 		if (!properties.contains("revival_block")) {properties.setProperty("revival_block", "minecraft:netherite_block");}
 		properties.store(output, null);
 		parse();
@@ -140,19 +130,6 @@ public class Loader implements ModInitializer {
 
 	public void parse() {
 		cfgver = properties.getProperty("config-version");
-		vein_size = Integer.parseInt(properties.getProperty("vein-size"));
-		veins_per_chunk = Integer.parseInt(properties.getProperty("veins-per-chunk"));
-		vein_size_deep = Integer.parseInt(properties.getProperty("vein-size-deepslate"));
-		veins_per_chunk_deep = Integer.parseInt(properties.getProperty("veins-per-chunk-deepslate"));
 		revival_block = properties.getProperty("revival_block");
-	}
-
-	public void fixOres() {
-		if (vein_size < 5) {
-			vein_size = 5;
-		}
-		if (vein_size_deep < 5) {
-			vein_size_deep = 5;
-		}
 	}
 }

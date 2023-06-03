@@ -2,7 +2,6 @@ package com.github.tatercertified.lifesteal.item;
 
 import com.github.tatercertified.lifesteal.util.PolyLustUtils;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.item.Items;
 
 public class ModItems {
@@ -12,15 +11,15 @@ public class ModItems {
     public static final Item HEART = heart();
 
     private static Item dust() {
-        return PolyLustUtils.ofModelled("heart_dust", Items.REDSTONE, ItemGroup.MISC);
+        return PolyLustUtils.ofModelled("heart_dust", Items.REDSTONE);
     }
 
     private static Item crystal() {
-        return PolyLustUtils.ofModelled("heart_crystal", Items.ECHO_SHARD, ItemGroup.MISC);
+        return PolyLustUtils.ofModelled("heart_crystal", Items.ECHO_SHARD);
     }
 
     private static Item heart() {
-        return PolyLustUtils.ofModelled("heart", Items.POTION, ItemGroup.MISC,
+        return PolyLustUtils.ofModelled("heart", Items.POTION,
                 (settings, modelData) -> new HeartItem(settings.maxCount(1), modelData));
     }
 
