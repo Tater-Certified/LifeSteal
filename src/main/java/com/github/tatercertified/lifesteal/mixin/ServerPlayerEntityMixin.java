@@ -1,14 +1,17 @@
 package com.github.tatercertified.lifesteal.mixin;
 
 import com.github.tatercertified.lifesteal.Loader;
+import com.github.tatercertified.lifesteal.util.ServerPlayerEntityInterface;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.BannedPlayerEntry;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -28,12 +31,29 @@ import java.util.Objects;
 //being lost on death.
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityInterface {
 
-	@Shadow @Final public ServerPlayerInteractionManager interactionManager;
+	@Shadow @Final public MinecraftServer server;
+	private String reviver = null;
 
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
 		super(world, pos, yaw, gameProfile);
+	}
+
+	@Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
+	public void writeCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
+		if (reviver != null) {
+			nbt.putString("reviver", reviver);
+		} else if (nbt.contains("reviver") && nbt.get("reviver") == null) {
+			nbt.remove("reviver");
+		}
+	}
+
+	@Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
+	public void readCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
+		if (nbt.contains("reviver")) {
+			this.reviver = nbt.getString("reviver");
+		}
 	}
 
 	@Inject(method = "copyFrom", at = @At("TAIL"))
@@ -48,7 +68,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 	@Inject(method = "onDeath", at = @At("TAIL"))
 	public void onDeathLowerMaxHealth(DamageSource source, CallbackInfo callbackInfo) {
 		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-		ServerWorld world = player.getWorld();
+		ServerWorld world = (ServerWorld) player.getWorld();
 		Entity entity = source.getAttacker();
 		int stealAmount = world.getGameRules().getInt(Loader.STEALAMOUNT);
 		if(entity instanceof ServerPlayerEntity && !Objects.equals(player.getIp(), "127.0.0.1")) {
@@ -62,16 +82,17 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 	@Inject(method = "onSpawn", at = @At("TAIL"))
 	public void onSpawnCheckToBan(CallbackInfo callbackInfo) {
 		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-		ServerWorld world = player.getWorld();
+		ServerWorld world = (ServerWorld) player.getWorld();
 		int minHealth = player.getWorld().getGameRules().getInt(Loader.MINPLAYERHEALTH);
 		if(minHealth < 1) minHealth = 1;
 		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
 		assert health != null;
 		if (world.getGameRules().getBoolean(Loader.BANWHENMINHEALTH) && health.getBaseValue() < minHealth) {
-			player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.DisconnectS2CPacket(Text.of("You lost your last life")));
+			player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.DisconnectS2CPacket(Text.of("You lost your last life. You will be unbanned when someone revives you.")));
+			server.getPlayerManager().getUserBanList().add(new BannedPlayerEntry(player.getGameProfile()));
 		} else if(health.getBaseValue() < minHealth){
 			player.changeGameMode(GameMode.SPECTATOR);
-			player.sendMessage(Text.of("You lost your last life. You now must be revived"), true);
+			player.sendMessage(Text.of("You lost your last life. You now must be revived."), true);
 		}
 	}
 	
@@ -84,5 +105,17 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 		if(maxHealth > 0 && newHealth > maxHealth) newHealth = maxHealth;
 		of.setHealth(of.getHealth()+by);
 		health.setBaseValue(newHealth);
+	}
+
+	@Override
+	public String reviver() {
+		String copy = reviver;
+		reviver = null;
+		return copy;
+	}
+
+	@Override
+	public void setReviver(String reviver) {
+		this.reviver = reviver;
 	}
 }
