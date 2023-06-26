@@ -113,9 +113,4 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		reviver = null;
 		return copy;
 	}
-
-	@Override
-	public void setReviver(String reviver) {
-		this.reviver = reviver;
-	}
 }
