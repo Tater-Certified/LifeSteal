@@ -4,7 +4,7 @@ import com.github.tatercertified.lifesteal.Loader;
 import com.github.tatercertified.lifesteal.util.ModelledPolymerItem;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.CandleBlock;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -14,6 +14,7 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -50,17 +51,16 @@ public class HeartItem extends ModelledPolymerItem {
 
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
-        if (block_from_config == null) super.useOnBlock(context);
+        if (block_from_config == null) {
+            return super.useOnBlock(context);
+        }
         PlayerEntity player =  context.getPlayer();
         BlockPos pos = new BlockPos.Mutable(context.getBlockPos().getX(), context.getBlockPos().getY(), context.getBlockPos().getZ());
-        assert player != null;
         String playername = context.getStack().getName().getString();
         if (player.isSneaking() && context.getWorld().getBlockState(pos).getBlock() == block_from_config) {
-            if (!Objects.equals(playername, "Heart")
-                    && isAltar(context.getWorld(), pos)) {
+            if (!Objects.equals(playername, "Heart") && isAltar(context.getWorld(), pos)) {
 
                 MinecraftServer server = context.getWorld().getServer();
-                assert server != null;
 
                 if (playername.equalsIgnoreCase(player.getDisplayName().getString())) {
 
@@ -78,16 +78,15 @@ public class HeartItem extends ModelledPolymerItem {
                     }
 
                 } else {
-                    ServerPlayerEntity onlineplayer = server.getPlayerManager().getPlayer(playername);
-                    ServerPlayerEntity offlineplayer;
+                    ServerPlayerEntity revived = server.getPlayerManager().getPlayer(playername);
 
-                    if (onlineplayer != null && onlineplayer.isSpectator()) {
-                        revive(onlineplayer, context);
-                    } else if (server.getUserCache().findByName(playername).isPresent() && onlineplayer == null) {
-                        offlineplayer = server.getPlayerManager().createPlayer(server.getUserCache().findByName(playername).get());
-                        NbtCompound data = server.getPlayerManager().loadPlayerData(offlineplayer);
+                    if (revived != null && revived.isSpectator()) {
+                        revive(revived, context);
+                    } else if (server.getUserCache().findByName(playername).isPresent() && revived == null) {
+                        revived = server.getPlayerManager().createPlayer(server.getUserCache().findByName(playername).get());
+                        NbtCompound data = server.getPlayerManager().loadPlayerData(revived);
                         if (data != null && data.getInt("playerGameType") == 3) {
-                            reviveOffline(offlineplayer, context, data);
+                            reviveOffline(revived, context, data);
                         } else {
                             if (data != null && data.getInt("playerGameType") != 3) {
                                 player.sendMessage(Text.of(playername + " is still alive"), true);
@@ -96,7 +95,7 @@ public class HeartItem extends ModelledPolymerItem {
                             }
                         }
                     } else {
-                        if (onlineplayer != null && !onlineplayer.isSpectator()) {
+                        if (revived != null && !revived.isSpectator()) {
                             player.sendMessage(Text.of(playername + " is still alive"), true);
                         } else {
                             player.sendMessage(Text.of(playername + " does not exist"), true);
@@ -123,7 +122,11 @@ public class HeartItem extends ModelledPolymerItem {
         data.putInt("playerGameType", 0);
         player.setGameMode(data);
         updateValueOf(player, 1, false);
+        data.putString("reviver", context.getPlayer().getName().getString());
         savePlayerData(player);
+        if (context.getWorld().getGameRules().getBoolean(Loader.BANWHENMINHEALTH)) {
+            context.getPlayer().getServer().getPlayerManager().getUserBanList().remove(player.getGameProfile());
+        }
         context.getStack().decrement(1);
         context.getPlayer().sendMessage(Text.of("You revived " + player.getDisplayName().getString()), true);
     }
@@ -169,9 +172,14 @@ public class HeartItem extends ModelledPolymerItem {
     }
 
     public static boolean isAltar(World world, BlockPos pos) {
-        return world.getBlockState(pos.north()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                && world.getBlockState(pos.east()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                && world.getBlockState(pos.south()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true)
-                && world.getBlockState(pos.west()) == Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true);
+        BlockState north = world.getBlockState(pos.north());
+        BlockState east = world.getBlockState(pos.east());
+        BlockState south = world.getBlockState(pos.south());
+        BlockState west = world.getBlockState(pos.west());
+
+        return north.isIn(BlockTags.CANDLES) && north.get(CandleBlock.LIT)
+                && east.isIn(BlockTags.CANDLES) && east.get(CandleBlock.LIT)
+                && south.isIn(BlockTags.CANDLES) && south.get(CandleBlock.LIT)
+                && west.isIn(BlockTags.CANDLES) && west.get(CandleBlock.LIT);
     }
 }

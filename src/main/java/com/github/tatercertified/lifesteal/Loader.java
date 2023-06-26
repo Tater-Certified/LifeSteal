@@ -2,17 +2,20 @@ package com.github.tatercertified.lifesteal;
 
 import com.github.tatercertified.lifesteal.block.ModBlocks;
 import com.github.tatercertified.lifesteal.item.ModItems;
+import com.github.tatercertified.lifesteal.util.ServerPlayerEntityInterface;
 import com.github.tatercertified.lifesteal.world.features.Ores;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -95,6 +98,14 @@ public class Loader implements ModInitializer {
 				convertHealth(2, player, hand);
 			}
 			return ActionResult.PASS;
+		});
+
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			ServerPlayerEntity connecting = handler.player;
+			String reviver = ((ServerPlayerEntityInterface)connecting).reviver();
+			if (reviver != null) {
+				connecting.sendMessage(Text.literal(((ServerPlayerEntityInterface)connecting).reviver() + " has revived you!"));
+			}
 		});
 	}
 
