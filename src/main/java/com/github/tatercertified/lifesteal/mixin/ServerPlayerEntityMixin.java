@@ -25,8 +25,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Objects;
-
 //NOTICE: file was modified to use gamerules instead
 //of the configuration implementation and to use attributes, it also fixes the max health attribute
 //being lost on death.
@@ -62,7 +60,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 	public void preserveMaxHealth(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo callbackInfo) {
 		EntityAttributeInstance oldHealth = oldPlayer.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
 		assert oldHealth != null;
-		EntityAttributeInstance health = ((ServerPlayerEntity) (Object) this).getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+		EntityAttributeInstance health = this.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
 		assert health != null;
 		health.setBaseValue(oldHealth.getBaseValue());
 	}
@@ -73,7 +71,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		ServerWorld world = (ServerWorld) player.getWorld();
 		Entity entity = source.getAttacker();
 		int stealAmount = world.getGameRules().getInt(Loader.STEALAMOUNT);
-		if(entity instanceof ServerPlayerEntity && !Objects.equals(player.getIp(), "127.0.0.1")) {
+		if (entity instanceof ServerPlayerEntity) {
 			updateValueOf((ServerPlayerEntity)entity, stealAmount);
 			updateValueOf(player, -stealAmount);
 		} else if(!world.getGameRules().getBoolean(Loader.PLAYERRELATEDONLY)) {
