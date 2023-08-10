@@ -57,28 +57,6 @@ public class PolyLustUtils {
     }
 
     /**
-     * Creates &amp; registers a customised Polymer armor item with a model bound for the given masking item.
-     *
-     * @param path        The path of the item in the registry.
-     * @param mask        The vanilla armor to act as the mask.
-     * @param material    The material for the armor.
-     * @param constructor The constructor reference or lambda for a custom ArmorItem instance.
-     * @return A registered custom Polymer armor item ready for use.
-     */
-    public static <T extends ArmorItem> T ofModelled(@NotNull String path, @NotNull Item mask,
-                                                     @NotNull ArmorMaterial material,
-                                                     QuadFunction<ArmorMaterial, EquipmentSlot, Item.Settings,
-                                                             PolymerModelData, T> constructor) {
-        Objects.requireNonNull(path, "Invalid registry path.");
-        Objects.requireNonNull(material, "Invalid armor material.");
-        ArmorItem maskArmor = checkArmor(mask);
-        var item = constructor.invoke(material, maskArmor.getSlotType(),
-                new FabricItemSettings().maxCount(1), getModelData(path, mask));
-        registerItem(path, item);
-        return item;
-    }
-
-    /**
      * Helper method to get custom model data for the item.
      *
      * @param path The path of the item's model.
