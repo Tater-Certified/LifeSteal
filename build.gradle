@@ -17,10 +17,10 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation include("eu.pb4:polymer-core:0.5.5+1.20.1")
-    modImplementation include("xyz.nucleoid:server-translations-api:2.0.0+1.20")
-    modImplementation include("eu.pb4:polymer-blocks:0.5.5+1.20.1")
-    modImplementation include("eu.pb4:polymer-resource-pack:0.5.5+1.20.1")
+    modImplementation include("eu.pb4:polymer-core:0.6.0-rc.3+1.20.2-rc2")
+    modImplementation include("xyz.nucleoid:server-translations-api:2.1.0+1.20.2-rc2")
+    modImplementation include("eu.pb4:polymer-blocks:0.6.0-rc.3+1.20.2-rc2")
+    modImplementation include("eu.pb4:polymer-resource-pack:0.6.0-rc.3+1.20.2-rc2")
 }
 
 processResources {

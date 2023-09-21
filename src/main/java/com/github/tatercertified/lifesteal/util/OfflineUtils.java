@@ -3,6 +3,7 @@ package com.github.tatercertified.lifesteal.util;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -36,7 +37,7 @@ public class OfflineUtils {
      */
     public static Optional<ServerPlayerEntity> getOfflinePlayer(MinecraftServer server, UUID uuid) {
         Optional<GameProfile> profile = server.getUserCache().getByUuid(uuid);
-        return profile.map(gameProfile -> server.getPlayerManager().createPlayer(gameProfile));
+        return profile.map(gameProfile -> server.getPlayerManager().createPlayer(gameProfile, SyncedClientOptions.createDefault()));
     }
 
     /**
