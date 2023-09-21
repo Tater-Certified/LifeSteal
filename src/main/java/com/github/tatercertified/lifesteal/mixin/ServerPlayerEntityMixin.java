@@ -88,7 +88,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
 		assert health != null;
 		if (world.getGameRules().getBoolean(Loader.BANWHENMINHEALTH) && health.getBaseValue() < minHealth) {
-			player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.DisconnectS2CPacket(Text.of("You lost your last life. You will be unbanned when someone revives you.")));
+			player.networkHandler.disconnect(Text.literal("You lost your last life. You will be unbanned when someone revives you."));
 			server.getPlayerManager().getUserBanList().add(new BannedPlayerEntry(player.getGameProfile()));
 		} else if(health.getBaseValue() < minHealth){
 			player.changeGameMode(GameMode.SPECTATOR);
