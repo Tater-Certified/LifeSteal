@@ -1,7 +1,9 @@
 package com.github.tatercertified.lifesteal.mixin;
 
-import com.github.tatercertified.lifesteal.Loader;
+import com.github.tatercertified.lifesteal.util.Config;
+import com.github.tatercertified.lifesteal.util.PlayerUtils;
 import com.github.tatercertified.lifesteal.util.ServerPlayerEntityInterface;
+import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
@@ -9,7 +11,6 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -25,16 +26,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//NOTICE: file was modified to use gamerules instead
-//of the configuration implementation and to use attributes, it also fixes the max health attribute
-//being lost on death.
-
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityInterface {
 
 	@Shadow @Final public MinecraftServer server;
 	@Unique
-	private String reviver = null;
+	private String reviver;
 
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
 		super(world, pos, yaw, gameProfile);
@@ -70,30 +67,24 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 		ServerWorld world = (ServerWorld) player.getWorld();
 		Entity entity = source.getAttacker();
-		int stealAmount = world.getGameRules().getInt(Loader.STEALAMOUNT);
+		int stealAmount = world.getGameRules().getInt(LSGameRules.STEALAMOUNT);
 		if (entity instanceof ServerPlayerEntity) {
-			updateValueOf((ServerPlayerEntity)entity, stealAmount);
+			if (server.getGameRules().getBoolean(LSGameRules.ANTIHEARTDUPE)) {
+				if (player.getMaxHealth() > server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
+					updateValueOf((ServerPlayerEntity)entity, stealAmount);
+				}
+			} else {
+				updateValueOf((ServerPlayerEntity)entity, stealAmount);
+			}
 			updateValueOf(player, -stealAmount);
-		} else if(!world.getGameRules().getBoolean(Loader.PLAYERRELATEDONLY)) {
+		} else if(!world.getGameRules().getBoolean(LSGameRules.PLAYERRELATEDONLY)) {
 			updateValueOf(player, -stealAmount);
 		}
 	}
 	
 	@Inject(method = "onSpawn", at = @At("TAIL"))
 	public void onSpawnCheckToBan(CallbackInfo callbackInfo) {
-		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-		ServerWorld world = (ServerWorld) player.getWorld();
-		int minHealth = player.getWorld().getGameRules().getInt(Loader.MINPLAYERHEALTH);
-		if(minHealth < 1) minHealth = 1;
-		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
-		assert health != null;
-		if (world.getGameRules().getBoolean(Loader.BANWHENMINHEALTH) && health.getBaseValue() < minHealth) {
-			player.networkHandler.disconnect(Text.literal("You lost your last life. You will be unbanned when someone revives you."));
-			server.getPlayerManager().getUserBanList().add(new BannedPlayerEntry(player.getGameProfile()));
-		} else if(health.getBaseValue() < minHealth){
-			player.changeGameMode(GameMode.SPECTATOR);
-			player.sendMessage(Text.of("You lost your last life. You now must be revived."), true);
-		}
+		checkIfDead();
 	}
 	
 	@Unique
@@ -102,10 +93,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		assert health != null;
 		double oldHealth = health.getValue();
 		float newHealth = (float) (oldHealth + by);
-		int maxHealth = of.getWorld().getGameRules().getInt(Loader.MAXPLAYERHEALTH);
+		int maxHealth = of.getWorld().getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH);
 		if(maxHealth > 0 && newHealth > maxHealth) newHealth = maxHealth;
 		of.setHealth(of.getHealth()+by);
 		health.setBaseValue(newHealth);
+		checkForMinHealth(health, of.getServer());
 	}
 
 	@Override
@@ -113,5 +105,35 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		String copy = reviver;
 		reviver = null;
 		return copy;
+	}
+
+	@Override
+	public void checkIfDead() {
+		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+		int minHealth = server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
+		if (minHealth < 1) minHealth = 1;
+		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+		assert health != null;
+
+		if (health.getBaseValue() <= 0) {
+			if (server.getGameRules().getBoolean(LSGameRules.BANWHENMINHEALTH)) {
+				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
+				player.networkHandler.disconnect(Text.literal(Config.REVIVAL_MESSAGE));
+			} else if (server.getGameRules().getBoolean(LSGameRules.SPECTATORWHENMINHEALTH)) {
+				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
+				player.changeGameMode(GameMode.SPECTATOR);
+				player.sendMessage(Text.of(Config.REVIVAL_MESSAGE), true);
+			} else {
+				player.setHealth(minHealth);
+			}
+		}
+	}
+
+	private static void checkForMinHealth(EntityAttributeInstance health, MinecraftServer server) {
+		int minHealth = server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
+
+		if (minHealth > 0 && health.getBaseValue() < minHealth) {
+			health.setBaseValue(minHealth);
+		}
 	}
 }

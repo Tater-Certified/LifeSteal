@@ -3,7 +3,6 @@ package com.github.tatercertified.lifesteal.util;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -13,7 +12,7 @@ import net.minecraft.world.GameMode;
 import java.util.Optional;
 import java.util.UUID;
 
-public class OfflineUtils {
+public final class OfflineUtils {
     /**
      * Gets a ServerPlayerEntity regardless if it is online or not
      * @param uuid UUID of the player
@@ -37,7 +36,11 @@ public class OfflineUtils {
      */
     public static Optional<ServerPlayerEntity> getOfflinePlayer(MinecraftServer server, UUID uuid) {
         Optional<GameProfile> profile = server.getUserCache().getByUuid(uuid);
-        return profile.map(gameProfile -> server.getPlayerManager().createPlayer(gameProfile, SyncedClientOptions.createDefault()));
+        return profile.map(gameProfile -> {
+            ServerPlayerEntity player = server.getPlayerManager().createPlayer(gameProfile);
+            server.getPlayerManager().loadPlayerData(player);
+            return player;
+        });
     }
 
     /**
@@ -106,5 +109,23 @@ public class OfflineUtils {
      */
     public static GameMode getGameMode(NbtCompound player_data) {
         return GameMode.byId(player_data.getInt("playerGameType"));
+    }
+
+    /**
+     * Correctly sets the health of an offline player
+     * @param playerData NbtData for the ServerPlayerEntity
+     * @param health The new health of the player
+     */
+    public static void setHealth(NbtCompound playerData, float health) {
+        playerData.putFloat("Health", health);
+    }
+
+    /**
+     * Correctly gets the health of an offline player
+     * @param playerData NbtData for the ServerPlayerEntity
+     * @return Returns the player's health
+     */
+    public static float getHealth(NbtCompound playerData) {
+        return playerData.getFloat("Health");
     }
 }
