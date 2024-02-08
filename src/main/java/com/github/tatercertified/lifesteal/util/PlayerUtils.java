@@ -3,6 +3,7 @@ package com.github.tatercertified.lifesteal.util;
 import com.github.tatercertified.lifesteal.item.ModItems;
 import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.github.tatercertified.lifesteal.world.nbt.NBTStorage;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
@@ -42,6 +43,7 @@ public final class PlayerUtils {
         NBTStorage storage = NBTStorage.getServerState(server);
         NbtString idString = NbtString.of(uuid.toString());
         storage.deadPlayers.add(idString);
+        storage.markDirty();
     }
 
     /**
@@ -59,6 +61,17 @@ public final class PlayerUtils {
                 return;
             }
         }
+        storage.markDirty();
+    }
+
+    /**
+     * Clears the deadPlayers list
+     * @param server MinecraftServer instance
+     */
+    public static void clearDeadList(MinecraftServer server) {
+        NBTStorage storage = NBTStorage.getServerState(server);
+        storage.deadPlayers.clear();
+        storage.markDirty();
     }
 
     /**
@@ -74,7 +87,7 @@ public final class PlayerUtils {
         if (receiverOp.isPresent()) {
             ServerPlayerEntity receiver = receiverOp.get();
 
-            if (!OfflineUtils.isPlayerOnline(receiver, server)) {
+            if (!OfflineUtils.isPlayerOnline(uuid, server)) {
                 return;
             }
 
@@ -85,15 +98,6 @@ public final class PlayerUtils {
                 giver.sendMessage(Text.literal(Config.GIVER_TOO_LITTLE_HEALTH));
                 return;
             }
-
-            // TODO Fix offline health
-            /*
-            NbtCompound receiverData = OfflineUtils.getPlayerData(server, receiver);
-            if (OfflineUtils.getHealth(receiverData) + amount > server.getOverworld().getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH)) {
-                giver.sendMessage(Text.literal("This player cannot receive this much health"));
-                return;
-            }
-             */
 
             if (receiver.getMaxHealth() + amount > server.getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH)) {
                 giver.sendMessage(Text.literal(Config.RECEIVER_TOO_MUCH_HEALTH));
@@ -115,7 +119,7 @@ public final class PlayerUtils {
      * @return Returns if the new base health succeeded
      */
     public static boolean setBaseHealth(ServerPlayerEntity player, double increaseBy, MinecraftServer server) {
-        boolean online = OfflineUtils.isPlayerOnline(player, server);
+        boolean online = OfflineUtils.isPlayerOnline(player.getUuid(), server);
 
         EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         double current = health.getBaseValue();
@@ -152,9 +156,15 @@ public final class PlayerUtils {
      */
     public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server) {
         if (PlayerUtils.setBaseHealth(player, -(hearts * server.getGameRules().getInt(LSGameRules.HEARTBONUS)), server)) {
-            player.giveItemStack(new ItemStack(ModItems.HEART, hearts));
-            player.getInventory().updateItems();
-            player.sendMessage(Text.of(Config.HEART_TRADED));
+            int slot = player.getInventory().getEmptySlot();
+
+            if (slot != -1) {
+                player.getInventory().setStack(slot, new ItemStack(ModItems.HEART, hearts));
+                player.getInventory().updateItems();
+                player.sendMessage(Text.of(Config.HEART_TRADED));
+            } else {
+                player.getWorld().spawnEntity(new ItemEntity(player.getWorld(), player.getX(), player.getY(), player.getZ(), new ItemStack(ModItems.HEART, hearts)));
+            }
         } else {
             player.sendMessage(Text.of(Config.GIVER_TOO_LITTLE_HEALTH), true);
         }

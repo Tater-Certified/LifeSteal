@@ -1,13 +1,13 @@
 package com.github.tatercertified.lifesteal.util;
 
+import com.github.tatercertified.lifesteal.mixin.SaveHandlerAccessor;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -44,88 +44,107 @@ public final class OfflineUtils {
     }
 
     /**
-     * Loads the player data for offline users
+     * Gets the player data from the SaveHandler
+     * @param uuid Player UUID
      * @param server MinecraftServer
-     * @param player ServerPlayerEntity that is getting its data loaded
-     * @return PlayerData in the form of NbtCompound
+     * @param playerName String player name
+     * @return LifeSteal NbtCompound data
      */
-    public static NbtCompound getPlayerData(MinecraftServer server, ServerPlayerEntity player) {
-        return server.getPlayerManager().loadPlayerData(player);
+    public static NbtCompound getPlayerData(UUID uuid, MinecraftServer server, String playerName) {
+        return ((PlayerDataInterface)((SaveHandlerAccessor)server.getPlayerManager()).getSaveHandler()).getLifeStealInfo(uuid, playerName);
     }
 
     /**
-     * Saves the player data and safely removes the ServerPlayerEntity from the MinecraftServer
-     * @param player ServerPlayerEntity whose data is being saved
-     * @param player_data ServerPlayerEntity's PlayerData
+     * Saves the player data
+     * @param uuid Player UUID
      * @param server MinecraftServer
+     * @param playerName String player name
+     * @param lifeStealData LifeSteal NbtCompound data
      */
-    public static void savePlayerData(ServerPlayerEntity player, NbtCompound player_data, MinecraftServer server) {
-        player.saveNbt(player_data);
-        player.remove(Entity.RemovalReason.DISCARDED);
-        server.getPlayerManager().remove(player);
+    public static void savePlayerData(UUID uuid, MinecraftServer server, String playerName, NbtCompound lifeStealData) {
+        ((PlayerDataInterface)((SaveHandlerAccessor)server.getPlayerManager()).getSaveHandler()).saveLifeStealInfo(uuid, playerName, lifeStealData);
     }
 
     /**
-     * Checks if a ServerPlayerEntity is online
-     * @param player ServerPlayerEntity
+     * Sets the location for teleportation when the player logs in
+     * @param compound NbtCompound from getPlayerData
+     * @param pos BlockPos for teleporting
+     * @return NbtCompound so you can reuse it
+     */
+    public static NbtCompound setLocation(NbtCompound compound, BlockPos pos) {
+        int[] array = new int[3];
+        array[0] = pos.getX();
+        array[1] = pos.getY();
+        array[2] = pos.getZ();
+        compound.putIntArray("teleport", array);
+        return compound;
+    }
+
+    /**
+     * Gets the BlockPos for teleporting
+     * @param compound NbtCompound from getPlayerData
+     * @return BlockPos for the teleportation position
+     */
+    public static BlockPos getLocation(NbtCompound compound) {
+        int[] array = compound.getIntArray("teleport");
+        return  new BlockPos(array[0], array[1], array[2]);
+    }
+
+    /**
+     * Sets the dimension for reviving
+     * @param compound NbtCompound from getPlayerData
+     * @param dimension Identifier for the Dimension
+     * @return NbtCompound for reuse
+     */
+    public static NbtCompound setDimension(NbtCompound compound, Identifier dimension) {
+        compound.putString("dimension", dimension.toString());
+        return compound;
+    }
+
+    /**
+     * Gets the World for teleportation
+     *
+     * @param compound NbtCompound from getPlayerData
+     * @param server   MinecraftServer
+     * @return World from the Identifier in NbtCompound
+     */
+    public static ServerWorld getDimension(NbtCompound compound, MinecraftServer server) {
+        Identifier identifier = new Identifier(compound.getString("dimension"));
+        for (ServerWorld world : server.getWorlds()) {
+            if (identifier.equals(world.getRegistryKey().getValue())) {
+                return world;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Sets the reviver
+     * @param compound NbtCompound from getPlayerData
+     * @param name String of the reviver username
+     * @return NbtCompound for reuse
+     */
+    public static NbtCompound setReviver(NbtCompound compound, String name) {
+        compound.putString("reviver", name);
+        return compound;
+    }
+
+    /**
+     * Gets the reviver
+     * @param compound NbtCompound from getPlayerData
+     * @return String of the reviver's username
+     */
+    public static String getReviver(NbtCompound compound) {
+        return compound.getString("reviver");
+    }
+
+    /**
+     * Checks if a UUID is present in the PlayerManager
+     * @param uuid UUID of player
      * @param server MinecraftServer
-     * @return Returns true if the ServerPlayerEntity is online
+     * @return Returns true if the UUID is present
      */
-    public static boolean isPlayerOnline(ServerPlayerEntity player, MinecraftServer server) {
-        return server.getPlayerManager().getPlayerList().contains(player);
-    }
-
-    /**
-     * Correctly sets the position of an offline player
-     * @param player ServerPlayerEntity that is being teleported
-     * @param pos Vec3d
-     */
-    public static void teleportOffline(ServerPlayerEntity player, Vec3d pos) {
-        player.setPosition(pos);
-    }
-
-    /**
-     * Correctly sets the dimension of an offline player
-     * @param player_data NbtData for the ServerPlayerEntity
-     * @param dimension ServerWorld that you want to place the player in
-     */
-    public static void setDimension(NbtCompound player_data, ServerWorld dimension) {
-        player_data.putString("Dimension", dimension.getRegistryKey().getValue().toString());
-    }
-
-    /**
-     * Correctly sets the GameMode of an offline player
-     * @param player_data NbtData for the ServerPlayerEntity
-     * @param mode GameMode that is being set
-     */
-    public static void setGameMode(NbtCompound player_data, GameMode mode) {
-        player_data.putInt("playerGameType", mode.getId());
-    }
-
-    /**
-     * Correctly gets the GameMode of an offline player
-     * @param player_data NbtData for the ServerPlayerEntity
-     * @return Returns the player's GameMode
-     */
-    public static GameMode getGameMode(NbtCompound player_data) {
-        return GameMode.byId(player_data.getInt("playerGameType"));
-    }
-
-    /**
-     * Correctly sets the health of an offline player
-     * @param playerData NbtData for the ServerPlayerEntity
-     * @param health The new health of the player
-     */
-    public static void setHealth(NbtCompound playerData, float health) {
-        playerData.putFloat("Health", health);
-    }
-
-    /**
-     * Correctly gets the health of an offline player
-     * @param playerData NbtData for the ServerPlayerEntity
-     * @return Returns the player's health
-     */
-    public static float getHealth(NbtCompound playerData) {
-        return playerData.getFloat("Health");
+    public static boolean isPlayerOnline(UUID uuid, MinecraftServer server) {
+        return server.getPlayerManager().getPlayer(uuid) != null;
     }
 }
