@@ -10,7 +10,6 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -30,27 +29,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements ServerPlayerEntityInterface {
 
 	@Shadow @Final public MinecraftServer server;
-	@Unique
-	private String reviver;
 
 	public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
 		super(world, pos, yaw, gameProfile);
-	}
-
-	@Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
-	public void writeCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-		if (reviver != null) {
-			nbt.putString("reviver", reviver);
-		} else if (nbt.contains("reviver") && nbt.get("reviver") == null) {
-			nbt.remove("reviver");
-		}
-	}
-
-	@Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
-	public void readCustomDataToNbt(NbtCompound nbt, CallbackInfo ci) {
-		if (nbt.contains("reviver")) {
-			this.reviver = nbt.getString("reviver");
-		}
 	}
 
 	@Inject(method = "copyFrom", at = @At("TAIL"))
@@ -98,13 +79,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		of.setHealth(of.getHealth()+by);
 		health.setBaseValue(newHealth);
 		checkForMinHealth(health, of.getServer());
-	}
-
-	@Override
-	public String reviver() {
-		String copy = reviver;
-		reviver = null;
-		return copy;
 	}
 
 	@Override

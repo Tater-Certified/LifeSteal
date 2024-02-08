@@ -24,6 +24,7 @@ public class Config {
     public static String PLAYER_DOES_NOT_EXIST;
     public static String REVIVER;
     public static String YOU_REVIVED;
+    public static String RESET;
 
 
     public static void init() {
@@ -69,6 +70,7 @@ public class Config {
         if (!properties.contains("nonexistent_player_message")) {properties.setProperty("nonexistent_player_message", " does not exist");}
         if (!properties.contains("reviver_message")) {properties.setProperty("reviver_message", " has revived you");}
         if (!properties.contains("you_revived_message")) {properties.setProperty("you_revived_message", "You revived ");}
+        if (!properties.contains("reset_message")) {properties.setProperty("reset_message", "Banned Player List has been reset");}
         properties.store(output, null);
         parse();
         output.close();
@@ -94,5 +96,6 @@ public class Config {
         PLAYER_DOES_NOT_EXIST = properties.getProperty("nonexistent_player_message");
         REVIVER = properties.getProperty("reviver_message");
         YOU_REVIVED = properties.getProperty("you_revived_message");
+        RESET = properties.getProperty("reset_message");
     }
 }
