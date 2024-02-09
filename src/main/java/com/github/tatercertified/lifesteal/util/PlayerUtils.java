@@ -7,7 +7,8 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -25,9 +26,10 @@ public final class PlayerUtils {
      */
     public static boolean isPlayerDead(UUID uuid, MinecraftServer server) {
         NBTStorage storage = NBTStorage.getServerState(server);
+        NbtIntArray uuidAsArray = NbtHelper.fromUuid(uuid);
 
         for (int i = 0; i < storage.deadPlayers.size(); i++) {
-            if (storage.deadPlayers.get(i).asString().equals(uuid.toString())) {
+            if (storage.deadPlayers.get(i).equals(uuidAsArray)) {
                 return true;
             }
         }
@@ -41,9 +43,11 @@ public final class PlayerUtils {
      */
     public static void addPlayerToDeadList(UUID uuid, MinecraftServer server) {
         NBTStorage storage = NBTStorage.getServerState(server);
-        NbtString idString = NbtString.of(uuid.toString());
-        storage.deadPlayers.add(idString);
-        storage.markDirty();
+        NbtIntArray uuidAsArray = NbtHelper.fromUuid(uuid);
+
+        if (storage.deadPlayers.add(uuidAsArray)) {
+            storage.markDirty();
+        }
     }
 
     /**
@@ -53,15 +57,11 @@ public final class PlayerUtils {
      */
     public static void removePlayerFromDeadList(UUID uuid, MinecraftServer server) {
         NBTStorage storage = NBTStorage.getServerState(server);
-        NbtString idString = NbtString.of(uuid.toString());
+        NbtIntArray uuidAsArray = NbtHelper.fromUuid(uuid);
 
-        for (int i = 0; i < storage.deadPlayers.size(); i++) {
-            if (storage.deadPlayers.get(i).equals(idString)) {
-                storage.deadPlayers.remove(storage.deadPlayers.get(i));
-                return;
-            }
+        if (storage.deadPlayers.remove(uuidAsArray)) {
+            storage.markDirty();
         }
-        storage.markDirty();
     }
 
     /**
