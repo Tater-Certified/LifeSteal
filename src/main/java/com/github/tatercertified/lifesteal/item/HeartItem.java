@@ -1,9 +1,6 @@
 package com.github.tatercertified.lifesteal.item;
 
-import com.github.tatercertified.lifesteal.util.Config;
-import com.github.tatercertified.lifesteal.util.ModelledPolymerItem;
-import com.github.tatercertified.lifesteal.util.OfflineUtils;
-import com.github.tatercertified.lifesteal.util.PlayerUtils;
+import com.github.tatercertified.lifesteal.util.*;
 import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.mojang.authlib.GameProfile;
 import eu.pb4.polymer.resourcepack.api.PolymerModelData;
@@ -13,7 +10,6 @@ import net.minecraft.block.CandleBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.BlockTags;
@@ -133,12 +129,16 @@ public class HeartItem extends ModelledPolymerItem {
 
     private static boolean reviveOffline(GameProfile profile, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
         MinecraftServer server = world.getServer();
-        UUID uuid = profile.getId();
-        String playerName = profile.getName();
 
-        final NbtCompound compound = OfflineUtils.getPlayerData(uuid, server, playerName);
+        final OfflinePlayerData data = OfflineUtils.getOfflinePlayerData(server, profile);
+        if (data == null) {
+            return false;
+        }
+
+        UUID uuid = profile.getId();
+
         if (!PlayerUtils.isPlayerDead(uuid, world.getServer())) {
-            if (!OfflineUtils.isDead(compound, server)) {
+            if (!OfflineUtils.isDead(data.root, server)) {
                 return false;
             }
             if (!PlayerUtils.unbanLegacyPlayer(server, profile, reviver)) {
@@ -146,10 +146,12 @@ public class HeartItem extends ModelledPolymerItem {
             }
         }
 
-        OfflineUtils.setReviver(compound, reviver.getGameProfile().getName());
-        OfflineUtils.setLocation(compound, alter.up());
-        OfflineUtils.setDimension(compound, world.getRegistryKey().getValue());
-        OfflineUtils.savePlayerData(uuid, server, playerName, compound);
+        data.setLifeStealData(new LifeStealPlayerData(
+                reviver.getGameProfile().getName(),
+                alter.up(),
+                world.getRegistryKey().getValue()
+        ));
+        data.save();
         PlayerUtils.removePlayerFromDeadList(uuid, server);
 
         return true;
