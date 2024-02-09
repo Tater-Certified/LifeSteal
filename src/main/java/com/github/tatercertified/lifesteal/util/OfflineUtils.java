@@ -1,13 +1,20 @@
 package com.github.tatercertified.lifesteal.util;
 
 import com.github.tatercertified.lifesteal.mixin.SaveHandlerAccessor;
+import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -140,11 +147,61 @@ public final class OfflineUtils {
 
     /**
      * Checks if a UUID is present in the PlayerManager
-     * @param uuid UUID of player
+     *
+     * @param uuid   UUID of player
      * @param server MinecraftServer
      * @return Returns true if the UUID is present
      */
     public static boolean isPlayerOnline(UUID uuid, MinecraftServer server) {
         return server.getPlayerManager().getPlayer(uuid) != null;
+    }
+
+    /**
+     * Obtains a detached attribute instance for a given player.
+     *
+     * @param playerData The player data to obtain attributes from
+     * @param attribute  The attribute of interest
+     * @return The attribute instance if it exists, null otherwise.
+     */
+    @Nullable
+    public static EntityAttributeInstance getAttribute(NbtCompound playerData, EntityAttribute attribute) {
+        if (!playerData.contains("Attributes", NbtElement.LIST_TYPE)) {
+            return null;
+        }
+        final var attributes = playerData.getList("Attributes", NbtElement.COMPOUND_TYPE);
+        final var id = Registries.ATTRIBUTE.getId(attribute).toString();
+
+        for (int i = 0; i < attributes.size(); i++) {
+            final var compound = attributes.getCompound(i);
+            if (!compound.contains("Name", NbtElement.STRING_TYPE)) {
+                continue;
+            }
+
+            if (!id.equals(compound.getString("Name"))) {
+                continue;
+            }
+
+            final var inst = new EntityAttributeInstance(attribute, ignored -> {
+            });
+            inst.readNbt(compound);
+            return inst;
+        }
+
+        return null;
+    }
+
+    /**
+     * Legacy death check for existing players of the mod.
+     *
+     * @param playerData The player data to check for legacy death data of.
+     * @param server     The Minecraft Server the player originates from.
+     * @return true if the player is considered dead by legacy rules, false otherwise.
+     */
+    public static boolean isDead(NbtCompound playerData, MinecraftServer server) {
+        final var health = getAttribute(playerData, EntityAttributes.GENERIC_MAX_HEALTH);
+        if (health != null) {
+            return health.getBaseValue() < server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
+        }
+        return false;
     }
 }

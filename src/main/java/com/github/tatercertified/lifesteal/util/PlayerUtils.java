@@ -3,20 +3,27 @@ package com.github.tatercertified.lifesteal.util;
 import com.github.tatercertified.lifesteal.item.ModItems;
 import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.github.tatercertified.lifesteal.world.nbt.NBTStorage;
+import com.mojang.authlib.GameProfile;
+import com.mojang.logging.LogUtils;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIntArray;
+import net.minecraft.server.BannedPlayerEntry;
+import net.minecraft.server.BannedPlayerList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public final class PlayerUtils {
+    private static final Logger logger = LogUtils.getLogger();
 
     /**
      * Checks to see if the UUID is on the dead players list
@@ -66,6 +73,7 @@ public final class PlayerUtils {
 
     /**
      * Clears the deadPlayers list
+     *
      * @param server MinecraftServer instance
      */
     public static void clearDeadList(MinecraftServer server) {
@@ -75,9 +83,37 @@ public final class PlayerUtils {
     }
 
     /**
+     * Removes the ban for a legacy player,
+     * if they were banned and {@link LSGameRules#UNBAN_ON_REVIVAL} is {@code true}.
+     *
+     * @param server  The Minecraft Server
+     * @param profile The profile of the player to unban
+     * @param reviver The player reviving the player currently being unbanned.
+     * @return true if unbanned or was never banned, false otherwise.
+     */
+    public static boolean unbanLegacyPlayer(MinecraftServer server, GameProfile profile, PlayerEntity reviver) {
+        BannedPlayerList bans = server.getPlayerManager().getUserBanList();
+        BannedPlayerEntry banEntry = bans.get(profile);
+        if (banEntry == null) {
+            // Was never banned to begin with.
+            return true;
+        }
+        if (server.getGameRules().getBoolean(LSGameRules.UNBAN_ON_REVIVAL)
+                && "(Unknown)".equals(banEntry.getSource())
+                && "Banned by an operator.".equals(banEntry.getReason())) {
+            // This is an administrative action and may not be intended
+            logger.info("[LifeSteal] Unbanning {} as part of revival by {}", profile, reviver);
+            bans.remove(banEntry);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Exchanges 'amount' of health points between two players
-     * @param giver The player who is giving health
-     * @param uuid The player who is receiving health
+     *
+     * @param giver  The player who is giving health
+     * @param uuid   The player who is receiving health
      * @param amount The amount of health points that is being exchanged
      * @param server MinecraftServer instance
      */
