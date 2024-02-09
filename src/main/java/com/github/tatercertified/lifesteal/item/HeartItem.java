@@ -14,10 +14,12 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -28,12 +30,17 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public class HeartItem extends ModelledPolymerItem {
+    private static final double CENTER_OFFSET = .5d;
+    private static final Set<PositionFlag>
+            revivalTeleportFlags = EnumSet.of(PositionFlag.X, PositionFlag.Y, PositionFlag.Z);
 
     public HeartItem(Settings settings, PolymerModelData customModelData) {
         super(settings, customModelData);
@@ -44,75 +51,127 @@ public class HeartItem extends ModelledPolymerItem {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (!user.isSneaking()) {
-            user.getStackInHand(hand).decrement(1);
+        if (!world.isClient && !user.isSneaking()) {
+            final var stack = user.getStackInHand(hand);
+            stack.decrement(1);
             updateValueOf((ServerPlayerEntity) user, world.getGameRules().getInt(LSGameRules.HEARTBONUS));
+
+            return TypedActionResult.success(stack);
         }
         return super.use(world, user, hand);
     }
 
     @Override
     public ActionResult useOnBlock(ItemUsageContext context) {
-        if (block_from_config == null || !context.getPlayer().getServer().getGameRules().getBoolean(LSGameRules.ALTARS)) {
+        if (!(context.getWorld() instanceof ServerWorld world)) {
             return super.useOnBlock(context);
         }
-        PlayerEntity player =  context.getPlayer();
-        BlockPos pos = new BlockPos.Mutable(context.getBlockPos().getX(), context.getBlockPos().getY(), context.getBlockPos().getZ());
-        String playername = context.getStack().getName().getString();
-        if (player.isSneaking() && context.getWorld().getBlockState(pos).getBlock() == block_from_config) {
-            if (!Objects.equals(playername, "Heart") && isAltar(context.getWorld(), pos)) {
+        final MinecraftServer server = world.getServer();
+        if (block_from_config == null || !server.getGameRules().getBoolean(LSGameRules.ALTARS)) {
+            return super.useOnBlock(context);
+        }
+        ServerPlayerEntity player = (ServerPlayerEntity) context.getPlayer();
+        BlockPos pos = context.getBlockPos();
+        String playerName = getCustomName(context.getStack());
 
-                MinecraftServer server = player.getServer();
+        if (player == null || playerName == null) {
+            return super.useOnBlock(context);
+        }
 
-                if (playername.equalsIgnoreCase(player.getDisplayName().getString())) {
+        if (player.isSneaking() && world.getBlockState(pos).isOf(block_from_config) && isAltar(context.getWorld(), pos)) {
+            if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
 
-                    if (!server.getGameRules().getBoolean(LSGameRules.GIFTHEARTS)) {
-                        player.sendMessage(Text.of(Config.HEART_GIFTING_DISABLED), true);
-                        return super.useOnBlock(context);
-                    }
-
-                    PlayerUtils.convertHealthToHeartItems((ServerPlayerEntity) player, 1, server);
-
-                } else {
-                    Optional<GameProfile> profile = server.getUserCache().findByName(playername);
-
-                    if (profile.isPresent()) {
-                        UUID id = profile.get().getId();
-                        revive(id, context, playername);
-                    } else {
-                        context.getPlayer().sendMessage(Text.of(playername + Config.PLAYER_DOES_NOT_EXIST), true);
-                    }
+                if (!world.getGameRules().getBoolean(LSGameRules.GIFTHEARTS)) {
+                    player.sendMessage(Text.of(Config.HEART_GIFTING_DISABLED), true);
+                    failedSound(world, pos);
+                    return ActionResult.FAIL;
                 }
+
+                PlayerUtils.convertHealthToHeartItems(player, 1, server);
+                successSound(world, pos);
+                return ActionResult.SUCCESS;
             }
+
+            ServerPlayerEntity revivee = server.getPlayerManager().getPlayer(playerName);
+            if (revivee != null) {
+                if (reviveOnline(revivee, world, pos, player)) {
+                    revived(player, context, revivee.getDisplayName());
+                    return ActionResult.SUCCESS;
+                }
+                failed(player, pos, revivee.getDisplayName());
+                return ActionResult.FAIL;
+            }
+
+            Optional<GameProfile> profile = server.getUserCache().findByName(playerName);
+            if (profile.isPresent()) {
+                if (reviveOffline(profile.get(), world, pos, player)) {
+                    revived(player, context, Text.of(profile.get().getName()));
+                    return ActionResult.SUCCESS;
+                }
+                failed(player, pos, Text.of(profile.get().getName()));
+                return ActionResult.FAIL;
+            }
+
+            player.sendMessage(Text.literal(playerName).append(Config.PLAYER_DOES_NOT_EXIST), true);
+            failedSound(world, pos);
+            return ActionResult.FAIL;
         }
         return super.useOnBlock(context);
     }
 
-    private void revive(UUID uuid, ItemUsageContext context, String playerName) {
-        MinecraftServer server = context.getWorld().getServer();
-        if (PlayerUtils.isPlayerDead(uuid, server)) {
-            if (OfflineUtils.isPlayerOnline(uuid, server)) {
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
-                player.teleport(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5);
-                player.changeGameMode(GameMode.SURVIVAL);
-                player.sendMessage(Text.of(context.getPlayer().getDisplayName().getString() + Config.REVIVER));
-                updateValueOf(player, player.getServer().getGameRules().getInt(LSGameRules.HEARTBONUS));
-            } else {
-                NbtCompound compound = OfflineUtils.getPlayerData(uuid, server, playerName);
-                OfflineUtils.setReviver(compound, context.getPlayer().getName().getString());
-                OfflineUtils.setLocation(compound, context.getBlockPos());
-                OfflineUtils.setDimension(compound, context.getWorld().getRegistryKey().getValue());
-                OfflineUtils.savePlayerData(uuid, server, playerName, compound);
-                if (server.getGameRules().getBoolean(LSGameRules.BANWHENMINHEALTH)) {
-                    PlayerUtils.removePlayerFromDeadList(uuid, server);
-                }
-            }
-            context.getWorld().playSound(context.getBlockPos().getX() + 0.5, context.getBlockPos().getY() + 1, context.getBlockPos().getZ() + 0.5, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 1, 1, true);
-            context.getStack().decrement(1);
-            context.getPlayer().sendMessage(Text.of(Config.YOU_REVIVED + playerName), true);
-        } else {
-            context.getPlayer().sendMessage(Text.of(playerName + Config.PLAYER_IS_STILL_ALIVE), true);
+    private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
+        if (!PlayerUtils.isPlayerDead(player.getUuid(), world.getServer())) {
+            return false;
         }
+        teleport(player, world, alter);
+        player.changeGameMode(GameMode.SURVIVAL);
+
+        player.sendMessage(reviver.getDisplayName().copyContentOnly().append(Config.REVIVER));
+        updateValueOf(player, world.getGameRules().getInt(LSGameRules.HEARTBONUS));
+        return true;
+    }
+
+    private static boolean reviveOffline(GameProfile profile, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
+        MinecraftServer server = world.getServer();
+        UUID uuid = profile.getId();
+        String playerName = profile.getName();
+
+        final NbtCompound compound = OfflineUtils.getPlayerData(uuid, server, playerName);
+        if (!PlayerUtils.isPlayerDead(uuid, world.getServer())) {
+            if (!OfflineUtils.isDead(compound, server)) {
+                return false;
+            }
+            if (!PlayerUtils.unbanLegacyPlayer(server, profile, reviver)) {
+                return false;
+            }
+        }
+
+        OfflineUtils.setReviver(compound, reviver.getGameProfile().getName());
+        OfflineUtils.setLocation(compound, alter.up());
+        OfflineUtils.setDimension(compound, world.getRegistryKey().getValue());
+        OfflineUtils.savePlayerData(uuid, server, playerName, compound);
+        PlayerUtils.removePlayerFromDeadList(uuid, server);
+
+        return true;
+    }
+
+    private static void revived(ServerPlayerEntity reviver, ItemUsageContext context, Text revived) {
+        successSound(context.getWorld(), context.getBlockPos());
+        context.getStack().decrement(1);
+        reviver.sendMessage(Text.literal(Config.YOU_REVIVED).append(revived), true);
+    }
+
+    private static void successSound(World world, BlockPos alter) {
+        world.playSound(null, alter, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 16.f, 1);
+    }
+
+    private static void failed(ServerPlayerEntity reviver, BlockPos alter, Text revived) {
+        failedSound(reviver.getWorld(), alter);
+        reviver.sendMessage(revived.copyContentOnly().append(Config.PLAYER_IS_STILL_ALIVE), true);
+    }
+
+    private static void failedSound(World world, BlockPos alter) {
+        world.playSound(null, alter, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 16.f, 1);
     }
 
     public static void updateValueOf(ServerPlayerEntity of, float by) {
@@ -120,6 +179,27 @@ public class HeartItem extends ModelledPolymerItem {
             of.giveItemStack(new ItemStack(ModItems.HEART, 1));
             of.getInventory().updateItems();
         }
+    }
+
+    private static void teleport(PlayerEntity player, ServerWorld target, BlockPos alterPos) {
+        double x = alterPos.getX() + CENTER_OFFSET;
+        double y = alterPos.getY() + 1.d;
+        double z = alterPos.getZ() + CENTER_OFFSET;
+
+        player.teleport(target, x, y, z, revivalTeleportFlags, player.getYaw(), player.getPitch());
+    }
+
+    @Nullable
+    private static String getCustomName(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            throw new AssertionError("stack is empty");
+        }
+
+        if (stack.hasCustomName()) {
+            return stack.getName().getString();
+        }
+
+        return null;
     }
 
     public static boolean isAltar(World world, BlockPos pos) {
