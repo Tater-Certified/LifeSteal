@@ -75,10 +75,12 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		double oldHealth = health.getValue();
 		float newHealth = (float) (oldHealth + by);
 		int maxHealth = of.getWorld().getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH);
-		if(maxHealth > 0 && newHealth > maxHealth) newHealth = maxHealth;
-		of.setHealth(of.getHealth()+by);
+		if (maxHealth > 0 && newHealth > maxHealth) newHealth = maxHealth;
+		of.setHealth(of.getHealth() + by);
 		health.setBaseValue(newHealth);
-		checkForMinHealth(health, of.getServer());
+		// TODO: Figure out a better way to handle this
+		//  The current logic doesn't expect for this to raise to the minimum.
+		// checkForMinHealth(health, of.getServer());
 	}
 
 	@Override

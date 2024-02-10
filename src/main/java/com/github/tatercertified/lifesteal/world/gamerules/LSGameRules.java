@@ -26,6 +26,11 @@ public final class LSGameRules {
     public static final GameRules.Key<GameRules.BooleanRule> SPECTATORWHENMINHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":spectateWhenMinHealth", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
 
     /**
+     * Whether to allow retroactive unbanning of players prior to 1.4.0.
+     */
+    public static final GameRules.Key<GameRules.BooleanRule> UNBAN_ON_REVIVAL = GameRuleRegistry.register(Loader.MOD_ID + ":unbanOnRevival", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
+
+    /**
      * Whether to allow gifting hearts to other players, via the command or altar.
      */
     public static final GameRules.Key<GameRules.BooleanRule> GIFTHEARTS = GameRuleRegistry.register(Loader.MOD_ID + ":giftHearts", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));

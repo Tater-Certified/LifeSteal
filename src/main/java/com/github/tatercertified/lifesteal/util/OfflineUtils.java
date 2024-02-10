@@ -1,21 +1,35 @@
 package com.github.tatercertified.lifesteal.util;
 
-import com.github.tatercertified.lifesteal.mixin.SaveHandlerAccessor;
+import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.mojang.authlib.GameProfile;
+import com.mojang.logging.LogUtils;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.WorldSavePath;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
 public final class OfflineUtils {
+    private static final Logger logger = LogUtils.getLogger();
+
     /**
      * Gets a ServerPlayerEntity regardless if it is online or not
-     * @param uuid UUID of the player
+     *
+     * @param uuid   UUID of the player
      * @param server MinecraftServer
      * @return Returns Optional of a ServerPlayerEntity if it exists
      */
@@ -45,106 +59,82 @@ public final class OfflineUtils {
 
     /**
      * Gets the player data from the SaveHandler
-     * @param uuid Player UUID
-     * @param server MinecraftServer
-     * @param playerName String player name
-     * @return LifeSteal NbtCompound data
-     */
-    public static NbtCompound getPlayerData(UUID uuid, MinecraftServer server, String playerName) {
-        return ((PlayerDataInterface)((SaveHandlerAccessor)server.getPlayerManager()).getSaveHandler()).getLifeStealInfo(uuid, playerName);
-    }
-
-    /**
-     * Saves the player data
-     * @param uuid Player UUID
-     * @param server MinecraftServer
-     * @param playerName String player name
-     * @param lifeStealData LifeSteal NbtCompound data
-     */
-    public static void savePlayerData(UUID uuid, MinecraftServer server, String playerName, NbtCompound lifeStealData) {
-        ((PlayerDataInterface)((SaveHandlerAccessor)server.getPlayerManager()).getSaveHandler()).saveLifeStealInfo(uuid, playerName, lifeStealData);
-    }
-
-    /**
-     * Sets the location for teleportation when the player logs in
-     * @param compound NbtCompound from getPlayerData
-     * @param pos BlockPos for teleporting
-     * @return NbtCompound so you can reuse it
-     */
-    public static NbtCompound setLocation(NbtCompound compound, BlockPos pos) {
-        int[] array = new int[3];
-        array[0] = pos.getX();
-        array[1] = pos.getY();
-        array[2] = pos.getZ();
-        compound.putIntArray("teleport", array);
-        return compound;
-    }
-
-    /**
-     * Gets the BlockPos for teleporting
-     * @param compound NbtCompound from getPlayerData
-     * @return BlockPos for the teleportation position
-     */
-    public static BlockPos getLocation(NbtCompound compound) {
-        int[] array = compound.getIntArray("teleport");
-        return  new BlockPos(array[0], array[1], array[2]);
-    }
-
-    /**
-     * Sets the dimension for reviving
-     * @param compound NbtCompound from getPlayerData
-     * @param dimension Identifier for the Dimension
-     * @return NbtCompound for reuse
-     */
-    public static NbtCompound setDimension(NbtCompound compound, Identifier dimension) {
-        compound.putString("dimension", dimension.toString());
-        return compound;
-    }
-
-    /**
-     * Gets the World for teleportation
      *
-     * @param compound NbtCompound from getPlayerData
-     * @param server   MinecraftServer
-     * @return World from the Identifier in NbtCompound
+     * @param server  The Minecraft Server
+     * @param profile The profile of the player being fetched
+     * @return The offline player's data if it exists and can be read, null otherwise
      */
-    public static ServerWorld getDimension(NbtCompound compound, MinecraftServer server) {
-        Identifier identifier = new Identifier(compound.getString("dimension"));
-        for (ServerWorld world : server.getWorlds()) {
-            if (identifier.equals(world.getRegistryKey().getValue())) {
-                return world;
+    public static OfflinePlayerData getOfflinePlayerData(MinecraftServer server, GameProfile profile) {
+        final Path dir = server.getSavePath(WorldSavePath.PLAYERDATA);
+        final Path dat = dir.resolve(profile.getId() + ".dat");
+        if (Files.exists(dat) && Files.isRegularFile(dat)) {
+            try (final InputStream stream = Files.newInputStream(dat)) {
+                final NbtCompound compound = NbtIo.readCompressed(stream);
+                return new OfflinePlayerData(profile, compound, dir);
+            } catch (IOException ioe) {
+                logger.warn("Unable to read NBT for {}", profile, ioe);
             }
         }
         return null;
     }
 
     /**
-     * Sets the reviver
-     * @param compound NbtCompound from getPlayerData
-     * @param name String of the reviver username
-     * @return NbtCompound for reuse
-     */
-    public static NbtCompound setReviver(NbtCompound compound, String name) {
-        compound.putString("reviver", name);
-        return compound;
-    }
-
-    /**
-     * Gets the reviver
-     * @param compound NbtCompound from getPlayerData
-     * @return String of the reviver's username
-     */
-    public static String getReviver(NbtCompound compound) {
-        return compound.getString("reviver");
-    }
-
-    /**
      * Checks if a UUID is present in the PlayerManager
-     * @param uuid UUID of player
+     *
+     * @param uuid   UUID of player
      * @param server MinecraftServer
      * @return Returns true if the UUID is present
      */
     public static boolean isPlayerOnline(UUID uuid, MinecraftServer server) {
         return server.getPlayerManager().getPlayer(uuid) != null;
+    }
+
+    /**
+     * Obtains a detached attribute instance for a given player.
+     *
+     * @param playerData The player data to obtain attributes from
+     * @param attribute  The attribute of interest
+     * @return The attribute instance if it exists, null otherwise.
+     */
+    @Nullable
+    public static EntityAttributeInstance getAttribute(NbtCompound playerData, EntityAttribute attribute) {
+        if (!playerData.contains("Attributes", NbtElement.LIST_TYPE)) {
+            return null;
+        }
+        final var attributes = playerData.getList("Attributes", NbtElement.COMPOUND_TYPE);
+        final var id = Registries.ATTRIBUTE.getId(attribute).toString();
+
+        for (int i = 0; i < attributes.size(); i++) {
+            final var compound = attributes.getCompound(i);
+            if (!compound.contains("Name", NbtElement.STRING_TYPE)) {
+                continue;
+            }
+
+            if (!id.equals(compound.getString("Name"))) {
+                continue;
+            }
+
+            final var inst = new EntityAttributeInstance(attribute, ignored -> {
+            });
+            inst.readNbt(compound);
+            return inst;
+        }
+
+        return null;
+    }
+
+    /**
+     * Legacy death check for existing players of the mod.
+     *
+     * @param playerData The player data to check for legacy death data of.
+     * @param server     The Minecraft Server the player originates from.
+     * @return true if the player is considered dead by legacy rules, false otherwise.
+     */
+    public static boolean isDead(NbtCompound playerData, MinecraftServer server) {
+        final var health = getAttribute(playerData, EntityAttributes.GENERIC_MAX_HEALTH);
+        if (health != null) {
+            return health.getBaseValue() < server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
+        }
+        return false;
     }
 }
