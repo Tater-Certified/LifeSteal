@@ -51,7 +51,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		int stealAmount = world.getGameRules().getInt(LSGameRules.STEALAMOUNT);
 		if (entity instanceof ServerPlayerEntity) {
 			if (server.getGameRules().getBoolean(LSGameRules.ANTIHEARTDUPE)) {
-				if (player.getMaxHealth() > server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
+				if (player.getMaxHealth() >= server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
 					updateValueOf((ServerPlayerEntity)entity, stealAmount);
 				}
 			} else {
@@ -75,23 +75,18 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		double oldHealth = health.getValue();
 		float newHealth = (float) (oldHealth + by);
 		int maxHealth = of.getWorld().getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH);
-		if (maxHealth > 0 && newHealth > maxHealth) newHealth = maxHealth;
+		if (newHealth > maxHealth) newHealth = maxHealth;
 		of.setHealth(of.getHealth() + by);
 		health.setBaseValue(newHealth);
-		// TODO: Figure out a better way to handle this
-		//  The current logic doesn't expect for this to raise to the minimum.
-		// checkForMinHealth(health, of.getServer());
 	}
 
 	@Override
 	public void checkIfDead() {
 		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
 		int minHealth = server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
-		if (minHealth < 1) minHealth = 1;
 		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
-		assert health != null;
 
-		if (health.getBaseValue() <= 0) {
+		if (health.getBaseValue() < minHealth) {
 			if (server.getGameRules().getBoolean(LSGameRules.BANWHENMINHEALTH)) {
 				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
 				player.networkHandler.disconnect(Text.literal(Config.REVIVAL_MESSAGE));
@@ -102,14 +97,6 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 			} else {
 				player.setHealth(minHealth);
 			}
-		}
-	}
-
-	private static void checkForMinHealth(EntityAttributeInstance health, MinecraftServer server) {
-		int minHealth = server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
-
-		if (minHealth > 0 && health.getBaseValue() < minHealth) {
-			health.setBaseValue(minHealth);
 		}
 	}
 }

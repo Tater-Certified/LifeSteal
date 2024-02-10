@@ -37,12 +37,12 @@ public final class LSGameRules {
 
     /**
      * Whether to allow creating an altar to revive and exchange player hearts for heart crystal items.
-     * Disabling this effectively disables trading and revival, with the exception of the /gift command
+     * Disabling this effectively disables trading and revival, except the /gift command
      */
     public static final GameRules.Key<GameRules.BooleanRule> ALTARS = GameRuleRegistry.register(Loader.MOD_ID + ":enableAltars", GameRules.Category.MISC, GameRuleFactory.createBooleanRule(true));
 
     /**
-     * Whether to disable getting getting "free" hearts from killing people with 1 HP.
+     * Whether to disable getting "free" hearts from killing people with the minimum HP.
      * This can prevent spawn camping and harvesting tons of hearts from teammates
      */
     public static final GameRules.Key<GameRules.BooleanRule> ANTIHEARTDUPE = GameRuleRegistry.register(Loader.MOD_ID + ":enableAntiHeartDupe", GameRules.Category.MISC, GameRuleFactory.createBooleanRule(true));
@@ -50,20 +50,21 @@ public final class LSGameRules {
     /**
      * The amount of health "stolen" from players when other players kill them
      */
-    public static final GameRules.Key<GameRules.IntRule> STEALAMOUNT = GameRuleRegistry.register(Loader.MOD_ID + ":stealAmount", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2));
+    public static final GameRules.Key<GameRules.IntRule> STEALAMOUNT = GameRuleRegistry.register(Loader.MOD_ID + ":stealAmount", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2, 0));
 
     /**
-     * If this value is not set to 0, the players that die with the minimum amount of health will respawn with the minimum amount of health
+     * This value determines the threshold for being considered "dead".
+     * If a player reaches lower than this value, they will be categorized as dead unless BanWhenMaxHealth is disabled
      */
-    public static final GameRules.Key<GameRules.IntRule> MINPLAYERHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":minPlayerHealth", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(0));
+    public static final GameRules.Key<GameRules.IntRule> MINPLAYERHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":minPlayerHealth", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(1, 1));
 
     /**
      * The max amount of health a player can obtain
      */
-    public static final GameRules.Key<GameRules.IntRule> MAXPLAYERHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":maxPlayerHealth", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(40));
+    public static final GameRules.Key<GameRules.IntRule> MAXPLAYERHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":maxPlayerHealth", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(40, 1));
 
     /**
      * The amount of health received from heart crystals
      */
-    public static final GameRules.Key<GameRules.IntRule> HEARTBONUS = GameRuleRegistry.register(Loader.MOD_ID + ":healthPerUse", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2));
+    public static final GameRules.Key<GameRules.IntRule> HEARTBONUS = GameRuleRegistry.register(Loader.MOD_ID + ":healthPerUse", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2, 0));
 }
