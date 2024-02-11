@@ -21,7 +21,7 @@ public final class GiftCommand {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
             dispatcher.register(literal("gift")
                     .then(argument("player", StringArgumentType.string())
-                            .then(argument("healthPoints", IntegerArgumentType.integer()).executes(GiftCommand::gift))));
+                            .then(argument("healthPoints", IntegerArgumentType.integer(1)).executes(GiftCommand::gift))));
         });
     }
 
