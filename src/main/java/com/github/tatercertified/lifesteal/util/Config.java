@@ -21,6 +21,8 @@ public class Config {
     public static String HEART_TRADED;
     public static String HEART_GIFTING_DISABLED;
     public static String PLAYER_IS_STILL_ALIVE;
+    public static String PLAYER_IS_DEAD;
+    public static String PLAYER_IS_YOU;
     public static String PLAYER_DOES_NOT_EXIST;
     public static String REVIVER;
     public static String YOU_REVIVED;
@@ -57,20 +59,54 @@ public class Config {
     private static void mkfile() throws IOException {
         OutputStream output = new FileOutputStream(String.valueOf(FabricLoader.getInstance().getConfigDir().resolve("lifesteal.properties")));
         if (!properties.contains("config-version")) {properties.setProperty("config-version", cfgver);}
-        if (!properties.contains("revival_block")) {properties.setProperty("revival_block", "minecraft:netherite_block");}
-        if (!properties.contains("generate_ores")) {properties.setProperty("generate_ores", "true");}
-        if (!properties.contains("revival_message")) {properties.setProperty("revival_message", "You lost your last life. You now must be revived");}
-        if (!properties.contains("max_health_reached_message")) {properties.setProperty("max_health_reached_message", "You are already at the maximum amount of health");}
-        if (!properties.contains("receiver_has_max_health_message")) {properties.setProperty("receiver_has_max_health_message", "This player cannot receive this much health");}
-        if (!properties.contains("giver_too_little_health_message")) {properties.setProperty("giver_too_little_health_message", "You have too little health to do this action");}
-        if (!properties.contains("health_info_message")) {properties.setProperty("health_info_message", "Your max health is now ");}
-        if (!properties.contains("heart_traded_message")) {properties.setProperty("heart_traded_message", "Converted health to hearts");}
-        if (!properties.contains("heart_gifting_disabled_message")) {properties.setProperty("heart_gifting_disabled_message", "Heart gifting is disabled");}
-        if (!properties.contains("player_alive_message")) {properties.setProperty("player_alive_message", " is still alive");}
-        if (!properties.contains("nonexistent_player_message")) {properties.setProperty("nonexistent_player_message", " does not exist");}
-        if (!properties.contains("reviver_message")) {properties.setProperty("reviver_message", " has revived you");}
-        if (!properties.contains("you_revived_message")) {properties.setProperty("you_revived_message", "You revived ");}
-        if (!properties.contains("reset_message")) {properties.setProperty("reset_message", "Banned Player List has been reset");}
+        if (!properties.contains("revival_block")) {
+            properties.setProperty("revival_block", "minecraft:netherite_block");
+        }
+        if (!properties.contains("generate_ores")) {
+            properties.setProperty("generate_ores", "true");
+        }
+        if (!properties.contains("revival_message")) {
+            properties.setProperty("revival_message", "You lost your last life. You now must be revived");
+        }
+        if (!properties.contains("max_health_reached_message")) {
+            properties.setProperty("max_health_reached_message", "You are already at the maximum amount of health");
+        }
+        if (!properties.contains("receiver_has_max_health_message")) {
+            properties.setProperty("receiver_has_max_health_message", "This player cannot receive this much health");
+        }
+        if (!properties.contains("giver_too_little_health_message")) {
+            properties.setProperty("giver_too_little_health_message", "You have too little health to do this action");
+        }
+        if (!properties.contains("health_info_message")) {
+            properties.setProperty("health_info_message", "Your max health is now ");
+        }
+        if (!properties.contains("heart_traded_message")) {
+            properties.setProperty("heart_traded_message", "Converted health to hearts");
+        }
+        if (!properties.contains("heart_gifting_disabled_message")) {
+            properties.setProperty("heart_gifting_disabled_message", "Heart gifting is disabled");
+        }
+        if (!properties.contains("player_alive_message")) {
+            properties.setProperty("player_alive_message", " is still alive");
+        }
+        if (!properties.contains("player_dead_message")) {
+            properties.setProperty("player_dead_message", " is dead");
+        }
+        if (!properties.contains("player_you_message")) {
+            properties.setProperty("player_you_message", " is you, you can't exchange health with yourself!");
+        }
+        if (!properties.contains("nonexistent_player_message")) {
+            properties.setProperty("nonexistent_player_message", " does not exist");
+        }
+        if (!properties.contains("reviver_message")) {
+            properties.setProperty("reviver_message", " has revived you");
+        }
+        if (!properties.contains("you_revived_message")) {
+            properties.setProperty("you_revived_message", "You revived ");
+        }
+        if (!properties.contains("reset_message")) {
+            properties.setProperty("reset_message", "Banned Player List has been reset");
+        }
         properties.store(output, null);
         parse();
         output.close();
@@ -93,6 +129,8 @@ public class Config {
         HEART_TRADED = properties.getProperty("heart_traded_message");
         HEART_GIFTING_DISABLED = properties.getProperty("heart_gifting_disabled_message");
         PLAYER_IS_STILL_ALIVE = properties.getProperty("player_alive_message");
+        PLAYER_IS_DEAD = properties.getProperty("player_dead_message");
+        PLAYER_IS_YOU = properties.getProperty("player_you_message");
         PLAYER_DOES_NOT_EXIST = properties.getProperty("nonexistent_player_message");
         REVIVER = properties.getProperty("reviver_message");
         YOU_REVIVED = properties.getProperty("you_revived_message");

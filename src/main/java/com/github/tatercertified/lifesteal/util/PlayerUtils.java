@@ -6,10 +6,12 @@ import com.github.tatercertified.lifesteal.world.nbt.NBTStorage;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.server.BannedPlayerEntry;
@@ -17,10 +19,13 @@ import net.minecraft.server.BannedPlayerList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
+
+import static com.github.tatercertified.lifesteal.util.ExchangeState.*;
 
 public final class PlayerUtils {
     private static final Logger logger = LogUtils.getLogger();
@@ -35,12 +40,7 @@ public final class PlayerUtils {
         NBTStorage storage = NBTStorage.getServerState(server);
         NbtIntArray uuidAsArray = NbtHelper.fromUuid(uuid);
 
-        for (int i = 0; i < storage.deadPlayers.size(); i++) {
-            if (storage.deadPlayers.get(i).equals(uuidAsArray)) {
-                return true;
-            }
-        }
-        return false;
+        return storage.deadPlayers.contains(uuidAsArray);
     }
 
     /**
@@ -112,75 +112,203 @@ public final class PlayerUtils {
     /**
      * Exchanges 'amount' of health points between two players
      *
-     * @param giver  The player who is giving health
-     * @param uuid   The player who is receiving health
-     * @param amount The amount of health points that is being exchanged
-     * @param server MinecraftServer instance
+     * @param giver   The player who is giving health
+     * @param profile The player who is receiving health
+     * @param amount  The amount of health being exchanged
+     * @return The state of the exchange.
      */
-    public static void exchangeHealth(ServerPlayerEntity giver, UUID uuid, int amount, MinecraftServer server) {
-        Optional<ServerPlayerEntity> receiverOp = OfflineUtils.getPlayer(server, uuid);
-
-        if (receiverOp.isPresent()) {
-            ServerPlayerEntity receiver = receiverOp.get();
-
-            if (!OfflineUtils.isPlayerOnline(uuid, server)) {
-                return;
-            }
-
-            float giverHealth = giver.getMaxHealth();
-
-            // Check if the transaction can even occur:
-            if (giverHealth - amount < server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
-                giver.sendMessage(Text.literal(Config.GIVER_TOO_LITTLE_HEALTH));
-                return;
-            }
-
-            if (receiver.getMaxHealth() + amount > server.getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH)) {
-                giver.sendMessage(Text.literal(Config.RECEIVER_TOO_MUCH_HEALTH));
-                return;
-            }
-
-
-            // Passed checks, let's exchange health!
-            setBaseHealth(receiver, amount, server);
-            setBaseHealth(giver, -amount, server);
+    public static ExchangeState exchangeHealth(ServerPlayerEntity giver, GameProfile profile, int amount) {
+        final MinecraftServer server = giver.getServer();
+        final UUID uuid = profile.getId();
+        if (giver.getUuid().equals(uuid)) {
+            return FAIL_SELF;
         }
+        if (isPlayerDead(uuid, server)) {
+            return FAIL_DEAD;
+        }
+        // Make sure the player can even give before executing a potentially expensive task
+        if (failsMinCheck(giver, amount)) {
+            return FAIL_RECEIVER_TOO_MUCH_HEALTH;
+        }
+        ServerPlayerEntity receiver = server.getPlayerManager().getPlayer(profile.getId());
+        if (receiver == null) {
+            return exchangeHealthOffline(giver, profile, amount);
+        }
+
+        // Check if the receiver can take more health
+        if (failsMaxCheck(receiver, amount)) {
+            return FAIL_RECEIVER_TOO_MUCH_HEALTH;
+        }
+
+        // Passed checks, let's exchange health!
+        adjustBaseHealthInternal(receiver, amount);
+        adjustBaseHealthInternal(giver, -amount);
+
+        return SUCCESS;
+    }
+
+    /**
+     * Exchanges 'amount' of health between an online and offline player.
+     *
+     * @param giver   The player who is giving health
+     * @param profile The player who is receiving health
+     * @param amount  The amount of health being exchanged
+     * @return The state of the exchange.
+     */
+    private static ExchangeState exchangeHealthOffline(ServerPlayerEntity giver, GameProfile profile, int amount) {
+        final MinecraftServer server = giver.getServer();
+        final OfflinePlayerData playerData = OfflineUtils.getOfflinePlayerData(server, profile);
+        if (playerData == null) {
+            // The player somehow doesn't exist yet.
+            // Probably was pulled up via another command at one point.
+            return FAIL_MISSING;
+        }
+
+        final Map<EntityAttribute, EntityAttributeInstance> attributes = OfflineUtils.getAttributes(playerData.root);
+        if (attributes == null) {
+            // I actually don't know if this is possible,
+            // but we'll assume missing for practical purposes.
+            return FAIL_MISSING;
+        }
+
+        final EntityAttributeInstance maxHealth = attributes.get(EntityAttributes.GENERIC_MAX_HEALTH);
+        if (maxHealth == null) {
+            // Also shouldn't be possible, but again,
+            // we'll assume missing for practical purposes.
+            return FAIL_MISSING;
+        }
+
+        // We at this point have all the preconditions met.
+        // Double-check the giver here in case this is called directly in the future.
+        if (failsMinCheck(giver, amount)) {
+            return FAIL_GIVER_TOO_LITTLE_HEALTH;
+        }
+
+        if (failsMaxCheck(maxHealth, amount, giver.getWorld().getGameRules())) {
+            return FAIL_RECEIVER_TOO_MUCH_HEALTH;
+        }
+
+        adjustBaseHealthInternal(giver, -amount);
+        adjustBaseHealthInternal(playerData.root, maxHealth, amount);
+
+        OfflineUtils.putAttributes(playerData.root, attributes.values());
+        if (!playerData.save()) {
+            // Rollback, player data not saved.
+            adjustBaseHealthInternal(giver, amount);
+            return FAIL_GENERIC;
+        }
+
+        return SUCCESS;
+    }
+
+    /**
+     * Checks if the health would dip below the minimum allowed.
+     */
+    private static boolean failsMinCheck(ServerPlayerEntity giver, int amount) {
+        return giver.getMaxHealth() - amount < giver.getWorld().getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
+    }
+
+    /**
+     * Checks if the health would exceed the maximum allowed.
+     */
+    private static boolean failsMaxCheck(ServerPlayerEntity receiver, int amount) {
+        return receiver.getMaxHealth() + amount > receiver.getWorld().getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH);
+    }
+
+    /**
+     * Check if the health would exceed the maximum allowed.
+     */
+    private static boolean failsMaxCheck(EntityAttributeInstance attribute, int amount, GameRules gameRules) {
+        return attribute.getBaseValue() + amount > gameRules.getInt(LSGameRules.MAXPLAYERHEALTH);
     }
 
     /**
      * Sets a new base health amount
-     * @param player ServerPlayerEntity instance
+     *
+     * @param player     ServerPlayerEntity instance
      * @param increaseBy The amount that base health should increase by (can be negative)
-     * @param server MinecraftServer instance
+     * @param server     MinecraftServer instance
      * @return Returns if the new base health succeeded
      */
     public static boolean setBaseHealth(ServerPlayerEntity player, double increaseBy, MinecraftServer server) {
-        boolean online = OfflineUtils.isPlayerOnline(player.getUuid(), server);
-
         EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         double current = health.getBaseValue();
         double finalHealth = current + increaseBy;
 
         if (finalHealth > server.getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH)) {
-            if (online) {
-                player.sendMessage(Text.of(Config.MAX_HEALTH_REACHED), true);
-            }
+            player.sendMessage(Text.of(Config.MAX_HEALTH_REACHED), true);
             return false;
         } else if (finalHealth < server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
             return false;
         } else {
 
-            if (player.getHealth() > finalHealth) {
-                player.setHealth((float) finalHealth);
-            }
             health.setBaseValue(finalHealth);
+            clampHealth(player, finalHealth);
 
-            if (online) {
-                player.sendMessage(Text.of(Config.HEALTH_INFO_MESSAGE + finalHealth), true);
-            }
+            player.sendMessage(Text.of(Config.HEALTH_INFO_MESSAGE + finalHealth), true);
         }
 
         return true;
+    }
+
+    /**
+     * Adjusts and sets the new max health of a given player, reducing health if necessary.
+     *
+     * @param player The player having their max health adjusted.
+     * @param amount The amount the player is having their health adjusted.
+     * @implNote This method does not do any checks as to whether the new value is valid.
+     */
+    private static void adjustBaseHealthInternal(ServerPlayerEntity player, double amount) {
+        EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        double finalHealth = health.getBaseValue() + amount;
+        health.setBaseValue(finalHealth);
+
+        clampHealth(player, finalHealth);
+
+        player.sendMessage(Text.of(Config.HEALTH_INFO_MESSAGE + finalHealth), true);
+    }
+
+    /**
+     * Adjusts and sets the new max health of a given player, reducing health if necessary.
+     *
+     * @param playerData The data of the player having their max health adjusted.
+     * @param health     The attribute instance of health.
+     * @param amount     The amount the player is having their health adjusted.
+     * @implNote This method does not do any checks as to whether the new value is valid.
+     */
+    private static void adjustBaseHealthInternal(NbtCompound playerData, EntityAttributeInstance health, double amount) {
+        double finalHealth = health.getBaseValue() + amount;
+        health.setBaseValue(finalHealth);
+
+        // Clamps Health.
+        playerData.putFloat("Health", Math.min(playerData.getFloat("Health"), (float) finalHealth));
+    }
+
+    /**
+     * Sets the new max health of a given player, reducing health if necessary.
+     *
+     * @param player The player having their max health adjusted.
+     * @param value  The new value for health.
+     * @implNote This method does not do any checks as to whether the new value is valid.
+     */
+    public static void setExactBaseHealth(ServerPlayerEntity player, double value) {
+        EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
+        health.setBaseValue(value);
+
+        clampHealth(player, value);
+    }
+
+    /**
+     * Clamps the health of the player to max or maxHealth.
+     *
+     * @param player The player having their health clamped.
+     * @param max    The maximum health allowed to be set.
+     */
+    private static void clampHealth(ServerPlayerEntity player, double max) {
+        float maxHealth = Math.min((float) max, player.getMaxHealth());
+        if (player.getHealth() > maxHealth) {
+            player.setHealth(maxHealth);
+        }
     }
 
     /**
@@ -192,11 +320,8 @@ public final class PlayerUtils {
      */
     public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server) {
         if (PlayerUtils.setBaseHealth(player, -(hearts * server.getGameRules().getInt(LSGameRules.HEARTBONUS)), server)) {
-            int slot = player.getInventory().getEmptySlot();
 
-            if (slot != -1) {
-                player.getInventory().setStack(slot, new ItemStack(ModItems.HEART, hearts));
-                player.getInventory().updateItems();
+            if (player.giveItemStack(new ItemStack(ModItems.HEART, hearts))) {
                 player.sendMessage(Text.of(Config.HEART_TRADED));
             } else {
                 player.getWorld().spawnEntity(new ItemEntity(player.getWorld(), player.getX(), player.getY(), player.getZ(), new ItemStack(ModItems.HEART, hearts)));

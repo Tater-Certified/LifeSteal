@@ -6,12 +6,10 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -20,42 +18,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class OfflineUtils {
     private static final Logger logger = LogUtils.getLogger();
-
-    /**
-     * Gets a ServerPlayerEntity regardless if it is online or not
-     *
-     * @param uuid   UUID of the player
-     * @param server MinecraftServer
-     * @return Returns Optional of a ServerPlayerEntity if it exists
-     */
-    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, UUID uuid) {
-        Optional<ServerPlayerEntity> player = Optional.ofNullable(server.getPlayerManager().getPlayer(uuid));
-        if (player.isPresent()) {
-            return player;
-        } else {
-            return getOfflinePlayer(server, uuid);
-        }
-    }
-
-    /**
-     * Creates a ServerPlayerEntity from the UserCache
-     * @param server MinecraftServer
-     * @param uuid UUID of the player
-     * @return Returns Optional of a ServerPlayerEntity if the user exists in the UserCache
-     */
-    public static Optional<ServerPlayerEntity> getOfflinePlayer(MinecraftServer server, UUID uuid) {
-        Optional<GameProfile> profile = server.getUserCache().getByUuid(uuid);
-        return profile.map(gameProfile -> {
-            ServerPlayerEntity player = server.getPlayerManager().createPlayer(gameProfile);
-            server.getPlayerManager().loadPlayerData(player);
-            return player;
-        });
-    }
 
     /**
      * Gets the player data from the SaveHandler
@@ -79,17 +46,6 @@ public final class OfflineUtils {
     }
 
     /**
-     * Checks if a UUID is present in the PlayerManager
-     *
-     * @param uuid   UUID of player
-     * @param server MinecraftServer
-     * @return Returns true if the UUID is present
-     */
-    public static boolean isPlayerOnline(UUID uuid, MinecraftServer server) {
-        return server.getPlayerManager().getPlayer(uuid) != null;
-    }
-
-    /**
      * Obtains a detached attribute instance for a given player.
      *
      * @param playerData The player data to obtain attributes from
@@ -98,29 +54,76 @@ public final class OfflineUtils {
      */
     @Nullable
     public static EntityAttributeInstance getAttribute(NbtCompound playerData, EntityAttribute attribute) {
+        final var attributes = getAttributes(playerData);
+        if (attributes == null) {
+            return null;
+        }
+        return attributes.get(attribute);
+    }
+
+    /**
+     * Obtains a map of attributes to detached instances for a given player.
+     *
+     * @param playerData The player data to obtain attributes from.
+     * @return The attribute map if it exists, null otherwise.
+     * @throws AssertionError if the {@code Attributes} list doesn't exist and {@code -ea} was passed.
+     */
+    // Null is possible in production environments, albeit unexpected.
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    public static Map<EntityAttribute, EntityAttributeInstance> getAttributes(NbtCompound playerData) {
         if (!playerData.contains("Attributes", NbtElement.LIST_TYPE)) {
+            assert false : "Attributes";
             return null;
         }
         final var attributes = playerData.getList("Attributes", NbtElement.COMPOUND_TYPE);
-        final var id = Registries.ATTRIBUTE.getId(attribute).toString();
+        final var ret = new HashMap<EntityAttribute, EntityAttributeInstance>(attributes.size());
 
         for (int i = 0; i < attributes.size(); i++) {
             final var compound = attributes.getCompound(i);
-            if (!compound.contains("Name", NbtElement.STRING_TYPE)) {
-                continue;
-            }
-
-            if (!id.equals(compound.getString("Name"))) {
+            final var attribute = getAttributeByName(compound.get("Name"));
+            if (attribute == null) {
                 continue;
             }
 
             final var inst = new EntityAttributeInstance(attribute, ignored -> {
             });
             inst.readNbt(compound);
-            return inst;
+            ret.put(attribute, inst);
         }
 
-        return null;
+        return ret;
+    }
+
+    /**
+     * Serialises a list of attributes into an NBT list and stores it in the given playerData,
+     * overwriting the existing {@code Attributes} list.
+     *
+     * @param playerData The player data to add attributes to.
+     * @param attributes The attributes to save.
+     */
+    public static void putAttributes(NbtCompound playerData, Iterable<EntityAttributeInstance> attributes) {
+        final var list = new NbtList();
+
+        for (final var attribute : attributes) {
+            list.add(attribute.toNbt());
+        }
+
+        playerData.put("Attributes", list);
+    }
+
+    /**
+     * Fetches the entity attribute by the given ID if it is one
+     */
+    private static EntityAttribute getAttributeByName(NbtElement element) {
+        if (!(element instanceof NbtString string)) {
+            return null;
+        }
+        final var id = Identifier.tryParse(string.asString());
+        if (id == null) {
+            return null;
+        }
+        return Registries.ATTRIBUTE.get(id);
     }
 
     /**
@@ -131,6 +134,11 @@ public final class OfflineUtils {
      * @return true if the player is considered dead by legacy rules, false otherwise.
      */
     public static boolean isDead(NbtCompound playerData, MinecraftServer server) {
+        if (playerData.contains("lifeStealData")) {
+            // Not actually dead; pending revival.
+            return false;
+        }
+
         final var health = getAttribute(playerData, EntityAttributes.GENERIC_MAX_HEALTH);
         if (health != null) {
             return health.getBaseValue() < server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);

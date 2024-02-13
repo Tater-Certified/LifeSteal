@@ -48,7 +48,7 @@ public class OfflinePlayerData {
         }
     }
 
-    public void save() {
+    public boolean save() {
         final String reference = holder.getId() + ".dat";
         final Path tmp = dir.resolve(reference + "_tmp");
         final Path cur = dir.resolve(reference);
@@ -57,8 +57,10 @@ public class OfflinePlayerData {
         try (final OutputStream stream = Files.newOutputStream(tmp)) {
             NbtIo.writeCompressed(root, stream);
             Util.backupAndReplace(cur, tmp, old);
+            return true;
         } catch (IOException ioe) {
             logger.warn("Cannot save data for {}", holder, ioe);
         }
+        return false;
     }
 }

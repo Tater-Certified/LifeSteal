@@ -77,8 +77,7 @@ public class Loader implements ModInitializer {
 	private static void postRevival(LifeStealPlayerData data, ServerPlayerEntity player, MinecraftServer server) {
 		player.sendMessage(Text.literal((data.reviver + Config.REVIVER)));
 		BlockPos pos = data.teleport;
-		// TODO Determine if this is the best way to deal with health lower than the min health when reviving
-		PlayerUtils.setBaseHealth(player, server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH), server);
+		PlayerUtils.setExactBaseHealth(player, server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH));
 		FabricDimensions.teleport(player, data.resolveDimension(server), new TeleportTarget(pos.toCenterPos(), Vec3d.ZERO, 0.0f, 0.0f));
 		player.changeGameMode(GameMode.SURVIVAL);
 	}
