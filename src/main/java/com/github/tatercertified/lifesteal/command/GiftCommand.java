@@ -38,7 +38,12 @@ public final class GiftCommand {
         final MinecraftServer server = source.getServer();
         final GameRules gameRules = server.getGameRules();
 
-        if (!source.getServer().getGameRules().getBoolean(LSGameRules.GIFTHEARTS)) {
+        if (gameRules.getBoolean(LSGameRules.ALTARS)) {
+            source.sendError(Text.of("Please use the altar to gift instead."));
+            return 0;
+        }
+
+        if (!gameRules.getBoolean(LSGameRules.GIFTHEARTS)) {
             source.sendError(Text.of(Config.HEART_GIFTING_DISABLED));
             return 0;
         }
