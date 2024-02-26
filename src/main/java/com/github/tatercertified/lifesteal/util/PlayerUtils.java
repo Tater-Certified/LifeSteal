@@ -5,7 +5,6 @@ import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.github.tatercertified.lifesteal.world.nbt.NBTStorage;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
-import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -317,17 +316,22 @@ public final class PlayerUtils {
      * @param hearts Number of hearts (2HP) to convert
      * @param server MinecraftServer instance
      */
-    public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server) {
+    public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server, boolean action) {
         final int health = hearts * server.getGameRules().getInt(LSGameRules.HEARTBONUS);
-        if (PlayerUtils.setBaseHealth(player, -health, server)) {
-
-            if (player.giveItemStack(new ItemStack(ModItems.HEART, hearts))) {
-                player.sendMessage(LsText.withdrawnHealth(health, hearts));
-            } else {
-                player.getWorld().spawnEntity(new ItemEntity(player.getWorld(), player.getX(), player.getY(), player.getZ(), new ItemStack(ModItems.HEART, hearts)));
-            }
-        } else {
-            player.sendMessage(LsText.LOW_HEALTH, true);
+        if(health <= 0) {
+            player.sendMessage(LsText.HEART_DISABLED, action);
+            return;
         }
+
+        if (!PlayerUtils.setBaseHealth(player, -health, server)) {
+            player.sendMessage(LsText.LOW_HEALTH, action);
+            return;
+        }
+
+        final ItemStack heartStack = new ItemStack(ModItems.HEART, hearts);
+        if (!player.giveItemStack(heartStack)) {
+            player.dropItem(heartStack, false, true);
+        }
+        player.sendMessage(LsText.withdrawnHealth(health, hearts), action);
     }
 }

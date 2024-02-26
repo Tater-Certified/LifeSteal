@@ -47,14 +47,24 @@ public class HeartItem extends ModelledPolymerItem {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient && !user.isSneaking()) {
-            final var stack = user.getStackInHand(hand);
-            stack.decrement(1);
-            updateValueOf((ServerPlayerEntity) user, world.getGameRules().getInt(LSGameRules.HEARTBONUS));
-
-            return TypedActionResult.success(stack);
+        if(world.isClient || user.isSneaking()) {
+            return super.use(world, user, hand);
         }
-        return super.use(world, user, hand);
+
+        final var stack = user.getStackInHand(hand);
+        final int amount = world.getGameRules().getInt(LSGameRules.HEARTBONUS);
+        if(amount <= 0) {
+            // 0 is a legal value, but it's effectively a no-op.
+            return TypedActionResult.consume(stack);
+        }
+
+        final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) user;
+        if(!PlayerUtils.setBaseHealth(serverPlayer, amount, world.getServer())) {
+            return TypedActionResult.fail(stack);
+        }
+
+        stack.decrement(1);
+        return TypedActionResult.success(stack);
     }
 
     @Override
@@ -83,7 +93,7 @@ public class HeartItem extends ModelledPolymerItem {
                     return ActionResult.FAIL;
                 }
 
-                PlayerUtils.convertHealthToHeartItems(player, 1, server);
+                PlayerUtils.convertHealthToHeartItems(player, 1, server, true);
                 successSound(world, pos);
                 return ActionResult.SUCCESS;
             }
@@ -116,14 +126,16 @@ public class HeartItem extends ModelledPolymerItem {
     }
 
     private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
-        if (!PlayerUtils.isPlayerDead(player.getUuid(), world.getServer())) {
+        final MinecraftServer server = world.getServer();
+        if (!PlayerUtils.isPlayerDead(player.getUuid(), server)) {
             return false;
         }
         teleport(player, world, alter);
         player.changeGameMode(GameMode.SURVIVAL);
 
         player.sendMessage(LsText.revivee(reviver.getDisplayName()));
-        updateValueOf(player, world.getGameRules().getInt(LSGameRules.HEARTBONUS));
+        PlayerUtils.setExactBaseHealth(player, world.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH));
+        PlayerUtils.removePlayerFromDeadList(player.getUuid(), server);
         return true;
     }
 
@@ -174,13 +186,6 @@ public class HeartItem extends ModelledPolymerItem {
 
     private static void failedSound(World world, BlockPos alter) {
         world.playSound(null, alter, SoundEvents.BLOCK_BEACON_DEACTIVATE, SoundCategory.PLAYERS, 16.f, 1);
-    }
-
-    public static void updateValueOf(ServerPlayerEntity of, float by) {
-        if (!PlayerUtils.setBaseHealth(of, by, of.getServer())) {
-            of.giveItemStack(new ItemStack(ModItems.HEART, 1));
-            of.getInventory().updateItems();
-        }
     }
 
     private static void teleport(PlayerEntity player, ServerWorld target, BlockPos alterPos) {

@@ -45,7 +45,7 @@ public class Loader implements ModInitializer {
 		 */
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
 			if (world.getGameRules().getBoolean(LSGameRules.ALTARS) && hand == player.getActiveHand() && player.getStackInHand(hand).isEmpty() && isAltar(world, hitResult.getBlockPos())) {
-				PlayerUtils.convertHealthToHeartItems((ServerPlayerEntity) player, 1, player.getServer());
+				PlayerUtils.convertHealthToHeartItems((ServerPlayerEntity) player, 1, player.getServer(), true);
 			}
 			return ActionResult.PASS;
 		});

@@ -14,6 +14,7 @@ public final class LsText {
             DEATH = Text.translatable("lifesteal.gameplay.death"),
             MAX_HEALTH = Text.translatable("lifesteal.gameplay.max_health"),
             LOW_HEALTH = Text.translatable("lifesteal.gameplay.low_health"),
+            HEART_DISABLED = Text.translatable("lifesteal.heart.disabled"),
             WITHDRAW_ALTAR = Text.translatable("lifesteal.withdraw.altar"),
             GIFT_ALTAR = Text.translatable("lifesteal.gift.altar"),
             GIFT_NONE = Text.translatable("lifesteal.gift.none"),

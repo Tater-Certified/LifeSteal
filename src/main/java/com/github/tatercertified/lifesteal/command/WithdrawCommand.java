@@ -18,7 +18,7 @@ public final class WithdrawCommand {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
             dispatcher.register(literal("withdraw")
                     .requires(ServerCommandSource::isExecutedByPlayer)
-                    .then(argument("amount", IntegerArgumentType.integer())
+                    .then(argument("amount", IntegerArgumentType.integer(1))
                             .executes(WithdrawCommand::withdraw)));
         });
     }
@@ -35,7 +35,7 @@ public final class WithdrawCommand {
 
         final int amount = IntegerArgumentType.getInteger(context, "amount");
 
-        PlayerUtils.convertHealthToHeartItems(source.getPlayer(), amount, server);
+        PlayerUtils.convertHealthToHeartItems(source.getPlayer(), amount, server, false);
         return 1;
     }
 }
