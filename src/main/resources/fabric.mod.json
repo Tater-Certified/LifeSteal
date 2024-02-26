@@ -5,7 +5,8 @@
   "name": "lifesteal",
   "description": "A fabric server side implementation of the LifeSteal SMP.",
   "authors": [
-    "QPCrummer"
+    "QPCrummer",
+    "Ampflower"
   ],
   "contact": {},
   "license": "Apache License v2",
