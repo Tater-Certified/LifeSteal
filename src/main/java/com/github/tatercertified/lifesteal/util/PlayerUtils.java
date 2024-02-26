@@ -18,7 +18,6 @@ import net.minecraft.server.BannedPlayerEntry;
 import net.minecraft.server.BannedPlayerList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 
@@ -236,7 +235,7 @@ public final class PlayerUtils {
         double finalHealth = current + increaseBy;
 
         if (finalHealth > server.getGameRules().getInt(LSGameRules.MAXPLAYERHEALTH)) {
-            player.sendMessage(Text.of(Config.MAX_HEALTH_REACHED), true);
+            player.sendMessage(LsText.MAX_HEALTH, true);
             return false;
         } else if (finalHealth < server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
             return false;
@@ -245,7 +244,7 @@ public final class PlayerUtils {
             health.setBaseValue(finalHealth);
             clampHealth(player, finalHealth);
 
-            player.sendMessage(Text.of(Config.HEALTH_INFO_MESSAGE + finalHealth), true);
+            player.sendMessage(LsText.updateHealth(finalHealth), true);
         }
 
         return true;
@@ -265,7 +264,7 @@ public final class PlayerUtils {
 
         clampHealth(player, finalHealth);
 
-        player.sendMessage(Text.of(Config.HEALTH_INFO_MESSAGE + finalHealth), true);
+        player.sendMessage(LsText.updateHealth(finalHealth), true);
     }
 
     /**
@@ -319,15 +318,16 @@ public final class PlayerUtils {
      * @param server MinecraftServer instance
      */
     public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server) {
-        if (PlayerUtils.setBaseHealth(player, -(hearts * server.getGameRules().getInt(LSGameRules.HEARTBONUS)), server)) {
+        final int health = hearts * server.getGameRules().getInt(LSGameRules.HEARTBONUS);
+        if (PlayerUtils.setBaseHealth(player, -health, server)) {
 
             if (player.giveItemStack(new ItemStack(ModItems.HEART, hearts))) {
-                player.sendMessage(Text.of(Config.HEART_TRADED));
+                player.sendMessage(LsText.withdrawnHealth(health, hearts));
             } else {
                 player.getWorld().spawnEntity(new ItemEntity(player.getWorld(), player.getX(), player.getY(), player.getZ(), new ItemStack(ModItems.HEART, hearts)));
             }
         } else {
-            player.sendMessage(Text.of(Config.GIVER_TOO_LITTLE_HEALTH), true);
+            player.sendMessage(LsText.LOW_HEALTH, true);
         }
     }
 }

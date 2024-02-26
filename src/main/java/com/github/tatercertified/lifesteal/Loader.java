@@ -59,7 +59,7 @@ public class Loader implements ModInitializer {
 			ServerPlayerEntity connecting = handler.player;
 
 			if (server.getOverworld().getGameRules().getBoolean(LSGameRules.BANWHENMINHEALTH) && PlayerUtils.isPlayerDead(connecting.getUuid(), server)) {
-				handler.disconnect(Text.literal(Config.REVIVAL_MESSAGE));
+				handler.disconnect(LsText.DEATH);
 			} else if (PlayerUtils.isPlayerDead(connecting.getUuid(), server)) {
 				connecting.changeGameMode(GameMode.SPECTATOR);
 			} else {
@@ -75,7 +75,7 @@ public class Loader implements ModInitializer {
 	}
 
 	private static void postRevival(LifeStealPlayerData data, ServerPlayerEntity player, MinecraftServer server) {
-		player.sendMessage(Text.literal((data.reviver + Config.REVIVER)));
+		player.sendMessage(LsText.revivee(Text.of(data.reviver)));
 		BlockPos pos = data.teleport;
 		PlayerUtils.setExactBaseHealth(player, server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH));
 		FabricDimensions.teleport(player, data.resolveDimension(server), new TeleportTarget(pos.toCenterPos(), Vec3d.ZERO, 0.0f, 0.0f));

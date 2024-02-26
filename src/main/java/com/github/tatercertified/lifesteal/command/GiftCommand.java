@@ -1,7 +1,7 @@
 package com.github.tatercertified.lifesteal.command;
 
-import com.github.tatercertified.lifesteal.util.Config;
 import com.github.tatercertified.lifesteal.util.ExchangeState;
+import com.github.tatercertified.lifesteal.util.LsText;
 import com.github.tatercertified.lifesteal.util.PlayerUtils;
 import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.mojang.authlib.GameProfile;
@@ -39,37 +39,42 @@ public final class GiftCommand {
         final GameRules gameRules = server.getGameRules();
 
         if (gameRules.getBoolean(LSGameRules.ALTARS)) {
-            source.sendError(Text.of("Please use the altar to gift instead."));
+            source.sendError(LsText.GIFT_ALTAR);
             return 0;
         }
 
         if (!gameRules.getBoolean(LSGameRules.GIFTHEARTS)) {
-            source.sendError(Text.of(Config.HEART_GIFTING_DISABLED));
+            source.sendError(LsText.GIFT_DISABLED);
             return 0;
         }
 
         final int amount = IntegerArgumentType.getInteger(context, "healthPoints");
         if (amount > gameRules.getInt(LSGameRules.MAXPLAYERHEALTH) - gameRules.getInt(LSGameRules.MINPLAYERHEALTH)) {
-            source.sendError(Text.of("Cannot give more than legal amount"));
+            source.sendError(LsText.GIFT_OVER_LIMIT);
             return 0;
         }
 
         final Collection<GameProfile> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
         if (profiles.isEmpty()) {
-            source.sendError(Text.of("Cannot give nobody hearts"));
+            source.sendError(LsText.GIFT_NONE);
             return 0;
         }
         if (profiles.size() > 1) {
-            source.sendError(Text.of("Cannot give multiple folks hearts"));
+            source.sendError(LsText.GIFT_MULTIPLE);
             return 0;
         }
 
-        final ExchangeState result = PlayerUtils.exchangeHealth(player, profiles.iterator().next(), amount);
+        final GameProfile receiver = profiles.iterator().next();
+
+        final ExchangeState result = PlayerUtils.exchangeHealth(player, receiver, amount);
         if (result == ExchangeState.SUCCESS) {
             return 1;
         }
 
-        source.sendError(result.message.get());
+        final ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.getId());
+        final Text receiverText = receiverPlayer == null ? Text.of(receiver.getName()) : receiverPlayer.getDisplayName();
+
+        source.sendError(result.message.apply(receiverText));
         return 0;
     }
 }

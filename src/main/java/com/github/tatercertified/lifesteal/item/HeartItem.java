@@ -78,7 +78,7 @@ public class HeartItem extends ModelledPolymerItem {
             if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
 
                 if (!world.getGameRules().getBoolean(LSGameRules.GIFTHEARTS)) {
-                    player.sendMessage(Text.of(Config.HEART_GIFTING_DISABLED), true);
+                    player.sendMessage(LsText.GIFT_DISABLED, true);
                     failedSound(world, pos);
                     return ActionResult.FAIL;
                 }
@@ -108,7 +108,7 @@ public class HeartItem extends ModelledPolymerItem {
                 return ActionResult.FAIL;
             }
 
-            player.sendMessage(Text.literal(playerName).append(Config.PLAYER_DOES_NOT_EXIST), true);
+            player.sendMessage(LsText.notFound(Text.of(playerName)), true);
             failedSound(world, pos);
             return ActionResult.FAIL;
         }
@@ -122,7 +122,7 @@ public class HeartItem extends ModelledPolymerItem {
         teleport(player, world, alter);
         player.changeGameMode(GameMode.SURVIVAL);
 
-        player.sendMessage(reviver.getDisplayName().copyContentOnly().append(Config.REVIVER));
+        player.sendMessage(LsText.revivee(reviver.getDisplayName()));
         updateValueOf(player, world.getGameRules().getInt(LSGameRules.HEARTBONUS));
         return true;
     }
@@ -160,7 +160,7 @@ public class HeartItem extends ModelledPolymerItem {
     private static void revived(ServerPlayerEntity reviver, ItemUsageContext context, Text revived) {
         successSound(context.getWorld(), context.getBlockPos());
         context.getStack().decrement(1);
-        reviver.sendMessage(Text.literal(Config.YOU_REVIVED).append(revived), true);
+        reviver.sendMessage(LsText.revived(revived), true);
     }
 
     private static void successSound(World world, BlockPos alter) {
@@ -169,7 +169,7 @@ public class HeartItem extends ModelledPolymerItem {
 
     private static void failed(ServerPlayerEntity reviver, BlockPos alter, Text revived) {
         failedSound(reviver.getWorld(), alter);
-        reviver.sendMessage(revived.copyContentOnly().append(Config.PLAYER_IS_STILL_ALIVE), true);
+        reviver.sendMessage(LsText.playerIsAlive(revived), true);
     }
 
     private static void failedSound(World world, BlockPos alter) {

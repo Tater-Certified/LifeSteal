@@ -1,0 +1,36 @@
+{
+  "item.lifesteal.heart_dust": "Heart Dust",
+  "item.lifesteal.heart_crystal": "Heart Crystal",
+  "item.lifesteal.heart": "Heart",
+
+  "block.lifesteal.heart_ore": "Heart Ore",
+  "block.lifesteal.deepslate_heart_ore": "Deepslate Heart Ore",
+
+  "lifesteal.admin.ban.reset": "Banned player list has been reset.",
+
+  "lifesteal.failure.unknown": "Unknown fault. If you're the server admin, check logs.",
+
+  "lifesteal.gameplay.death": "You lost your last life. You now must be revived.",
+  "lifesteal.gameplay.low_health": "You have insufficient health for this task.",
+  "lifesteal.gameplay.max_health": "You are already at the maximum amount of health",
+  "lifesteal.gameplay.update_health": "Your max health is now %s hearts",
+
+  "lifesteal.withdraw.altar": "Please use the altar to withdraw hearts instead.",
+  "lifesteal.withdraw.heart": "Converted %s health into %s hearts",
+  "lifesteal.withdraw.heart.single": "Converted %s health into a heart",
+  "lifesteal.gift.altar": "Please use the altar to gift hearts instead.",
+  "lifesteal.gift.none": "Can't gift to nobody.",
+  "lifesteal.gift.multiple": "Can't gift to multiple folks at once.",
+  "lifesteal.gift.self": "%s is you, you can't gift to yourself!",
+  "lifesteal.gift.over_limit": "Cannot gift more than the legal amount.",
+
+  "lifesteal.gift.heart.disabled": "Heart gifting is disabled",
+  "lifesteal.gift.heart.single": "Gifted one heart",
+  "lifesteal.gift.receiver.max_health": "%s cannot accept this much health",
+
+  "lifesteal.player.alive": "%s is still alive",
+  "lifesteal.player.dead": "%s is dead",
+  "lifesteal.player.revived.sender": "You have revived %s",
+  "lifesteal.player.revived.receiver": "You've been resurrected from the grave by %s",
+  "lifesteal.player.not_found": "%s doesn't exist"
+}

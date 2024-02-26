@@ -1,5 +1,6 @@
 package com.github.tatercertified.lifesteal.command;
 
+import com.github.tatercertified.lifesteal.util.LsText;
 import com.github.tatercertified.lifesteal.util.PlayerUtils;
 import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -7,7 +8,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -29,7 +29,7 @@ public final class WithdrawCommand {
         final GameRules gameRules = server.getGameRules();
 
         if (gameRules.getBoolean(LSGameRules.ALTARS)) {
-            source.sendError(Text.of("Please use the altar to withdraw instead."));
+            source.sendError(LsText.WITHDRAW_ALTAR);
             return 0;
         }
 

@@ -1,6 +1,6 @@
 package com.github.tatercertified.lifesteal.mixin;
 
-import com.github.tatercertified.lifesteal.util.Config;
+import com.github.tatercertified.lifesteal.util.LsText;
 import com.github.tatercertified.lifesteal.util.PlayerUtils;
 import com.github.tatercertified.lifesteal.util.ServerPlayerEntityInterface;
 import com.github.tatercertified.lifesteal.world.gamerules.LSGameRules;
@@ -13,7 +13,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
@@ -89,11 +88,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		if (health.getBaseValue() < minHealth) {
 			if (server.getGameRules().getBoolean(LSGameRules.BANWHENMINHEALTH)) {
 				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
-				player.networkHandler.disconnect(Text.literal(Config.REVIVAL_MESSAGE));
+				player.networkHandler.disconnect(LsText.DEATH);
 			} else if (server.getGameRules().getBoolean(LSGameRules.SPECTATORWHENMINHEALTH)) {
 				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
 				player.changeGameMode(GameMode.SPECTATOR);
-				player.sendMessage(Text.of(Config.REVIVAL_MESSAGE), true);
+				player.sendMessage(LsText.DEATH, true);
 			} else {
 				player.setHealth(minHealth);
 			}
