@@ -3,10 +3,12 @@ package com.github.tatercertified.lifesteal.world.gamerules;
 import com.github.tatercertified.lifesteal.Loader;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
+import net.fabricmc.fabric.api.gamerule.v1.rule.EnumRule;
 import net.minecraft.world.GameRules;
 
 public final class LSGameRules {
-    public static void init() {}
+    public static void init() {
+    }
 
     /**
      * If true: Players only get base health removed by player kills
@@ -15,15 +17,25 @@ public final class LSGameRules {
     public static final GameRules.Key<GameRules.BooleanRule> PLAYERRELATEDONLY = GameRuleRegistry.register(Loader.MOD_ID + ":playerKillOnly", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
 
     /**
+     * The action to take when the player goes below the allowed minimum health as defined by {@link #MINPLAYERHEALTH}
+     */
+    public static final GameRules.Key<EnumRule<DeathAction>> DEATH_ACTION =
+            registerPlayerRule("deathAction", GameRuleFactory.createEnumRule(DeathAction.UNSET));
+
+    /**
      * Whether to "ban" players when they receive a base health of 0.
      * This overrides 'spectateWhenMinHealth'
      */
-    public static final GameRules.Key<GameRules.BooleanRule> BANWHENMINHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":banWhenMinHealth", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
+    @Deprecated(forRemoval = true)
+    public static final GameRules.Key<GameRules.BooleanRule> BANWHENMINHEALTH =
+            registerPlayerRule("banWhenMinHealth", GameRuleFactory.createBooleanRule(true));
 
     /**
      * Whether to put players into spectator if they receive a base health of 0
      */
-    public static final GameRules.Key<GameRules.BooleanRule> SPECTATORWHENMINHEALTH = GameRuleRegistry.register(Loader.MOD_ID + ":spectateWhenMinHealth", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
+    @Deprecated(forRemoval = true)
+    public static final GameRules.Key<GameRules.BooleanRule> SPECTATORWHENMINHEALTH =
+            registerPlayerRule("spectateWhenMinHealth", GameRuleFactory.createBooleanRule(false));
 
     /**
      * Whether to allow retroactive unbanning of players prior to 1.4.0.
@@ -67,4 +79,8 @@ public final class LSGameRules {
      * The amount of health received from heart crystals
      */
     public static final GameRules.Key<GameRules.IntRule> HEARTBONUS = GameRuleRegistry.register(Loader.MOD_ID + ":healthPerUse", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2, 0));
+
+    private static <R extends GameRules.Rule<R>, T extends GameRules.Type<R>> GameRules.Key<R> registerPlayerRule(String name, T rule) {
+        return GameRuleRegistry.register(Loader.MOD_ID + ':' + name, GameRules.Category.PLAYER, rule);
+    }
 }

@@ -15,6 +15,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -81,19 +82,26 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 
 	@Override
 	public void checkIfDead() {
-		ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
-		int minHealth = server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH);
+		final ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+		final GameRules gameRules = server.getGameRules();
+		int minHealth = gameRules.getInt(LSGameRules.MINPLAYERHEALTH);
 		EntityAttributeInstance health = player.getAttributes().getCustomInstance(EntityAttributes.GENERIC_MAX_HEALTH);
 
-		if (health.getBaseValue() < minHealth) {
-			if (server.getGameRules().getBoolean(LSGameRules.BANWHENMINHEALTH)) {
+		if (health == null || health.getBaseValue() >= minHealth) {
+			return;
+		}
+		switch (gameRules.get(LSGameRules.DEATH_ACTION).get()) {
+			case BAN -> {
 				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
 				player.networkHandler.disconnect(LsText.DEATH);
-			} else if (server.getGameRules().getBoolean(LSGameRules.SPECTATORWHENMINHEALTH)) {
+			}
+			case SPECTATOR -> {
 				PlayerUtils.addPlayerToDeadList(player.getUuid(), server);
 				player.changeGameMode(GameMode.SPECTATOR);
 				player.sendMessage(LsText.DEATH, true);
-			} else {
+			}
+			case REVIVE -> {
+				health.setBaseValue(minHealth);
 				player.setHealth(minHealth);
 			}
 		}
