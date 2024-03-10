@@ -81,8 +81,10 @@ public class Loader implements ModInitializer {
 		  This callback exchanges HP for heart items if right-clicking on an altar
 		 */
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-			if (world.getGameRules().getBoolean(LSGameRules.ALTARS) && hand == player.getActiveHand() && player.getStackInHand(hand).isEmpty() && isAltar(world, hitResult.getBlockPos())) {
-				PlayerUtils.convertHealthToHeartItems((ServerPlayerEntity) player, 1, player.getServer(), true);
+			if (player instanceof ServerPlayerEntity serverPlayer) {
+				if (world.getGameRules().getBoolean(LSGameRules.ALTARS) && hand == serverPlayer.getActiveHand() && serverPlayer.getStackInHand(hand).isEmpty() && isAltar(world, hitResult.getBlockPos())) {
+					PlayerUtils.convertHealthToHeartItems(serverPlayer, 1, serverPlayer.getServer(), true);
+				}
 			}
 			return ActionResult.PASS;
 		});
@@ -99,13 +101,14 @@ public class Loader implements ModInitializer {
 
 			if (!PlayerUtils.isPlayerDead(connecting.getUuid(), server)) {
 				OfflinePlayerData data = OfflineUtils.getOfflinePlayerData(server, connecting.getGameProfile());
-				LifeStealPlayerData compound = data.getLifeStealData();
-				if (compound != null) {
-					postRevival(compound, connecting, server);
-					data.setLifeStealData(null);
-					data.save();
+				if (data != null) {
+					LifeStealPlayerData compound = data.getLifeStealData();
+					if (compound != null) {
+						postRevival(compound, connecting, server);
+						data.setLifeStealData(null);
+						data.save();
+					}
 				}
-
 				return;
 			}
 
@@ -133,8 +136,12 @@ public class Loader implements ModInitializer {
 	private static void postRevival(LifeStealPlayerData data, ServerPlayerEntity player, MinecraftServer server) {
 		player.sendMessage(LsText.revivee(Text.of(data.reviver)));
 		BlockPos pos = data.teleport;
-		PlayerUtils.setExactBaseHealth(player, server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH));
+		PlayerUtils.setExactBaseHealth(player, getLargerRevivalValue(server));
 		FabricDimensions.teleport(player, data.resolveDimension(server), new TeleportTarget(pos.toCenterPos(), Vec3d.ZERO, 0.0f, 0.0f));
 		player.changeGameMode(GameMode.SURVIVAL);
+	}
+
+	private static int getLargerRevivalValue(MinecraftServer server) {
+		return Math.max(server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH), server.getGameRules().getInt(LSGameRules.HEARTBONUS));
 	}
 }

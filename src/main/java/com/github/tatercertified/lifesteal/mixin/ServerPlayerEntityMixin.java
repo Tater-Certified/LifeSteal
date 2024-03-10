@@ -51,7 +51,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Se
 		int stealAmount = world.getGameRules().getInt(LSGameRules.STEALAMOUNT);
 		if (entity instanceof ServerPlayerEntity) {
 			if (server.getGameRules().getBoolean(LSGameRules.ANTIHEARTDUPE)) {
-				if (player.getMaxHealth() >= server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
+				if (player.getMaxHealth() > server.getGameRules().getInt(LSGameRules.MINPLAYERHEALTH)) {
 					updateValueOf((ServerPlayerEntity)entity, stealAmount);
 				}
 			} else {
