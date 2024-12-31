@@ -74,7 +74,7 @@ public final class LifeStealGamerules {
     /**
      * The amount of health received from heart crystals
      */
-    public static final GameRules.Key<GameRules.IntRule> HEARTBONUS = GameRuleRegistry.register(Lifesteal.MOD_ID + ":healthFromCrystal", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2, 0));
+    public static final GameRules.Key<GameRules.IntRule> HEARTBONUS = GameRuleRegistry.register(Lifesteal.MOD_ID + ":healthFromHeart", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(2, 0));
 
     /**
      * The block that is to be used as the altar
