@@ -3,27 +3,24 @@
   "id": "lifesteal",
   "version": "${version}",
   "name": "lifesteal",
-  "description": "A fabric server side implementation of the LifeSteal SMP.",
-  "authors": [
-    "QPCrummer",
-    "Ampflower"
-  ],
+  "description": "A server side only reimagining of the Lifesteal SMP",
+  "authors": [],
   "contact": {},
-  "license": "Apache License v2",
+  "license": "MIT",
   "icon": "assets/lifesteal/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.tatercertified.lifesteal.Loader"
+      "com.github.certifiedtater.lifesteal.Lifesteal"
     ]
   },
+  "accessWidener" : "lifesteal.accesswidener",
   "mixins": [
     "lifesteal.mixins.json"
   ],
   "depends": {
-    "fabricloader": "*",
+    "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": ">=1.21",
-    "java": ">=17"
+    "minecraft": "${minecraft_version}"
   }
 }

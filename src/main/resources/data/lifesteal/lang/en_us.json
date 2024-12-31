@@ -6,14 +6,14 @@
   "block.lifesteal.heart_ore": "Heart Ore",
   "block.lifesteal.deepslate_heart_ore": "Deepslate Heart Ore",
 
-  "lifesteal.admin.ban.reset": "Banned player list has been reset.",
+  "lifesteal.admin.revive": "%s has been revived.",
 
   "lifesteal.failure.unknown": "Unknown fault. If you're the server admin, check logs.",
 
   "lifesteal.gameplay.death": "You lost your last life. You now must be revived.",
   "lifesteal.gameplay.low_health": "You have insufficient health for this task.",
   "lifesteal.gameplay.max_health": "You are already at the maximum amount of health",
-  "lifesteal.gameplay.update_health": "Your max health is now %s hearts",
+  "lifesteal.gameplay.update_health": "%s Health",
 
   "lifesteal.heart.disabled": "Hearts are disabled.",
 
@@ -25,6 +25,8 @@
   "lifesteal.gift.multiple": "Can't gift to multiple folks at once.",
   "lifesteal.gift.self": "%s is you, you can't gift to yourself!",
   "lifesteal.gift.over_limit": "Cannot gift more than the legal amount.",
+  "lifesteal.gift.success": "Gifted %s health to %s.",
+  "lifsteal.gift.received": "Received %s health from %s.",
 
   "lifesteal.gift.heart.disabled": "Heart gifting is disabled",
   "lifesteal.gift.heart.single": "Gifted one heart",
@@ -34,5 +36,6 @@
   "lifesteal.player.dead": "%s is dead",
   "lifesteal.player.revived.sender": "You have revived %s",
   "lifesteal.player.revived.receiver": "You've been resurrected from the grave by %s",
-  "lifesteal.player.not_found": "%s doesn't exist"
+  "lifesteal.player.not_found": "%s doesn't exist",
+  "lifesteal.revive.self": "%s is you, you can't revive yourself!"
 }
