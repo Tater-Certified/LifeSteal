@@ -31,6 +31,7 @@ public class Lifesteal implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        PolymerResourcePackUtils.addModAssets(Lifesteal.MOD_ID);
         DeathData.loadDeathDataFromFile(); // Load DeathData
         ModItems.initialize();
         ModBlocks.registerBlocks();
@@ -39,7 +40,6 @@ public class Lifesteal implements ModInitializer {
         GiftCommand.register();
         WithdrawCommand.register();
         LifeStealGamerules.init();
-        PolymerResourcePackUtils.addModAssets(Lifesteal.MOD_ID);
 
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> LifeStealGamerules.serverInstance = minecraftServer);
         /*

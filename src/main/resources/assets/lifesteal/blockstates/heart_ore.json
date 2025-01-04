@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model":  "lifesteal:block/heart_ore"
+      "model": "lifesteal:block/heart_ore"
     }
   }
 }

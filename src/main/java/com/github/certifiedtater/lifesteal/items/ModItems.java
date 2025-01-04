@@ -31,8 +31,6 @@ public class ModItems {
            key_heart_dust
     );
 
-
-
     public static Item register(Item item, RegistryKey<Item> key) {
         return Registry.register(Registries.ITEM, key, item);
     }

@@ -19,6 +19,6 @@ public class SimplePolymerTexturedBlock extends SimplePolymerBlock implements Po
 
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return PolymerBlockResourceUtils.requestBlock(BlockModelType.FULL_BLOCK, PolymerBlockModel.of(id));
+        return PolymerBlockResourceUtils.requestBlock(BlockModelType.FULL_BLOCK, PolymerBlockModel.of(Identifier.of(id.getNamespace(), "block/" + id.getPath())));
     }
 }
