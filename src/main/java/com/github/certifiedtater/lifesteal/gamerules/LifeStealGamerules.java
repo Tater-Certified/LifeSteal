@@ -3,21 +3,22 @@ package com.github.certifiedtater.lifesteal.gamerules;
 import com.github.certifiedtater.lifesteal.Lifesteal;
 import com.github.certifiedtater.lifesteal.mixin.GameRulesTypeInvoker;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import mc.recraftors.unruled_api.UnruledApi;
-import mc.recraftors.unruled_api.rules.StringRule;
+import mc.recraftors.unruled_api.rules.RegistryEntryRule;
 import mc.recraftors.unruled_api.utils.IGameRulesProvider;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.EnumRule;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public final class LifeStealGamerules {
@@ -79,16 +80,17 @@ public final class LifeStealGamerules {
     /**
      * The block that is to be used as the altar
      */
-    public static final GameRules.Key<StringRule> ALTAR_BLOCK = GameRuleRegistry.register(Lifesteal.MOD_ID + ":altarBlock", GameRules.Category.MISC, UnruledApi.createString("minecraft:netherite_block", new BlockGameRuleValidator()));
+    public static final GameRules.Key<RegistryEntryRule<Block>> ALTAR_BLOCK = GameRuleRegistry.register(
+            Lifesteal.MOD_ID + ":altarBlock", GameRules.Category.MISC,
+            createRegistryEntryRule(Registries.BLOCK, Blocks.NETHERITE_BLOCK,
+                    (server, blockRegistryEntryRule) -> altarGameRuleModified = true));
 
-    private static String cachedAltarString;
+    public static boolean altarGameRuleModified = true;
     private static Block cachedAltarBlock;
 
     public static Block getBlockFromGameRule(GameRules gameRules) {
-        String altarBlock = ((IGameRulesProvider)gameRules).unruled_getString(ALTAR_BLOCK);
-        if (!Objects.equals(cachedAltarString, altarBlock)) {
-            cachedAltarString = altarBlock;
-            cachedAltarBlock = Registries.BLOCK.get(Identifier.of(altarBlock));
+        if (altarGameRuleModified) {
+            cachedAltarBlock = ((IGameRulesProvider)gameRules).unruled_getRegistryEntry(ALTAR_BLOCK);
         }
         return cachedAltarBlock;
     }
@@ -104,5 +106,14 @@ public final class LifeStealGamerules {
 
     private static GameRules.Type<GameRules.IntRule> createIntRule(int defaultValue, int minimumValue, int maximumValue, @Nullable BiConsumer<MinecraftServer, GameRules.IntRule> changedCallback) {
         return GameRulesTypeInvoker.invokeInit(() -> IntegerArgumentType.integer(minimumValue, maximumValue), (type) -> new SyncedBoundedIntRule(type, defaultValue, minimumValue, maximumValue), changedCallback, GameRules.Visitor::visitInt, FeatureSet.empty());
+    }
+
+    @Contract(
+            value = "_, _, _ -> new",
+            pure = true
+    )
+    @NotNull
+    private static <T> GameRules.@NotNull Type<RegistryEntryRule<T>> createRegistryEntryRule(Registry<T> registry, T initialValue, BiConsumer<MinecraftServer, RegistryEntryRule<T>> changeCallback) {
+        return RegistryEntryRule.create(registry, initialValue, changeCallback);
     }
 }
