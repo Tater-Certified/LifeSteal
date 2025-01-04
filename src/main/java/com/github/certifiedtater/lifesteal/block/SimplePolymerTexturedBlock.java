@@ -5,6 +5,7 @@ import eu.pb4.polymer.blocks.api.PolymerBlockModel;
 import eu.pb4.polymer.blocks.api.PolymerBlockResourceUtils;
 import eu.pb4.polymer.blocks.api.PolymerTexturedBlock;
 import eu.pb4.polymer.core.api.block.SimplePolymerBlock;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Identifier;
@@ -19,6 +20,10 @@ public class SimplePolymerTexturedBlock extends SimplePolymerBlock implements Po
 
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return PolymerBlockResourceUtils.requestBlock(BlockModelType.FULL_BLOCK, PolymerBlockModel.of(Identifier.of(id.getNamespace(), "block/" + id.getPath())));
+        if (PolymerResourcePackUtils.hasMainPack(context)) {
+            return PolymerBlockResourceUtils.requestBlock(BlockModelType.FULL_BLOCK, PolymerBlockModel.of(Identifier.of(id.getNamespace(), "block/" + id.getPath())));
+        } else {
+            return super.getPolymerBlockState(state, context);
+        }
     }
 }
