@@ -33,7 +33,7 @@ public class ModBlocks {
         RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, identifier);
 
         settings.registryKey(blockKey);
-        Block block = new SimplePolymerBlock(settings, visibleBlock);
+        Block block = new SimplePolymerTexturedBlock(settings, visibleBlock, identifier);
         BlockItem item = new PolymerBlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(itemKey), visibleBlock.asItem());
 
         Registry.register(Registries.BLOCK, blockKey, block);
