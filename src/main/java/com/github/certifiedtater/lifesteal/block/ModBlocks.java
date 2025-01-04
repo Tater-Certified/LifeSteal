@@ -34,7 +34,7 @@ public class ModBlocks {
 
         settings.registryKey(blockKey);
         Block block = new SimplePolymerTexturedBlock(settings, visibleBlock, identifier);
-        BlockItem item = new PolymerBlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(itemKey), visibleBlock.asItem());
+        BlockItem item = new PolymerBlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(itemKey), visibleBlock.asItem(), true);
 
         Registry.register(Registries.BLOCK, blockKey, block);
         Registry.register(Registries.ITEM, itemKey, item);

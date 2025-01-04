@@ -21,13 +21,13 @@ public class ModItems {
 
     private static final RegistryKey<Item> key_heart_crystal = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart_crystal"));
     public static final Item HEART_CRYSTAL = register(
-            new SimplePolymerItem(new Item.Settings().registryKey(key_heart_crystal), Items.ECHO_SHARD),
+            new SimplePolymerItem(new Item.Settings().registryKey(key_heart_crystal), Items.ECHO_SHARD, true),
             key_heart_crystal
     );
 
     private static final RegistryKey<Item> key_heart_dust = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart_dust"));
     public static final Item HEART_DUST = register(
-            new SimplePolymerItem(new Item.Settings().registryKey(key_heart_dust), Items.REDSTONE),
+            new SimplePolymerItem(new Item.Settings().registryKey(key_heart_dust), Items.REDSTONE, true),
            key_heart_dust
     );
 
