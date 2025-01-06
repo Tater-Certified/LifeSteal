@@ -20,13 +20,15 @@ Configuration is purely managed through gamerules, here is a list of gamerules a
 | lifesteal:minPlayerHealth     | Integer | The minimum health a player can reach before being banned *if the value is below 1 it is automatically corrected to 1* | `2`                         |
 | lifesteal:maxPlayerHealth     | Integer | The maximum health a player can reach *set to a value of 0 or below to disable*                                        | `40`                        |
 | lifesteal:healthFromHeart     | Integer | The amount of health to receive from a heart item                                                                      | `2`                         |
+| lifesteal:autoRevivalSeconds  | Integer | The number of seconds until a player is automatically revived. Set to 0 to disable.                                    | `0`                         |
 
 ### Dead Player Json:
 Located in `config/lifesteal-deaths.json`
 ```json
 [
   {
-    "deadPlayerID": "uuid"
+    "deadPlayerID": "uuid",
+    "deathTime": 100
   }
 ]
  ```
