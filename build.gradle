@@ -32,6 +32,7 @@ dependencies {
     modImplementation include("xyz.nucleoid:server-translations-api:2.4.0+1.21.2-rc1")
     modImplementation include("eu.pb4:polymer-blocks:${project.polymer_version}")
     modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
+    modImplementation include("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
     implementation include('com.google.code.gson:gson:2.11.0')
     modApi "maven.modrinth:unruled-api:${project.unruled_version}"
 }

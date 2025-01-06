@@ -1,15 +1,8 @@
 package com.github.certifiedtater.lifesteal.block;
 
 import com.github.certifiedtater.lifesteal.Lifesteal;
-import com.github.certifiedtater.lifesteal.items.DeepslateHeartOreItem;
-import com.github.certifiedtater.lifesteal.items.HeartOreItem;
-import eu.pb4.polymer.blocks.api.BlockModelType;
-import eu.pb4.polymer.core.api.block.SimplePolymerBlock;
-import eu.pb4.polymer.core.api.item.PolymerBlockItem;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -20,23 +13,18 @@ import net.minecraft.util.Identifier;
 
 public class ModBlocks {
     public static void registerBlocks() {
-        registerBlocksAndItems("deepslate_heart_ore", AbstractBlock.Settings.copy(Blocks.DEEPSLATE_DIAMOND_ORE).requiresTool()
-                .strength(6.0f, 6.0f).sounds(BlockSoundGroup.DEEPSLATE), Blocks.DEEPSLATE_REDSTONE_ORE);
-
-        registerBlocksAndItems("heart_ore", AbstractBlock.Settings.copy(Blocks.DIAMOND_ORE).requiresTool()
-                .strength(6.0f, 6.0f).sounds(BlockSoundGroup.STONE), Blocks.REDSTONE_ORE);
+        register("block/deepslate_heart_ore", Blocks.DEEPSLATE_REDSTONE_ORE, BlockSoundGroup.DEEPSLATE);
+        register("block/heart_ore", Blocks.REDSTONE_ORE, BlockSoundGroup.STONE);
     }
 
-    public static void registerBlocksAndItems(String id, AbstractBlock.Settings settings, Block visibleBlock) {
-        Identifier identifier = Identifier.of(Lifesteal.MOD_ID, id);
-        RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, identifier);
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, identifier);
+    public static void register(String modelId, Block modelBlock, BlockSoundGroup soundGroup) {
+        var id = Identifier.of(Lifesteal.MOD_ID, modelId);
+        var block = Registry.register(Registries.BLOCK, id,
+                new SimplePolymerTexturedBlock(Block.Settings.copy(Blocks.DIAMOND_ORE).requiresTool()
+                        .strength(6.0f, 6.0f).sounds(soundGroup).registryKey(RegistryKey.of(RegistryKeys.BLOCK, id)), modelId));
 
-        settings.registryKey(blockKey);
-        Block block = new SimplePolymerTexturedBlock(settings, visibleBlock, identifier);
-        BlockItem item = new PolymerBlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(itemKey), visibleBlock.asItem(), true);
-
-        Registry.register(Registries.BLOCK, blockKey, block);
-        Registry.register(Registries.ITEM, itemKey, item);
+        Registry.register(Registries.ITEM, id, new SimplePolymerTexturedBlockItem(new Item.Settings()
+                .registryKey(RegistryKey.of(RegistryKeys.ITEM, id)),
+                block, modelId, modelBlock.asItem()));
     }
 }
