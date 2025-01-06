@@ -11,6 +11,7 @@
   "lifesteal.failure.unknown": "Unknown fault. If you're the server admin, check logs.",
 
   "lifesteal.gameplay.death": "You lost your last life. You now must be revived.",
+  "lifesteal.gameplay.death_time": "You lost your last life.\nYou will be revived in %s seconds.",
   "lifesteal.gameplay.low_health": "You have insufficient health for this task.",
   "lifesteal.gameplay.max_health": "You are already at the maximum amount of health",
   "lifesteal.gameplay.update_health": "%s Health",

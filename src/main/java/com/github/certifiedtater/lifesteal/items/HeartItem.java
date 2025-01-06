@@ -134,7 +134,7 @@ public class HeartItem extends Item implements PolymerItem {
     }
 
     private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
-        if (!DeathData.isPlayerDead(player.getUuid())) {
+        if (!DeathData.isPlayerDead(player.getUuid(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
         teleport(player, world, alter);
@@ -147,7 +147,7 @@ public class HeartItem extends Item implements PolymerItem {
     }
 
     private static boolean reviveOffline(GameProfile profile, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
-        if (!DeathData.isPlayerDead(profile.getId())) {
+        if (!DeathData.isPlayerDead(profile.getId(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
 

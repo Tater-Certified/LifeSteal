@@ -13,14 +13,17 @@ import java.util.*;
 public class DeathData {
     public final UUID deadPlayerID;
     public UUID reviverPlayerID;
+    public final long deathTime;
 
     public DeathData(UUID deadPlayerID) {
         this.deadPlayerID = deadPlayerID;
+        this.deathTime = System.currentTimeMillis() / 1000;
     }
 
     public DeathData(UUID deadPlayerID, UUID reviverPlayerID) {
         this.deadPlayerID = deadPlayerID;
         this.reviverPlayerID = reviverPlayerID;
+        this.deathTime = System.currentTimeMillis() / 1000;
     }
 
     public void addToDeathDataList() {
@@ -74,12 +77,26 @@ public class DeathData {
         }
     }
 
-    public static boolean isPlayerDead(UUID player) {
+    public static boolean isPlayerDead(UUID player, int waitTime) {
         DeathData data = Lifesteal.DEAD_PLAYERS.get(player);
         if (data != null) {
+            if (shouldAutoRevive(data, waitTime)) {
+                // Revive
+                removeFromDeathDataList(player);
+                return false;
+            }
+
             return data.reviverPlayerID == null;
         } else {
             return false;
         }
+    }
+
+    public static boolean shouldAutoRevive(DeathData data, int waitTime) {
+        if (waitTime == 0) {
+            return false;
+        }
+
+        return waitTime <= (System.currentTimeMillis() * 0.001) - data.deathTime;
     }
 }

@@ -75,7 +75,7 @@ public final class GiftCommand {
             return 0;
         }
 
-        if (DeathData.isPlayerDead(receiver.getId())) {
+        if (DeathData.isPlayerDead(receiver.getId(), gameRules.getInt(LifeStealGamerules.AUTOREVIVAL))) {
             // Can't gift to a dead guy
             source.sendError(LifeStealText.isDead(Text.of(receiver.getName())));
             return 0;

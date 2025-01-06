@@ -34,6 +34,7 @@ public final class LifeStealText {
             REVIVEE = "lifesteal.player.revived.receiver",
             REVIVER = "lifesteal.player.revived.sender",
             SELF_REVIVE = "lifesteal.revive.self",
+            DEATH_TIME = "lifesteal.gameplay.death_time",
             ADMIN_REVIVE = "lifesteal.admin.revive";
 
     public static Text onRevivalText(DeathData data, MinecraftServer server) {
@@ -97,5 +98,9 @@ public final class LifeStealText {
 
     public static Text adminRevive(String player) {
         return Text.translatable(ADMIN_REVIVE, player);
+    }
+
+    public static Text deathTime(int seconds) {
+        return Text.translatable(DEATH_TIME, seconds);
     }
 }

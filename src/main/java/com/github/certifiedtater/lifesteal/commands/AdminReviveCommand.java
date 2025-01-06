@@ -1,6 +1,7 @@
 package com.github.certifiedtater.lifesteal.commands;
 
 import com.github.certifiedtater.lifesteal.data.DeathData;
+import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.items.HeartItem;
 import com.github.certifiedtater.lifesteal.utils.LifeStealText;
 import com.mojang.authlib.GameProfile;
@@ -36,7 +37,7 @@ public class AdminReviveCommand {
             return 0;
         }
         final GameProfile receiver = profiles.iterator().next();
-        if (!DeathData.isPlayerDead(receiver.getId())) {
+        if (!DeathData.isPlayerDead(receiver.getId(), source.getServer().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             // Error
             source.sendError(LifeStealText.playerIsAlive(Text.of(receiver.getName())));
             return 0;

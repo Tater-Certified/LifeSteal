@@ -26,7 +26,7 @@ public final class PlayerUtils {
            // Considered dead
            DeathData data = new DeathData(killed.getUuid());
            data.addToDeathDataList();
-           handleDeadPlayerAction(killed);
+           handleDeadPlayerAction(killed, data);
 
            // Check to see if spawn camping is happening
            if (killedMaxHealthDouble < minHealth && gameRules.getBoolean(LifeStealGamerules.ANTIHEARTDUPE)) {
@@ -66,11 +66,17 @@ public final class PlayerUtils {
         return newMaxHealth >= gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) && newMaxHealth <= gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH);
     }
 
-    public static void handleDeadPlayerAction(ServerPlayerEntity player) {
+    public static void handleDeadPlayerAction(ServerPlayerEntity player, DeathData data) {
         GameRules gameRules = player.getServerWorld().getGameRules();
         DeathAction action = gameRules.get(LifeStealGamerules.DEATH_ACTION).get();
         switch (action) {
-            case BAN -> player.networkHandler.disconnect(LifeStealText.DEATH);
+            case BAN -> {
+                if (gameRules.get(LifeStealGamerules.AUTOREVIVAL).get() == 0) {
+                    player.networkHandler.disconnect(LifeStealText.DEATH);
+                } else {
+                    player.networkHandler.disconnect(LifeStealText.deathTime((int) (data.deathTime + gameRules.get(LifeStealGamerules.AUTOREVIVAL).get() - (System.currentTimeMillis() * 0.001))));
+                }
+            }
             case REVIVE -> {
                 setMaxHealth(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) - 0.01, player); // It's basically Min Health... Right?
                 DeathData.removeFromDeathDataList(player.getUuid()); // I know this is a waste of processing power... but I don't care
@@ -82,18 +88,26 @@ public final class PlayerUtils {
     public static void handlePlayerJoin(ServerPlayerEntity player) {
         DeathData data = Lifesteal.DEAD_PLAYERS.get(player.getUuid());
         if (data != null) {
+            // Check and see if they can be revived
+            if (DeathData.shouldAutoRevive(data, player.getServerWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                handlePostRevival(data, player, true);
+                return;
+            }
+            // Else do traditional checks
             if (data.reviverPlayerID == null) {
-                handleDeadPlayerAction(player);
+                handleDeadPlayerAction(player, data);
             } else {
-                handlePostRevival(data, player);
+                handlePostRevival(data, player, false);
             }
         }
     }
 
-    public static void handlePostRevival(DeathData data, ServerPlayerEntity player) {
+    public static void handlePostRevival(DeathData data, ServerPlayerEntity player, boolean autoRevived) {
         GameRules gameRules = player.getServerWorld().getGameRules();
         setMaxHealth(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH), player);
-        player.sendMessage(LifeStealText.onRevivalText(data, player.server));
+        if (!autoRevived) {
+            player.sendMessage(LifeStealText.onRevivalText(data, player.server));
+        }
         DeathData.removeFromDeathDataList(player.getUuid());
     }
 

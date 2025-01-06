@@ -1,5 +1,6 @@
 package com.github.certifiedtater.lifesteal.mixin;
 
+import com.github.certifiedtater.lifesteal.data.DeathData;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
 import com.mojang.authlib.GameProfile;
@@ -35,6 +36,14 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         } else if (!getServerWorld().getGameRules().getBoolean(LifeStealGamerules.PLAYERRELATEDONLY)) {
             EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
             PlayerUtils.changeHealth(((ServerPlayerEntity) (Object) this), killedMaxHealth, -getServerWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
+            // Check to see if the player is dead
+            int minHealth = this.getServer().getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH);
+            if (killedMaxHealth.getBaseValue() <= minHealth) {
+                // Considered dead
+                DeathData data = new DeathData(this.getUuid());
+                data.addToDeathDataList();
+                PlayerUtils.handleDeadPlayerAction((ServerPlayerEntity)(Object)this, data);
+            }
         }
     }
 }

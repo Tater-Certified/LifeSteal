@@ -85,6 +85,12 @@ public final class LifeStealGamerules {
             createRegistryEntryRule(Registries.BLOCK, Blocks.NETHERITE_BLOCK,
                     (server, blockRegistryEntryRule) -> altarGameRuleModified = true));
 
+    /**
+     * The amount of seconds until the player is automatically revived
+     * Setting this to 0 will disable auto-revival
+     */
+    public static final GameRules.Key<GameRules.IntRule> AUTOREVIVAL = GameRuleRegistry.register(Lifesteal.MOD_ID + ":autoRevivalSeconds", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(0, 0));
+
     public static boolean altarGameRuleModified = true;
     private static Block cachedAltarBlock;
 
