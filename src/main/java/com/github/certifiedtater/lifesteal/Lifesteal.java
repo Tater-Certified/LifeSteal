@@ -36,7 +36,7 @@ public class Lifesteal implements ModInitializer {
         DeathData.loadDeathDataFromFile(); // Load DeathData
         ModItems.initialize();
         ModBlocks.registerBlocks();
-        Ores.initOres(); // TODO Make an wiki on how to customize ore generation
+        Ores.initOres();
         AdminReviveCommand.register();
         GiftCommand.register();
         WithdrawCommand.register();

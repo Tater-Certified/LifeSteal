@@ -6,7 +6,7 @@
     "targets": [
       {
         "state": {
-          "Name": "lifesteal:block/heart_ore"
+          "Name": "lifesteal:heart_ore"
         },
         "target": {
           "predicate_type": "minecraft:tag_match",
@@ -15,7 +15,7 @@
       },
       {
         "state": {
-          "Name": "lifesteal:block/deepslate_heart_ore"
+          "Name": "lifesteal:deepslate_heart_ore"
         },
         "target": {
           "predicate_type": "minecraft:tag_match",

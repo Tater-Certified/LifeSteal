@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "lifesteal",
   "description": "A server side only reimagining of the Lifesteal SMP",
-  "authors": [],
+  "authors": ["QPCrummer"],
   "contact": {},
   "license": "MIT",
   "icon": "assets/lifesteal/icon.png",
@@ -21,7 +21,7 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "minecraft": "${minecraft_version}",
+    "minecraft": ">=${minecraft_version}",
     "unruled_api": ">=0.6"
   }
 }
