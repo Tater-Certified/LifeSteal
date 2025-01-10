@@ -20,12 +20,6 @@ public class DeathData {
         this.deathTime = System.currentTimeMillis() / 1000;
     }
 
-    public DeathData(UUID deadPlayerID, UUID reviverPlayerID) {
-        this.deadPlayerID = deadPlayerID;
-        this.reviverPlayerID = reviverPlayerID;
-        this.deathTime = System.currentTimeMillis() / 1000;
-    }
-
     public void addToDeathDataList() {
         Lifesteal.DEAD_PLAYERS.put(this.deadPlayerID, this);
         saveDeathDataToFile();

@@ -29,7 +29,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     @Shadow public abstract ServerWorld getServerWorld();
 
     @Inject(method = "onDeath", at = @At("TAIL"))
-    private void onDeath(DamageSource damageSource, CallbackInfo ci) {
+    private void lifsteal$onDeath(DamageSource damageSource, CallbackInfo ci) {
         Entity attacker = damageSource.getAttacker();
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             PlayerUtils.exchangeHealth(((ServerPlayerEntity) (Object) this), playerAttacker);

@@ -8,7 +8,7 @@ import net.minecraft.util.Formatting;
 
 public final class LifeStealText {
     public static final Text
-            FAILURE_UNKNOWN = Text.translatable("lifesteal.failure.unknown"),
+            FAILURE_UNKNOWN = Text.translatable("lifesteal.failure.unknown"), // For debug purposes
             DEATH = Text.translatable("lifesteal.gameplay.death"),
             MAX_HEALTH = Text.translatable("lifesteal.gameplay.max_health"),
             LOW_HEALTH = Text.translatable("lifesteal.gameplay.low_health"),
@@ -26,7 +26,7 @@ public final class LifeStealText {
             HEART_WITHDRAWN_SINGLE = "lifesteal.withdraw.heart.single",
             GIFT_RECEIVER_MAX_HEALTH = "lifesteal.gift.receiver.max_health",
             GIFT_SUCCESS = "lifesteal.gift.success",
-            RECEIVE_SUCCESS = "lifsteal.gift.received",
+            RECEIVE_SUCCESS = "lifesteal.gift.received",
             PLAYER_IS_ALIVE = "lifesteal.player.alive",
             PLAYER_IS_DEAD = "lifesteal.player.dead",
             PLAYER_IS_YOU = "lifesteal.gift.self",

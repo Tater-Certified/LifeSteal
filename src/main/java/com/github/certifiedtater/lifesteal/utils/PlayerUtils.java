@@ -29,7 +29,7 @@ public final class PlayerUtils {
            handleDeadPlayerAction(killed, data);
 
            // Check to see if spawn camping is happening
-           if (killedMaxHealthDouble < minHealth && gameRules.getBoolean(LifeStealGamerules.ANTIHEARTDUPE)) {
+           if (killedMaxHealthDouble != minHealth && gameRules.getBoolean(LifeStealGamerules.ANTIHEARTDUPE)) {
                return;
            }
        } else {
@@ -125,7 +125,7 @@ public final class PlayerUtils {
      */
     public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server, boolean action) {
         final int health = hearts * server.getGameRules().getInt(LifeStealGamerules.HEARTBONUS);
-        if(health <= 0) {
+        if(health == 0) {
             player.sendMessage(LifeStealText.HEART_DISABLED, action);
             return;
         }

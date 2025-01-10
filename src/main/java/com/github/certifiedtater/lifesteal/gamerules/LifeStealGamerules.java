@@ -36,7 +36,7 @@ public final class LifeStealGamerules {
      * The action to take when the player goes below the allowed minimum health as defined by {@link #MINPLAYERHEALTH}
      */
     public static final GameRules.Key<EnumRule<DeathAction>> DEATH_ACTION =
-            registerPlayerRule("deathAction", GameRuleFactory.createEnumRule(DeathAction.BAN));
+            registerPlayerRule(GameRuleFactory.createEnumRule(DeathAction.BAN));
 
     /**
      * Whether to allow gifting hearts to other players, via the command or altar.
@@ -65,7 +65,7 @@ public final class LifeStealGamerules {
      * If a player reaches lower than this value, they will be categorized as dead unless BanWhenMaxHealth is disabled
      * If StealAmount is a multiple of 2, so should this value
      */
-    public static GameRules.Key<GameRules.IntRule>  MINPLAYERHEALTH = GameRuleRegistry.register(Lifesteal.MOD_ID + ":minPlayerHealth", GameRules.Category.PLAYER, createIntRule(2, 1));
+    public static GameRules.Key<GameRules.IntRule>  MINPLAYERHEALTH = GameRuleRegistry.register(Lifesteal.MOD_ID + ":minPlayerHealth", GameRules.Category.PLAYER, createIntRule());
 
     /**
      * The max amount of health a player can obtain
@@ -82,7 +82,7 @@ public final class LifeStealGamerules {
      */
     public static final GameRules.Key<RegistryEntryRule<Block>> ALTAR_BLOCK = GameRuleRegistry.register(
             Lifesteal.MOD_ID + ":altarBlock", GameRules.Category.MISC,
-            createRegistryEntryRule(Registries.BLOCK, Blocks.NETHERITE_BLOCK,
+            createRegistryEntryRule(
                     (server, blockRegistryEntryRule) -> altarGameRuleModified = true));
 
     /**
@@ -101,25 +101,21 @@ public final class LifeStealGamerules {
         return cachedAltarBlock;
     }
 
-    private static <R extends GameRules.Rule<R>, T extends GameRules.Type<R>> GameRules.Key<R> registerPlayerRule(String name, T rule) {
-        return GameRuleRegistry.register(Lifesteal.MOD_ID + ':' + name, GameRules.Category.PLAYER, rule);
+    private static <R extends GameRules.Rule<R>, T extends GameRules.Type<R>> GameRules.Key<R> registerPlayerRule(T rule) {
+        return GameRuleRegistry.register(Lifesteal.MOD_ID + ':' + "deathAction", GameRules.Category.PLAYER, rule);
     }
 
-    private static GameRules.Type<GameRules.IntRule> createIntRule(int defaultValue, int minimumValue) {
-        return createIntRule(defaultValue, minimumValue, Integer.MAX_VALUE, (server, rule) -> {
+    private static GameRules.Type<GameRules.IntRule> createIntRule() {
+        return createIntRule((server, rule) -> {
         });
     }
 
-    private static GameRules.Type<GameRules.IntRule> createIntRule(int defaultValue, int minimumValue, int maximumValue, @Nullable BiConsumer<MinecraftServer, GameRules.IntRule> changedCallback) {
-        return GameRulesTypeInvoker.invokeInit(() -> IntegerArgumentType.integer(minimumValue, maximumValue), (type) -> new SyncedBoundedIntRule(type, defaultValue, minimumValue, maximumValue), changedCallback, GameRules.Visitor::visitInt, FeatureSet.empty());
+    private static GameRules.Type<GameRules.IntRule> createIntRule(@Nullable BiConsumer<MinecraftServer, GameRules.IntRule> changedCallback) {
+        return GameRulesTypeInvoker.lifesteal$invokeInit(() -> IntegerArgumentType.integer(1, Integer.MAX_VALUE), (type) -> new SyncedBoundedIntRule(type, 2, 1, Integer.MAX_VALUE), changedCallback, GameRules.Visitor::visitInt, FeatureSet.empty());
     }
 
-    @Contract(
-            value = "_, _, _ -> new",
-            pure = true
-    )
-    @NotNull
-    private static <T> GameRules.@NotNull Type<RegistryEntryRule<T>> createRegistryEntryRule(Registry<T> registry, T initialValue, BiConsumer<MinecraftServer, RegistryEntryRule<T>> changeCallback) {
-        return RegistryEntryRule.create(registry, initialValue, changeCallback);
+    @Contract(value = "_ -> new", pure = true)
+    private static <T> GameRules.@NotNull Type<RegistryEntryRule<T>> createRegistryEntryRule(BiConsumer<MinecraftServer, RegistryEntryRule<T>> changeCallback) {
+        return RegistryEntryRule.create((Registry<T>) Registries.BLOCK, (T) Blocks.NETHERITE_BLOCK, changeCallback);
     }
 }

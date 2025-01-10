@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 @Mixin(GameRules.Type.class)
 public interface GameRulesTypeInvoker {
     @Invoker("<init>")
-    public static <T extends GameRules.Rule<T>> GameRules.Type<T> invokeInit(Supplier<ArgumentType<?>> argumentType, Function<GameRules.Type<T>, T> ruleFactory, BiConsumer<MinecraftServer, T> changeCallback, GameRules.Acceptor<T> ruleAcceptor, FeatureSet requiredFeatures) {
+    static <T extends GameRules.Rule<T>> GameRules.Type<T> lifesteal$invokeInit(Supplier<ArgumentType<?>> argumentType, Function<GameRules.Type<T>, T> ruleFactory, BiConsumer<MinecraftServer, T> changeCallback, GameRules.Acceptor<T> ruleAcceptor, FeatureSet requiredFeatures) {
         throw new AssertionError();
     }
 }

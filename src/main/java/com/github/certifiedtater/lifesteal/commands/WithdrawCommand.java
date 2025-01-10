@@ -15,12 +15,13 @@ import static net.minecraft.server.command.CommandManager.literal;
 
 public final class WithdrawCommand {
     public static void register() {
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
-            dispatcher.register(literal("withdraw")
-                    .requires(ServerCommandSource::isExecutedByPlayer)
-                    .then(argument("amount", IntegerArgumentType.integer(1))
-                            .executes(WithdrawCommand::withdraw)));
-        });
+        CommandRegistrationCallback.EVENT.register((
+                dispatcher,
+                registryAccess,
+                dedicated) -> dispatcher.register(literal("withdraw")
+                .requires(ServerCommandSource::isExecutedByPlayer)
+                .then(argument("amount", IntegerArgumentType.integer(1))
+                        .executes(WithdrawCommand::withdraw))));
     }
 
     private static int withdraw(CommandContext<ServerCommandSource> context) {
