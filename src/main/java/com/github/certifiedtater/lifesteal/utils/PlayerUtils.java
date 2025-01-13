@@ -28,8 +28,8 @@ public final class PlayerUtils {
            data.addToDeathDataList();
            handleDeadPlayerAction(killed, data);
 
-           // Check to see if spawn camping is happening
-           if (killedMaxHealthDouble != minHealth && gameRules.getBoolean(LifeStealGamerules.ANTIHEARTDUPE)) {
+           // Check to see if heart should be rewarded
+           if (((PlayerReviveData)killed).newlyRevived() && gameRules.getBoolean(LifeStealGamerules.ANTIHEARTDUPE)) {
                return;
            }
        } else {
@@ -55,6 +55,8 @@ public final class PlayerUtils {
         double maxHealth = maxHealthAttribute.getBaseValue();
         if (canChangeHealth(maxHealth, by, player.getServerWorld().getGameRules())) {
             changeHealth(player, maxHealthAttribute, by);
+            // If they can change health without dying, they aren't newly revived anymore
+            ((PlayerReviveData)player).setNewlyRevived(false);
             return true;
         } else {
             return false;
@@ -78,8 +80,9 @@ public final class PlayerUtils {
                 }
             }
             case REVIVE -> {
-                setMaxHealth(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) - 0.01, player); // It's basically Min Health... Right?
+                setMaxHealth(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH), player);
                 DeathData.removeFromDeathDataList(player.getUuid()); // I know this is a waste of processing power... but I don't care
+                ((PlayerReviveData)player).setNewlyRevived(true); // Prevent heart duplication
             }
             case SPECTATOR -> player.changeGameMode(GameMode.SPECTATOR);
         }
@@ -88,25 +91,28 @@ public final class PlayerUtils {
     public static void handlePlayerJoin(ServerPlayerEntity player) {
         DeathData data = Lifesteal.DEAD_PLAYERS.get(player.getUuid());
         if (data != null) {
-            // Check and see if they can be revived
-            if (DeathData.shouldAutoRevive(data, player.getServerWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
-                handlePostRevival(data, player, true);
-                return;
-            }
-            // Else do traditional checks
+            // A reviver takes highest priority
             if (data.reviverPlayerID == null) {
-                handleDeadPlayerAction(player, data);
+                if (DeathData.shouldAutoRevive(data, player.getServerWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                    // Autorevival timer up
+                    handlePostRevival(data, player, true);
+                } else {
+                    // Still dead
+                    handleDeadPlayerAction(player, data);
+                }
             } else {
+                // Reviver found
                 handlePostRevival(data, player, false);
             }
         }
     }
 
     public static void handlePostRevival(DeathData data, ServerPlayerEntity player, boolean autoRevived) {
-        GameRules gameRules = player.getServerWorld().getGameRules();
-        setMaxHealth(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH), player);
         if (!autoRevived) {
             player.sendMessage(LifeStealText.onRevivalText(data, player.server));
+        } else {
+            // Autorevived players shouldn't be exempted from the antiHeartDupe
+            ((PlayerReviveData)player).setNewlyRevived(true);
         }
         DeathData.removeFromDeathDataList(player.getUuid());
     }

@@ -4,6 +4,7 @@ import com.github.certifiedtater.lifesteal.data.DeathData;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.utils.LifeStealText;
 import com.github.certifiedtater.lifesteal.utils.OfflinePlayerData;
+import com.github.certifiedtater.lifesteal.utils.PlayerReviveData;
 import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
 import com.mojang.authlib.GameProfile;
 import eu.pb4.polymer.core.api.item.PolymerItem;
@@ -112,8 +113,9 @@ public class HeartItem extends Item implements PolymerItem {
 
     public static int revive(String playerName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
         ServerPlayerEntity revivee = server.getPlayerManager().getPlayer(playerName);
+        boolean fromHeart = contextOptional.isPresent();
         if (revivee != null) {
-            if (reviveOnline(revivee, world, pos, reviver)) {
+            if (reviveOnline(revivee, world, pos, reviver, fromHeart)) {
                 contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, revivee.getDisplayName()));
                 return 0;
             }
@@ -123,7 +125,7 @@ public class HeartItem extends Item implements PolymerItem {
 
         Optional<GameProfile> profile = server.getUserCache().findByName(playerName);
         if (profile.isPresent()) {
-            if (reviveOffline(profile.get(), world, pos, reviver)) {
+            if (reviveOffline(profile.get(), world, pos, reviver, fromHeart)) {
                 contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, Text.of(profile.get().getName())));
                 return 0;
             }
@@ -133,7 +135,7 @@ public class HeartItem extends Item implements PolymerItem {
         return 2;
     }
 
-    private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
+    private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
         if (!DeathData.isPlayerDead(player.getUuid(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
@@ -143,10 +145,12 @@ public class HeartItem extends Item implements PolymerItem {
         player.sendMessage(LifeStealText.onRevivalText(reviver.getDisplayName()));
         PlayerUtils.setMaxHealth(world.getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH), player);
         DeathData.removeFromDeathDataList(player.getUuid());
+        // These players are not newly revived if a heart was consumed to revive them
+        ((PlayerReviveData)player).setNewlyRevived(!fromHeart);
         return true;
     }
 
-    private static boolean reviveOffline(GameProfile profile, ServerWorld world, BlockPos alter, PlayerEntity reviver) {
+    private static boolean reviveOffline(GameProfile profile, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
         if (!DeathData.isPlayerDead(profile.getId(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
@@ -156,6 +160,8 @@ public class HeartItem extends Item implements PolymerItem {
         playerData.setPosition(world, alter.up().toCenterPos());
         playerData.setGamemode(GameMode.SURVIVAL);
         playerData.setMaxHealth(world.getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH));
+        // These players are not newly revived if a heart was consumed to revive them
+        playerData.setNewlyRevived(!fromHeart);
         playerData.save();
 
         DeathData.setReviver(profile.getId(), reviver.getUuid());

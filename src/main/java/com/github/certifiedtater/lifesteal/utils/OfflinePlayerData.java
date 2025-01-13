@@ -80,6 +80,10 @@ public class OfflinePlayerData {
         this.root.putString("Dimension", world.getRegistryKey().getValue().toString());
     }
 
+    public void setNewlyRevived(boolean set) {
+        this.root.putBoolean("newly_revived", set);
+    }
+
     public void setMaxHealth(double health) {
         NbtList nbtAttributes = this.root.getList("Attributes", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < nbtAttributes.size(); i++) {
