@@ -39,10 +39,7 @@ Located in `config/lifesteal-deaths.json`
 - `/revive <Player>` - Admin command to revive a player
 
 ### Datapack Overriding (WIP):
-```yaml
-  - Override "lifesteal\worldgen\configured_feature\heart_ore.json" to change amount of ores per vein
-  - Override "lifesteal\worldgen\placed_feature\heart_ore.json" to change amount of veins per chunk
-```
+More info can be found on the [wiki page](https://github.com/Tater-Certified/LifeSteal/wiki/Guides#how-to-configure-ores-with-a-datapack).
 
 ## Aditional Notes:
 - In order to get the textures, run /polymer generate-pack. This will create the resourcepack in the main server's directory, which you can then put in your resourcepack folder
