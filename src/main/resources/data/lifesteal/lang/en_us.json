@@ -15,6 +15,7 @@
   "lifesteal.gameplay.low_health": "You have insufficient health for this task.",
   "lifesteal.gameplay.max_health": "You are already at the maximum amount of health",
   "lifesteal.gameplay.update_health": "%s Health",
+  "lifesteal.gameplay.prevent_attack": "You cannot attack players while invulnerable",
 
   "lifesteal.heart.disabled": "Hearts are disabled.",
 
@@ -38,5 +39,7 @@
   "lifesteal.player.revived.sender": "You have revived %s",
   "lifesteal.player.revived.receiver": "You've been resurrected from the grave by %s",
   "lifesteal.player.not_found": "%s doesn't exist",
-  "lifesteal.revive.self": "%s is you, you can't revive yourself!"
+  "lifesteal.revive.self": "%s is you, you can't revive yourself!",
+
+  "lifesteal.effect.invulnerable" : "Revival Invulnerability"
 }

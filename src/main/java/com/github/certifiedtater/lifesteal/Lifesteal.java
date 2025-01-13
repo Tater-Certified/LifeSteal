@@ -5,18 +5,23 @@ import com.github.certifiedtater.lifesteal.commands.AdminReviveCommand;
 import com.github.certifiedtater.lifesteal.commands.GiftCommand;
 import com.github.certifiedtater.lifesteal.commands.WithdrawCommand;
 import com.github.certifiedtater.lifesteal.data.DeathData;
+import com.github.certifiedtater.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.items.HeartItem;
 import com.github.certifiedtater.lifesteal.items.ModItems;
+import com.github.certifiedtater.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
 import com.github.certifiedtater.lifesteal.world.Ores;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
@@ -43,6 +48,14 @@ public class Lifesteal implements ModInitializer {
         LifeStealGamerules.init();
 
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> LifeStealGamerules.serverInstance = minecraftServer);
+
+        // You can't remove the effect through suicide either... sorry
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, b) -> {
+            if (((PlayerInvulnerabilityInterface)oldPlayer).isReviveInvulnerable()) {
+                newPlayer.addStatusEffect(new StatusEffectInstance(RegistryEntry.of(new InvulnerableStatusEffect()), ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining()));
+            }
+        });
+
         /*
         This callback checks if a player is considered dead
          */

@@ -108,6 +108,10 @@ public final class PlayerUtils {
         if (!autoRevived) {
             player.sendMessage(LifeStealText.onRevivalText(data, player.server));
         }
+        int invulnerability = gameRules.getInt(LifeStealGamerules.RESPAWN_INVULNERABILITY);
+        if (invulnerability != 0) {
+            ((PlayerInvulnerabilityInterface)player).setReviveInvulnerability();
+        }
         DeathData.removeFromDeathDataList(player.getUuid());
     }
 
