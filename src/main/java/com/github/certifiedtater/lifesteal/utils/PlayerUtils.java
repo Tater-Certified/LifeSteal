@@ -85,8 +85,7 @@ public final class PlayerUtils {
      * Exchanges max health between the attacker and player being attacked.
      * This function respects the gamerule AntiHeartDupe, meaning that hearts are not exchanged if the player being killed
      * is already at the minimum health after being revived through automated means (not with a heart).
-     * Additionally, hearts are not given if the attacker is already at max health
-     * TODO: If AntiHeartDupe is enabled, give the attacker a heart item
+     * Additionally, hearts are given as items if the attacker is already at max health
      * @param killed The ServerPlayerEntity that was killed
      * @param attacker The ServerPlayerEntity that killed the other player
      */
@@ -113,7 +112,9 @@ public final class PlayerUtils {
 
         // Attacker Player
         if (!changeHealth(attacker, gameRules.getInt(LifeStealGamerules.STEALAMOUNT))) {
+            // They can't get more health, but they can still get an item to prevent heart deletion
             attacker.sendMessage(LifeStealText.MAX_HEALTH, true);
+            givePlayerHeart(attacker, 1);
         }
     }
 
@@ -190,10 +191,25 @@ public final class PlayerUtils {
             return;
         }
 
-        final ItemStack heartStack = new ItemStack(ModItems.HEART, hearts);
-        if (!player.giveItemStack(heartStack)) {
-            player.dropItem(heartStack, false, true);
-        }
+        givePlayerHeart(player, hearts);
         player.sendMessage(LifeStealText.withdrawnHealth(health, hearts), action);
+    }
+
+    /**
+     * Gives the player the specified number of hearts
+     * @param player ServerPlayerEntity that gets the hearts
+     * @param hearts Number of hearts
+     */
+    private static void givePlayerHeart(ServerPlayerEntity player, int hearts) {
+        final ItemStack heartStack = new ItemStack(ModItems.HEART, 1);
+        for (int i = 0; i < hearts; i++) {
+            if (!player.giveItemStack(heartStack)) {
+                // Quick path for dropping the rest of the hearts to avoid unnecessary checks
+                for (int j = i; j < hearts; j++) {
+                    player.dropItem(heartStack, false, true);
+                }
+                break;
+            }
+        }
     }
 }
