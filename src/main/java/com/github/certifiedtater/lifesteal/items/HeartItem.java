@@ -16,7 +16,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -34,14 +33,9 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-import java.util.EnumSet;
 import java.util.Optional;
-import java.util.Set;
 
 public class HeartItem extends Item implements PolymerItem {
-    private static final double CENTER_OFFSET = .5d;
-    private static final Set<PositionFlag>
-            revivalTeleportFlags = EnumSet.of(PositionFlag.X, PositionFlag.Y, PositionFlag.Z);
 
     public HeartItem(Item.Settings settings) {
         super(settings);

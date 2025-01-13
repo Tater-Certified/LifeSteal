@@ -31,12 +31,21 @@ public class OfflinePlayerData {
 
     private static final Logger logger = LogUtils.getLogger();
 
+    /**
+     *
+     * @param holder The GameProfile for the offline player
+     * @param root The main NBTCompound for the offline player
+     * @param dir The path to the offline player's NBT data
+     */
     protected OfflinePlayerData(GameProfile holder, NbtCompound root, Path dir) {
         this.holder = holder;
         this.root = root;
         this.dir = dir;
     }
 
+    /**
+     * Saves the offline player's NBT data
+     */
     public void save() {
         final String reference = holder.getId() + ".dat";
         final Path tmp = dir.resolve(reference + "_tmp");
@@ -72,6 +81,11 @@ public class OfflinePlayerData {
         return null;
     }
 
+    /**
+     * Sets the location of the offline player
+     * @param world The ServerWorld that the player should be placed in
+     * @param pos The location inside of that world the player should be placed at
+     */
     public void setPosition(ServerWorld world, Vec3d pos) {
         NbtList nbtPos = this.root.getList("Pos", NbtElement.DOUBLE_TYPE);
         nbtPos.set(0, NbtDouble.of(pos.getX()));
@@ -80,10 +94,18 @@ public class OfflinePlayerData {
         this.root.putString("Dimension", world.getRegistryKey().getValue().toString());
     }
 
+    /**
+     * Sets the newly_revived indicator NBT
+     * @param set The status of the indicator (true/false)
+     */
     public void setNewlyRevived(boolean set) {
         this.root.putBoolean("newly_revived", set);
     }
 
+    /**
+     * Sets the max health of an offline player
+     * @param health The new max health
+     */
     public void setMaxHealth(double health) {
         NbtList nbtAttributes = this.root.getList("Attributes", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < nbtAttributes.size(); i++) {
@@ -99,6 +121,10 @@ public class OfflinePlayerData {
         nbtAttributes.add(compound);
     }
 
+    /**
+     * Gets the offline player's max health
+     * @return the offline player's max health
+     */
     public double getMaxHealth() {
         NbtList nbtAttributes = this.root.getList("Attributes", NbtElement.COMPOUND_TYPE);
         for (int i = 0; i < nbtAttributes.size(); i++) {
@@ -110,6 +136,10 @@ public class OfflinePlayerData {
         return 20.0; // If it doesn't exist, assume it is default
     }
 
+    /**
+     * Sets the offline player's gamemode
+     * @param gamemode The GameMode to set for the offline player
+     */
     public void setGamemode(GameMode gamemode) {
         this.root.putInt("playerGameType", gamemode.getId());
     }

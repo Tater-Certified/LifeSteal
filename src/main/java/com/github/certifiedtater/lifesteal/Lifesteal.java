@@ -13,7 +13,6 @@ import com.github.certifiedtater.lifesteal.world.Ores;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -44,12 +43,12 @@ public class Lifesteal implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> LifeStealGamerules.serverInstance = minecraftServer);
         /*
-        This callback checks if a player is considered dead
+         This callback checks if a player is considered dead
          */
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> PlayerUtils.handlePlayerJoin(handler.getPlayer()));
 
         /*
-		  This callback exchanges HP for heart items if right-clicking on an altar
+		 This callback exchanges HP for heart items if right-clicking on an altar
 		 */
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (player instanceof ServerPlayerEntity serverPlayer) {
