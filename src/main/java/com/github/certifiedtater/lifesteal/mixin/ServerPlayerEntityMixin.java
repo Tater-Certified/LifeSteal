@@ -98,6 +98,11 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         nbt.putInt("invulnerability_ticks", invulnerableTicks);
     }
 
+    @Inject(method = "copyFrom", at = @At("TAIL"))
+    private void lifesteal$copyInvulnerability(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
+        this.invulnerableTicks = ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining();
+    }
+
     @Override
     public void setReviveInvulnerability() {
         invulnerableTicks = this.server.getGameRules().getInt(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20;
