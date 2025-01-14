@@ -1,7 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "key": {
-    "#": "lifesteal:heart_dust"
+    "#": {
+      "item": "lifesteal:heart_dust"
+    }
   },
   "pattern": [
     "###",

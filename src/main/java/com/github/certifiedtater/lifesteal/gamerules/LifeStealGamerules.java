@@ -12,7 +12,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.Contract;
@@ -111,7 +110,7 @@ public final class LifeStealGamerules {
     }
 
     private static GameRules.Type<GameRules.IntRule> createIntRule(@Nullable BiConsumer<MinecraftServer, GameRules.IntRule> changedCallback) {
-        return GameRulesTypeInvoker.lifesteal$invokeInit(() -> IntegerArgumentType.integer(1, Integer.MAX_VALUE), (type) -> new SyncedBoundedIntRule(type, 2, 1, Integer.MAX_VALUE), changedCallback, GameRules.Visitor::visitInt, FeatureSet.empty());
+        return GameRulesTypeInvoker.lifesteal$invokeInit(() -> IntegerArgumentType.integer(1, Integer.MAX_VALUE), (type) -> new SyncedBoundedIntRule(type, 2, 1, Integer.MAX_VALUE), changedCallback, GameRules.Visitor::visitInt);
     }
 
     @Contract(value = "_ -> new", pure = true)

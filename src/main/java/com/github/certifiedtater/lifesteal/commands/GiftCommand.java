@@ -83,7 +83,7 @@ public final class GiftCommand {
 
         ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.getId());
 
-        EntityAttributeInstance maxHealthAttribute = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        EntityAttributeInstance maxHealthAttribute = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         double maxHealth = maxHealthAttribute.getBaseValue();
 
         if (!PlayerUtils.canChangeHealth(maxHealth, -amount, gameRules)) {
@@ -93,7 +93,7 @@ public final class GiftCommand {
 
         if (receiverPlayer != null) {
             // Online
-            EntityAttributeInstance maxHealthAttributeReceiver = receiverPlayer.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+            EntityAttributeInstance maxHealthAttributeReceiver = receiverPlayer.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
             double maxHealthReceiver = maxHealthAttributeReceiver.getBaseValue();
             if (!PlayerUtils.canChangeHealth(maxHealthReceiver, amount, gameRules)) {
                 // Receiver has too much health

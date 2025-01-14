@@ -38,7 +38,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             PlayerUtils.exchangeHealth(((ServerPlayerEntity) (Object) this), playerAttacker);
         } else if (!getServerWorld().getGameRules().getBoolean(LifeStealGamerules.PLAYERRELATEDONLY)) {
-            EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+            EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
             PlayerUtils.changeHealth(((ServerPlayerEntity) (Object) this), killedMaxHealth, -getServerWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
             // Check to see if the player is dead
             int minHealth = this.getServer().getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH);

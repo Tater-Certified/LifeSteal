@@ -1,37 +1,32 @@
 package com.github.certifiedtater.lifesteal.items;
 
-import com.github.certifiedtater.lifesteal.Lifesteal;
-import eu.pb4.polymer.core.api.item.SimplePolymerItem;
+import com.github.certifiedtater.lifesteal.utils.PolyUtils;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
 
 public class ModItems {
 
-    private static final RegistryKey<Item> key_heart = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart"));
-    public static final Item HEART = register(
-            new HeartItem(new Item.Settings().maxCount(1).registryKey(key_heart)),
-            key_heart
-    );
+    public static final Item HEARTDUST = dust();
+    public static final Item HEARTCRYSTAL = crystal();
+    public static final Item HEART = heart();
 
-    public static Item register(Item item, RegistryKey<Item> key) {
-        return Registry.register(Registries.ITEM, key, item);
+    private static Item dust() {
+        return PolyUtils.ofModelled("heart_dust", Items.REDSTONE);
+    }
+
+    private static Item crystal() {
+        return PolyUtils.ofModelled("heart_crystal", Items.ECHO_SHARD);
+    }
+
+    private static Item heart() {
+        return PolyUtils.ofModelled("heart", Items.HONEY_BOTTLE,
+                (settings, modelData) -> new HeartItem(settings.maxCount(1), modelData));
     }
 
     public static void initialize() {
-        RegistryKey<Item> key_heart_dust = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart_dust"));
-        register(
-                new SimplePolymerItem(new Item.Settings().registryKey(key_heart_dust), Items.REDSTONE, true),
-                key_heart_dust
-        );
-        RegistryKey<Item> key_heart_crystal = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart_crystal"));
-        register(
-                new SimplePolymerItem(new Item.Settings().registryKey(key_heart_crystal), Items.ECHO_SHARD, true),
-                key_heart_crystal
-        );
+    }
+
+    private ModItems() {
+        throw new UnsupportedOperationException();
     }
 }

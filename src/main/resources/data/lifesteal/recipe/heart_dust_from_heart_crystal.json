@@ -1,7 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    "lifesteal:heart_crystal"
+    {
+      "item": "lifesteal:heart_crystal"
+    }
   ],
   "result": {
     "count": 9,

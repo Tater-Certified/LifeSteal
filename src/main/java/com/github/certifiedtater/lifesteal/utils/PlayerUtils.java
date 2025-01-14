@@ -91,7 +91,7 @@ public final class PlayerUtils {
      */
     public static void exchangeHealth(ServerPlayerEntity killed, ServerPlayerEntity attacker) {
         // Killed Player
-        EntityAttributeInstance killedMaxHealth = killed.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        EntityAttributeInstance killedMaxHealth = killed.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         GameRules gameRules = killed.getServerWorld().getGameRules();
         double killedMaxHealthDouble = killedMaxHealth.getBaseValue();
 
@@ -151,7 +151,7 @@ public final class PlayerUtils {
      * @return If the change succeeded. If the player will "die", then returns false.
      */
     public static boolean changeHealth(ServerPlayerEntity player, float by) {
-        EntityAttributeInstance maxHealthAttribute = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        EntityAttributeInstance maxHealthAttribute = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         double maxHealth = maxHealthAttribute.getBaseValue();
         if (canChangeHealth(maxHealth, by, player.getServerWorld().getGameRules())) {
             changeHealth(player, maxHealthAttribute, by);
@@ -169,7 +169,7 @@ public final class PlayerUtils {
      * @param player The ServerPlayerEntity whose max health is changing
      */
     public static void setMaxHealth(double value, ServerPlayerEntity player) {
-        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH);
         maxHealth.setBaseValue(value);
     }
 

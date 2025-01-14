@@ -2,12 +2,9 @@ package com.github.certifiedtater.lifesteal.items;
 
 import com.github.certifiedtater.lifesteal.data.DeathData;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
-import com.github.certifiedtater.lifesteal.utils.LifeStealText;
-import com.github.certifiedtater.lifesteal.utils.OfflinePlayerData;
-import com.github.certifiedtater.lifesteal.utils.PlayerReviveData;
-import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
+import com.github.certifiedtater.lifesteal.utils.*;
 import com.mojang.authlib.GameProfile;
-import eu.pb4.polymer.core.api.item.PolymerItem;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.CandleBlock;
 import net.minecraft.component.DataComponentTypes;
@@ -25,39 +22,39 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Optional;
 
-public class HeartItem extends Item implements PolymerItem {
+public class HeartItem  extends ModelledPolymerItem {
 
-    public HeartItem(Item.Settings settings) {
-        super(settings);
+    public HeartItem(Settings settings, PolymerModelData customModelData) {
+        super(settings, customModelData);
     }
 
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if(world.isClient || user.isSneaking()) {
             return super.use(world, user, hand);
         }
 
         final var stack = user.getStackInHand(hand);
-        final int amount = ((ServerWorld) world).getGameRules().getInt(LifeStealGamerules.HEARTBONUS);
+        final int amount = world.getGameRules().getInt(LifeStealGamerules.HEARTBONUS);
 
         final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) user;
         if(!PlayerUtils.changeHealth(serverPlayer, amount)) {
-            return ActionResult.FAIL;
+            return TypedActionResult.fail(stack);
         }
 
         stack.decrement(1);
-        return ActionResult.SUCCESS;
+        return TypedActionResult.success(stack);
     }
 
     @Override
@@ -220,7 +217,7 @@ public class HeartItem extends Item implements PolymerItem {
     }
 
     @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
-        return Items.POTION;
+    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity serverPlayerEntity) {
+        return Items.HONEY_BOTTLE;
     }
 }
