@@ -72,11 +72,17 @@ public final class PlayerUtils {
      * @param autoRevived If the player was revived due to the automatic revival system
      */
     private static void handlePostRevival(DeathData data, ServerPlayerEntity player, boolean autoRevived) {
+        GameRules gameRules = player.getServerWorld().getGameRules();
         if (!autoRevived) {
             player.sendMessage(LifeStealText.onRevivalText(data, player.server));
         } else {
             // Autorevived players shouldn't be exempted from the antiHeartDupe
             ((PlayerReviveData)player).setNewlyRevived(true);
+        }
+        // Check if invulnerability should be applied
+        int invulnerability = gameRules.getInt(LifeStealGamerules.RESPAWN_INVULNERABILITY);
+        if (invulnerability != 0) {
+            ((PlayerInvulnerabilityInterface)player).setReviveInvulnerability();
         }
         DeathData.removeFromDeathDataList(player.getUuid());
     }

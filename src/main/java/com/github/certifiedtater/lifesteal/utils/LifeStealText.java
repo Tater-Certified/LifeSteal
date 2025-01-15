@@ -18,6 +18,7 @@ public final class LifeStealText {
             GIFT_NONE = Text.translatable("lifesteal.gift.none"),
             GIFT_MULTIPLE = Text.translatable("lifesteal.gift.multiple"),
             GIFT_OVER_LIMIT = Text.translatable("lifesteal.gift.over_limit"),
+            PREVENT_ATTACK = Text.translatable("lifesteal.gameplay.prevent_attack"),
             GIFT_DISABLED = Text.translatable("lifesteal.gift.heart.disabled");
 
     private static final String
@@ -35,6 +36,7 @@ public final class LifeStealText {
             REVIVER = "lifesteal.player.revived.sender",
             SELF_REVIVE = "lifesteal.revive.self",
             DEATH_TIME = "lifesteal.gameplay.death_time",
+            PREVENT_DAMAGE = "lifesteal.gameplay.prevent_damage",
             ADMIN_REVIVE = "lifesteal.admin.revive";
 
     public static Text onRevivalText(DeathData data, MinecraftServer server) {
@@ -102,5 +104,9 @@ public final class LifeStealText {
 
     public static Text deathTime(int seconds) {
         return Text.translatable(DEATH_TIME, seconds);
+    }
+
+    public static Text preventDamage(Text player) {
+        return Text.translatable(PREVENT_DAMAGE, player);
     }
 }

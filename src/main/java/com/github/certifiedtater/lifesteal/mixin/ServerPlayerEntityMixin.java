@@ -1,7 +1,10 @@
 package com.github.certifiedtater.lifesteal.mixin;
 
 import com.github.certifiedtater.lifesteal.data.DeathData;
+import com.github.certifiedtater.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
+import com.github.certifiedtater.lifesteal.utils.LifeStealText;
+import com.github.certifiedtater.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.certifiedtater.lifesteal.utils.PlayerReviveData;
 import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
 import com.mojang.authlib.GameProfile;
@@ -9,28 +12,35 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity implements PlayerReviveData {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity implements PlayerReviveData, PlayerInvulnerabilityInterface  {
 
     public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
         super(world, pos, yaw, gameProfile);
     }
 
     private boolean newlyRevived;
+    private int invulnerableTicks = 0;
 
     @Shadow public abstract ServerWorld getServerWorld();
+    @Shadow @Final
+    public MinecraftServer server;
 
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void lifesteal$onDeath(DamageSource damageSource, CallbackInfo ci) {
@@ -54,6 +64,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
     @Inject(method = "copyFrom", at = @At("TAIL"))
     private void lifesteal$copyNewlyRevived(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
         this.setNewlyRevived(((PlayerReviveData)oldPlayer).newlyRevived());
+        this.invulnerableTicks = ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining();
     }
 
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
@@ -61,11 +72,38 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         if (nbt.contains("newly_revived")) {
             this.setNewlyRevived(nbt.getBoolean("newly_revived"));
         }
+        if (nbt.contains("invulnerability_ticks")) {
+            invulnerableTicks = nbt.getInt("invulnerability_ticks");
+        }
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
     private void lifesteal$writeRevivedData(NbtCompound nbt, CallbackInfo ci) {
         nbt.putBoolean("newly_revived", this.newlyRevived);
+        nbt.putInt("invulnerability_ticks", this.invulnerableTicks);
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    private void lifesteal$tickInvulnerability(CallbackInfo ci) {
+        if (isReviveInvulnerable()) {
+            invulnerableTicks--;
+        }
+    }
+    // You cannot be killed by players if invulnerable
+    @Inject(method = "shouldDamagePlayer", at = @At("HEAD"), cancellable = true)
+    private void lifesteal$checkInvulnerability(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
+        if (isReviveInvulnerable()) {
+            player.sendMessage(LifeStealText.preventDamage(this.getName()), true);
+            cir.setReturnValue(false);
+        }
+    }
+    // You cannot kill players if invulnerable either
+    @Inject(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;attack(Lnet/minecraft/entity/Entity;)V"), cancellable = true)
+    private void lifesteal$preventAttackingPlayers(Entity target, CallbackInfo ci) {
+        if (isReviveInvulnerable() && target instanceof ServerPlayerEntity) {
+            this.sendMessage(LifeStealText.PREVENT_ATTACK, true);
+            ci.cancel();
+        }
     }
 
     @Override
@@ -76,5 +114,19 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
     @Override
     public void setNewlyRevived(boolean set) {
         this.newlyRevived = set;
+    }
+
+    @Override
+    public void setReviveInvulnerability() {
+        invulnerableTicks = this.server.getGameRules().getInt(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20;
+        this.addStatusEffect(new StatusEffectInstance(InvulnerableStatusEffect.INVULNERABLE, this.getRemaining(), 0, false, false, true));
+    }
+    @Override
+    public boolean isReviveInvulnerable() {
+        return invulnerableTicks != 0;
+    }
+    @Override
+    public int getRemaining() {
+        return invulnerableTicks;
     }
 }
