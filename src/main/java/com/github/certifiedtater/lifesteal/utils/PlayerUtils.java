@@ -203,10 +203,10 @@ public final class PlayerUtils {
     private static void givePlayerHeart(ServerPlayerEntity player, int hearts) {
         final ItemStack heartStack = new ItemStack(ModItems.HEART, 1);
         for (int i = 0; i < hearts; i++) {
-            if (!player.giveItemStack(heartStack)) {
+            if (!player.giveItemStack(heartStack.copy())) {
                 // Quick path for dropping the rest of the hearts to avoid unnecessary checks
                 for (int j = i; j < hearts; j++) {
-                    player.dropItem(heartStack, false, true);
+                    player.dropItem(heartStack.copy(), false, true);
                 }
                 break;
             }
