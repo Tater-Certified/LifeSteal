@@ -19,9 +19,9 @@
     "lifesteal.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
+    "fabricloader": "*",
     "fabric": "*",
     "minecraft": ">=${minecraft_version}",
-    "unruled_api": ">=0.6"
+    "unruled_api": "0.6"
   }
 }
