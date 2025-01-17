@@ -7,6 +7,7 @@ import com.github.certifiedtater.lifesteal.utils.OfflinePlayerData;
 import com.github.certifiedtater.lifesteal.utils.PlayerReviveData;
 import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
 import com.mojang.authlib.GameProfile;
+import de.olivermakesco.polyspring.api.BedrockItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.CandleBlock;
@@ -35,7 +36,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Optional;
 
-public class HeartItem extends Item implements PolymerItem {
+public class HeartItem extends Item implements PolymerItem, BedrockItem {
 
     public HeartItem(Item.Settings settings) {
         super(settings);
@@ -221,6 +222,21 @@ public class HeartItem extends Item implements PolymerItem {
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
-        return Items.POTION;
+        return Items.NETHER_STAR;
+    }
+
+    @Override
+    public String bedrockName() {
+        return Text.translatable(this.getTranslationKey()).getLiteralString();
+    }
+
+    @Override
+    public boolean bedrockEdible() {
+        return true;
+    }
+
+    @Override
+    public boolean bedrockFoil() {
+        return true;
     }
 }

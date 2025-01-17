@@ -1,7 +1,7 @@
 package com.github.certifiedtater.lifesteal.items;
 
 import com.github.certifiedtater.lifesteal.Lifesteal;
-import eu.pb4.polymer.core.api.item.SimplePolymerItem;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
@@ -14,7 +14,7 @@ public class ModItems {
 
     private static final RegistryKey<Item> key_heart = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart"));
     public static final Item HEART = register(
-            new HeartItem(new Item.Settings().maxCount(1).registryKey(key_heart)),
+            new HeartItem(new Item.Settings().maxCount(1).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true).registryKey(key_heart)),
             key_heart
     );
 
@@ -25,12 +25,12 @@ public class ModItems {
     public static void initialize() {
         RegistryKey<Item> key_heart_dust = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart_dust"));
         register(
-                new SimplePolymerItem(new Item.Settings().registryKey(key_heart_dust), Items.REDSTONE, true),
+                new PolymerGeyserItem(new Item.Settings().registryKey(key_heart_dust), Items.REDSTONE, true),
                 key_heart_dust
         );
         RegistryKey<Item> key_heart_crystal = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "heart_crystal"));
         register(
-                new SimplePolymerItem(new Item.Settings().registryKey(key_heart_crystal), Items.ECHO_SHARD, true),
+                new PolymerGeyserItem(new Item.Settings().registryKey(key_heart_crystal), Items.ECHO_SHARD, true),
                 key_heart_crystal
         );
     }
