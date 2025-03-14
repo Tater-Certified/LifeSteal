@@ -1,6 +1,7 @@
 package com.github.certifiedtater.lifesteal.gamerules;
 
 import com.github.certifiedtater.lifesteal.Lifesteal;
+import com.github.certifiedtater.lifesteal.items.ModItems;
 import com.github.certifiedtater.lifesteal.mixin.GameRulesTypeInvoker;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import mc.recraftors.unruled_api.rules.RegistryEntryRule;
@@ -10,10 +11,14 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.gamerule.v1.rule.EnumRule;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.GameRules;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +101,11 @@ public final class LifeStealGamerules {
      * The default value is 0 seconds, which disables the feature
      */
     public static final GameRules.Key<GameRules.IntRule> RESPAWN_INVULNERABILITY = GameRuleRegistry.register(Lifesteal.MOD_ID + ":revivalInvulnerabilitySeconds", GameRules.Category.PLAYER, GameRuleFactory.createIntRule(0, 0));
+
+    /**
+     * The maximum stack size of the heart item
+     */
+    public static final GameRules.Key<GameRules.IntRule> HEART_STACK_SIZE = GameRuleRegistry.register(Lifesteal.MOD_ID + ":heartStackSize", GameRules.Category.MISC, GameRuleFactory.createIntRule(1, 1, 64));
 
     public static boolean altarGameRuleModified = true;
     private static Block cachedAltarBlock;

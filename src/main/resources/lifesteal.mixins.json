@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "GameRulesTypeInvoker",
+    "ItemStackMixin",
     "MilkMixin",
     "ServerPlayerEntityMixin"
   ],

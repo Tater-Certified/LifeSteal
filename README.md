@@ -22,6 +22,7 @@ Configuration is purely managed through gamerules, here is a list of gamerules a
 | lifesteal:healthFromHeart               | Integer | The amount of health to receive from a heart item                                                                      | `2`                         |
 | lifesteal:autoRevivalSeconds            | Integer | The number of seconds until a player is automatically revived. Set to 0 to disable.                                    | `0`                         |
 | lifesteal:revivalInvulnerabilitySeconds | Integer | The amount of time a player is invulnerable after being revived in seconds. Set to 0 to disable.                       | `0`                         |
+| lifesteal:heartStackSize                | Integer | The maximum stack size of the heart item                                                                               | `1`                         |
 
 ### Dead Player Json:
 Located in `config/lifesteal-deaths.json`

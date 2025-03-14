@@ -221,6 +221,12 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
     }
 
     @Override
+    public int getMaxCount() {
+        return LifeStealGamerules.serverInstance != null ? LifeStealGamerules.serverInstance.getGameRules().getInt(LifeStealGamerules.HEART_STACK_SIZE) : 1;
+    }
+
+
+    @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.NETHER_STAR;
     }
