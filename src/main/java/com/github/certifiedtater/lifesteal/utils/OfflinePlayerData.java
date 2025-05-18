@@ -87,7 +87,7 @@ public class OfflinePlayerData {
      * @param pos The location inside of that world the player should be placed at
      */
     public void setPosition(ServerWorld world, Vec3d pos) {
-        NbtList nbtPos = this.root.getList("Pos", NbtElement.DOUBLE_TYPE);
+        NbtList nbtPos = this.root.getListOrEmpty("Pos");
         nbtPos.set(0, NbtDouble.of(pos.getX()));
         nbtPos.set(1, NbtDouble.of(pos.getY()));
         nbtPos.set(2, NbtDouble.of(pos.getZ()));
@@ -107,9 +107,9 @@ public class OfflinePlayerData {
      * @param health The new max health
      */
     public void setMaxHealth(double health) {
-        NbtList nbtAttributes = this.root.getList("Attributes", NbtElement.COMPOUND_TYPE);
+        NbtList nbtAttributes = this.root.getListOrEmpty("Attributes");
         for (int i = 0; i < nbtAttributes.size(); i++) {
-            NbtCompound compound = nbtAttributes.getCompound(i);
+            NbtCompound compound = nbtAttributes.getCompoundOrEmpty(i);
             if (Objects.equals(compound.getString("Name"), "minecraft:generic.max_health")) {
                 compound.putDouble("Base", health);
                 return;
@@ -126,11 +126,11 @@ public class OfflinePlayerData {
      * @return the offline player's max health
      */
     public double getMaxHealth() {
-        NbtList nbtAttributes = this.root.getList("Attributes", NbtElement.COMPOUND_TYPE);
+        NbtList nbtAttributes = this.root.getListOrEmpty("Attributes");
         for (int i = 0; i < nbtAttributes.size(); i++) {
-            NbtCompound compound = nbtAttributes.getCompound(i);
+            NbtCompound compound = nbtAttributes.getCompoundOrEmpty(i);
             if (Objects.equals(compound.getString("Name"), "minecraft:generic.max_health")) {
-                return compound.getDouble("Base");
+                return compound.getDouble("Base").orElse(20.0);
             }
         }
         return 20.0; // If it doesn't exist, assume it is default
@@ -140,7 +140,8 @@ public class OfflinePlayerData {
      * Sets the offline player's gamemode
      * @param gamemode The GameMode to set for the offline player
      */
+    // TODO This may not be used
     public void setGamemode(GameMode gamemode) {
-        this.root.putInt("playerGameType", gamemode.getId());
+        this.root.putInt("playerGameType", gamemode.getIndex());
     }
 }

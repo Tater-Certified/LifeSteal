@@ -70,10 +70,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
     @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
     private void lifesteal$readRevivedData(NbtCompound nbt, CallbackInfo ci) {
         if (nbt.contains("newly_revived")) {
-            this.setNewlyRevived(nbt.getBoolean("newly_revived"));
+            this.setNewlyRevived(nbt.getBoolean("newly_revived").orElse(false));
         }
         if (nbt.contains("invulnerability_ticks")) {
-            invulnerableTicks = nbt.getInt("invulnerability_ticks");
+            invulnerableTicks = nbt.getInt("invulnerability_ticks", 0);
         }
     }
 

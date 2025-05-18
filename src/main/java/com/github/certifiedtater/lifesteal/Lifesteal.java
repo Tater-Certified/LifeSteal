@@ -7,18 +7,21 @@ import com.github.certifiedtater.lifesteal.commands.WithdrawCommand;
 import com.github.certifiedtater.lifesteal.data.DeathData;
 import com.github.certifiedtater.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
+import com.github.certifiedtater.lifesteal.gamerules.RegistryEntryRuleInterface;
 import com.github.certifiedtater.lifesteal.items.HeartItem;
 import com.github.certifiedtater.lifesteal.items.ModItems;
 import com.github.certifiedtater.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
 import com.github.certifiedtater.lifesteal.world.Ores;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
+import mc.recraftors.unruled_api.rules.RegistryEntryRule;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Block;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Team;
@@ -26,6 +29,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.GameRules;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -70,6 +74,12 @@ public class Lifesteal implements ModInitializer {
                 invulnerableTeam.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.ALWAYS);
             }
         });
+
+        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
+            GameRules.Rule<RegistryEntryRule<Block>> rule = minecraftServer.getGameRules().get(LifeStealGamerules.ALTAR_BLOCK);
+            ((RegistryEntryRuleInterface)rule).setCallback(() -> LifeStealGamerules.altarGameRuleModified = true);
+        });
+
         /*
          This callback checks if a player is considered dead
          */

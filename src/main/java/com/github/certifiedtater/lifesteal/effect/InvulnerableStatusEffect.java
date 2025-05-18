@@ -28,14 +28,17 @@ public class InvulnerableStatusEffect extends StatusEffect implements PolymerSta
     public InvulnerableStatusEffect() {
         super(StatusEffectCategory.BENEFICIAL, 16262179, ParticleTypes.MYCELIUM);
     }
+
     @Override
-    public @Nullable ItemStack getPolymerIcon(ServerPlayerEntity player) {
+    public @Nullable ItemStack getPolymerIcon(StatusEffect effect, ServerPlayerEntity player) {
         return Items.SHIELD.getDefaultStack();
     }
+
     @Override
-    public @Nullable StatusEffect getPolymerReplacement(PacketContext context) {
+    public @Nullable StatusEffect getPolymerReplacement(StatusEffect effect, PacketContext context) {
         return StatusEffects.UNLUCK.value();
     }
+
     @Override
     public boolean isBeneficial() {
         return true;
