@@ -62,9 +62,9 @@ public class Lifesteal implements ModInitializer {
             }
         });
 
-        ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> {
-            LifeStealGamerules.serverInstance = minecraftServer;
+        ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> LifeStealGamerules.serverInstance = minecraftServer);
 
+        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             boolean containsTeam = minecraftServer.getScoreboard().getTeams().stream()
                     .anyMatch(team -> team.getName().equals("invulnerable"));
 
@@ -73,9 +73,7 @@ public class Lifesteal implements ModInitializer {
                 invulnerableTeam.setColor(Formatting.DARK_RED);
                 invulnerableTeam.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.ALWAYS);
             }
-        });
 
-        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
             GameRules.Rule<RegistryEntryRule<Block>> rule = minecraftServer.getGameRules().get(LifeStealGamerules.ALTAR_BLOCK);
             ((RegistryEntryRuleInterface)rule).setCallback(() -> LifeStealGamerules.altarGameRuleModified = true);
         });
