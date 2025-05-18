@@ -79,10 +79,11 @@ public final class LifeStealGamerules {
     /**
      * The block that is to be used as the altar
      */
-    public static final GameRules.Key<RegistryEntryRule<Block>> ALTAR_BLOCK = UnruledApi.registerRegistryEntryRule(
-            Lifesteal.MOD_ID + ":altarBlock", GameRules.Category.MISC,
-            Registries.BLOCK, Blocks.NETHERITE_BLOCK
-    );
+    public static final GameRules.Key<RegistryEntryRule<Block>> ALTAR_BLOCK = UnruledApi.registryEntryRuleBuilder(Registries.BLOCK, Blocks.NETHERITE_BLOCK)
+            .setChangeCallback((server, blockRegistryEntryRule) -> altarGameRuleModified = true)
+            .setFeatureSet(FeatureSet.empty())
+            .register(Lifesteal.MOD_ID + ":altarBlock", GameRules.Category.MISC);
+
 
     /**
      * The amount of seconds until the player is automatically revived

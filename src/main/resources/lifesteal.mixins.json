@@ -7,7 +7,6 @@
     "GameRulesTypeInvoker",
     "ItemStackMixin",
     "MilkMixin",
-    "RegistryEntryRuleMixin",
     "ServerPlayerEntityMixin"
   ],
   "injectors": {
