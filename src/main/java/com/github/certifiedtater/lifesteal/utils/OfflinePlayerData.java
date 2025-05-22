@@ -140,7 +140,6 @@ public class OfflinePlayerData {
      * Sets the offline player's gamemode
      * @param gamemode The GameMode to set for the offline player
      */
-    // TODO This may not be used
     public void setGamemode(GameMode gamemode) {
         this.root.putInt("playerGameType", gamemode.getIndex());
     }

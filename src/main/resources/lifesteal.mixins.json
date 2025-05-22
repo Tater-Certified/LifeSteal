@@ -4,6 +4,7 @@
   "package": "com.github.certifiedtater.lifesteal.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "FakePlayerAccessor",
     "GameRulesTypeInvoker",
     "ItemStackMixin",
     "MilkMixin",

@@ -40,6 +40,15 @@ dependencies {
 
 loom {
     accessWidenerPath = file("src/main/resources/lifesteal.accesswidener")
+
+    runs {
+        create("gametestServer") {
+            server()
+            name = "Game Test Server"
+            vmArg("-Dfabric-api.gametest")
+            runDir = "run/gametestServer"
+        }
+    }
 }
 
 processResources {
