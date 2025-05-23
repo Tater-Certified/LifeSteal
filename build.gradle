@@ -39,7 +39,7 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     apiModules.forEach {
-        include(modImplementation(fabricApi.module(it, project.fabric_version)))
+        modImplementation(fabricApi.module(it, project.fabric_version))
     }
     modImplementation include("eu.pb4:polymer-core:${project.polymer_version}")
     modImplementation include("xyz.nucleoid:server-translations-api:2.5.0+1.21.5-rc1")
