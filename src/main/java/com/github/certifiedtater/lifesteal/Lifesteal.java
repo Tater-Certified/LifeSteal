@@ -83,7 +83,8 @@ public class Lifesteal implements ModInitializer {
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 MinecraftServer server = world.getServer();
                 if (server.getGameRules().getBoolean(LifeStealGamerules.ALTARS)
-                        && serverPlayer.isSneaking() && hand == serverPlayer.getActiveHand()
+                        && serverPlayer.isSneaking()
+                        && hand == serverPlayer.getActiveHand()
                         && serverPlayer.getStackInHand(hand).isEmpty()
                         && HeartItem.isAltar(world, hitResult.getBlockPos())) {
                     PlayerUtils.convertHealthToHeartItems(serverPlayer, 1, server, true);

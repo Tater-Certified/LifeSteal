@@ -2,6 +2,7 @@ package com.github.certifiedtater.lifesteal.gametest;
 
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.mixin.FakePlayerAccessor;
+import com.github.certifiedtater.lifesteal.utils.LifestealMixinConfig;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.entity.Entity;
@@ -68,7 +69,7 @@ public class TestSubject extends FakePlayer {
             playerProfile = (GameProfile) profileField.get(playerKey);
 
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
+            LifestealMixinConfig.TEST_LOGGER.error("Failed to create TestSubject instance", e);
         }
 
         ServerWorld finalPlayerWorld = playerWorld;

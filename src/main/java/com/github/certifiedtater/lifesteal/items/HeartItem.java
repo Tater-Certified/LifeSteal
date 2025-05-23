@@ -71,14 +71,18 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         if (!server.getGameRules().getBoolean(LifeStealGamerules.ALTARS)) {
             return super.useOnBlock(context);
         }
-        ServerPlayerEntity player = (ServerPlayerEntity) context.getPlayer();
-        BlockPos pos = context.getBlockPos();
-        String playerName = getCustomName(context.getStack());
 
-        if (player == null || playerName == null) {
+        ServerPlayerEntity player = (ServerPlayerEntity) context.getPlayer();
+        if (player == null) {
             return super.useOnBlock(context);
         }
 
+        String playerName = getCustomName(context.getStack());
+        if (playerName == null) {
+            return super.useOnBlock(context);
+        }
+
+        BlockPos pos = context.getBlockPos();
         if (player.isSneaking() && isAltar(context.getWorld(), pos)) {
             // Can't revive yourself
             if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
@@ -87,7 +91,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
                 return ActionResult.FAIL;
             }
 
-            int val = revive(playerName, server, world, pos, player, Optional.of(context));
+            byte val = revive(playerName, server, world, pos, player, Optional.of(context));
 
             switch (val) {
                 case 0 -> {
@@ -106,7 +110,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         return super.useOnBlock(context);
     }
 
-    public static int revive(String playerName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
+    public static byte revive(String playerName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
         ServerPlayerEntity revivee = server.getPlayerManager().getPlayer(playerName);
         boolean fromHeart = contextOptional.isPresent();
         if (revivee != null) {
