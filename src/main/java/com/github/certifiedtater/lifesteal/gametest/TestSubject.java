@@ -1,5 +1,6 @@
 package com.github.certifiedtater.lifesteal.gametest;
 
+import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.mixin.FakePlayerAccessor;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.entity.FakePlayer;
@@ -7,12 +8,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.test.TestContext;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TestSubject extends FakePlayer {
     protected TestSubject(ServerWorld world, GameProfile profile) {
@@ -25,7 +29,12 @@ public class TestSubject extends FakePlayer {
      * @return Random TestSubject instance
      */
     public static TestSubject getRandomTestSubject(ServerWorld world) {
-        return TestSubject.getNew(world, new GameProfile(UUID.randomUUID(), "TEST"));
+        String name;
+        do {
+            name = "TEST" + ThreadLocalRandom.current().nextInt(0, 10000);
+        } while (Arrays.asList(world.getServer().getPlayerManager().getPlayerNames()).contains(name));
+
+        return TestSubject.getNew(world, new GameProfile(UUID.randomUUID(), name));
     }
 
     /**
@@ -114,5 +123,21 @@ public class TestSubject extends FakePlayer {
         this.getAttributeInstance(EntityAttributes.MAX_HEALTH).setBaseValue(20.0);
         this.setHealth(20.0F);
         this.remove(Entity.RemovalReason.DISCARDED);
+    }
+
+    /**
+     * Gets the max health of the TestSubject
+     * @return Max health of the TestSubject
+     */
+    public double getMaxBaseHealth() {
+        return this.getAttributeInstance(EntityAttributes.MAX_HEALTH).getBaseValue();
+    }
+
+    /**
+     * Sets the TestSubject's health to the lowest possible health before a DeathAction occurs
+     * @param context TestContext instance
+     */
+    public void setLowMaxHealth(TestContext context) {
+        this.getAttributeInstance(EntityAttributes.MAX_HEALTH).setBaseValue(context.getWorld().getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH).get());
     }
 }

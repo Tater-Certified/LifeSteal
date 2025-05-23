@@ -3,12 +3,15 @@
   "minVersion": "0.8",
   "package": "com.github.certifiedtater.lifesteal.mixin",
   "compatibilityLevel": "JAVA_21",
+  "plugin": "com.github.certifiedtater.lifesteal.utils.LifestealMixinConfig",
   "mixins": [
     "FakePlayerAccessor",
     "GameRulesTypeInvoker",
+    "GameTestUserCacheMixin",
     "ItemStackMixin",
     "MilkMixin",
-    "ServerPlayerEntityMixin"
+    "ServerPlayerEntityMixin",
+    "ServerPlayerInteractionManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

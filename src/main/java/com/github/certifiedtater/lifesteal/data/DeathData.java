@@ -11,7 +11,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class DeathData {
-    public final UUID deadPlayerID;
+    private final UUID deadPlayerID;
     public UUID reviverPlayerID;
     public final long deathTime;
 

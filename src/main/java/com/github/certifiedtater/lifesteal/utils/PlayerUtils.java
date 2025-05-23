@@ -37,7 +37,10 @@ public final class PlayerUtils {
                 DeathData.removeFromDeathDataList(player.getUuid()); // I know this is a waste of processing power... but I don't care
                 ((PlayerReviveData)player).setNewlyRevived(true); // Prevent heart duplication
             }
-            case SPECTATOR -> player.changeGameMode(GameMode.SPECTATOR);
+            case SPECTATOR -> {
+                player.changeGameMode(GameMode.SPECTATOR);
+                ((PlayerGameModeInterface)(player.interactionManager)).setPreviousGameMode(GameMode.SPECTATOR);
+            }
         }
     }
 
