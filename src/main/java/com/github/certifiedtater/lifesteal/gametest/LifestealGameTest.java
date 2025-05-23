@@ -210,7 +210,30 @@ public class LifestealGameTest {
         });
         context.waitAndRun(4, () -> player.giveItemStack(heart.copy()));
         context.waitAndRun(5, () -> context.assertTrue(player.getMainHandStack().getCount() == 2, Text.of("Hearts did not stack")));
-        context.waitAndRun(6, () -> end(context, player));
+        context.waitAndRun(6, () -> {
+            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(1, context.getWorld().getServer());
+            end(context, player);
+        });
+    }
+
+    @GameTest(setupTicks = 65)
+    public void testWithdrawCommand(TestContext context) {
+        LifestealMixinConfig.TEST_LOGGER.info("Test 7: Heart Withdraw Command");
+        TestSubject player = spawnSinglePlayerTest(context);
+        context.waitAndRun(1, () -> {
+            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(2, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(false, context.getWorld().getServer());
+        });
+        context.waitAndRun(2, () -> context.getWorld().getServer().getCommandManager().executeWithPrefix(player.getCommandSource(), "withdraw 2"));
+        context.waitAndRun(3, () -> {
+            context.assertTrue(player.getMainHandStack().getCount() == 2, Text.of("Expected 2 Hearts; Given " + player.getMainHandStack().getCount()));
+            context.assertTrue(player.getMaxBaseHealth() == 16.0, Text.of("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
+        });
+        context.waitAndRun(4, () -> {
+            context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(true, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(1, context.getWorld().getServer());
+            end(context, player);
+        });
     }
 
     private TestSubject spawnSinglePlayerTest(TestContext context) {

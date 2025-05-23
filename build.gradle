@@ -20,14 +20,27 @@ repositories {
     mavenCentral()
 }
 
+// Fabric modules
+Set<String> apiModules = [
+        "fabric-api-base",
+        "fabric-command-api-v2",
+        "fabric-lifecycle-events-v1",
+        "fabric-entity-events-v1",
+        "fabric-gametest-api-v1",
+        "fabric-networking-api-v1",
+        "fabric-biome-api-v1",
+        "fabric-events-interaction-v0",
+        "fabric-game-rule-api-v1",
+]
+
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    apiModules.forEach {
+        include(modImplementation(fabricApi.module(it, project.fabric_version)))
+    }
     modImplementation include("eu.pb4:polymer-core:${project.polymer_version}")
     modImplementation include("xyz.nucleoid:server-translations-api:2.5.0+1.21.5-rc1")
     modImplementation include("eu.pb4:polymer-blocks:${project.polymer_version}")
@@ -35,7 +48,7 @@ dependencies {
     modImplementation include("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
     implementation include('com.google.code.gson:gson:2.13.1')
     modApi "maven.modrinth:unruled-api:${project.unruled_version}"
-    modImplementation include('com.github.QPCrummer:PolySpring:8c457f4eea')
+    modImplementation include('com.github.QPCrummer:PolySpring:f35011d7f6')
 }
 
 loom {
