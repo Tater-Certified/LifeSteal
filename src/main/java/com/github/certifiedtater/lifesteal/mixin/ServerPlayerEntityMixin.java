@@ -14,11 +14,11 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,14 +31,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin extends PlayerEntity implements PlayerReviveData, PlayerInvulnerabilityInterface  {
 
-    public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile gameProfile) {
-        super(world, pos, yaw, gameProfile);
-    }
-
     private boolean newlyRevived;
     private int invulnerableTicks = 0;
 
-    @Shadow public abstract ServerWorld getServerWorld();
+    public ServerPlayerEntityMixin(World world, GameProfile profile) {
+        super(world, profile);
+    }
+
+    @Shadow public abstract ServerWorld getWorld();
     @Shadow @Final
     public MinecraftServer server;
 
@@ -47,9 +47,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         Entity attacker = damageSource.getAttacker();
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             PlayerUtils.exchangeHealth(((ServerPlayerEntity) (Object) this), playerAttacker);
-        } else if (!getServerWorld().getGameRules().getBoolean(LifeStealGamerules.PLAYERRELATEDONLY)) {
+        } else if (!getWorld().getGameRules().getBoolean(LifeStealGamerules.PLAYERRELATEDONLY)) {
             EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-            PlayerUtils.changeHealth(((ServerPlayerEntity) (Object) this), killedMaxHealth, -getServerWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
+            PlayerUtils.changeHealth(((ServerPlayerEntity) (Object) this), killedMaxHealth, -getWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
             // Check to see if the player is dead
             int minHealth = this.getServer().getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH);
             if (killedMaxHealth.getBaseValue() <= minHealth) {
@@ -67,20 +67,16 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         this.invulnerableTicks = ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining();
     }
 
-    @Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
-    private void lifesteal$readRevivedData(NbtCompound nbt, CallbackInfo ci) {
-        if (nbt.contains("newly_revived")) {
-            this.setNewlyRevived(nbt.getBoolean("newly_revived").orElse(false));
-        }
-        if (nbt.contains("invulnerability_ticks")) {
-            invulnerableTicks = nbt.getInt("invulnerability_ticks", 0);
-        }
+    @Inject(method = "readCustomData", at = @At("TAIL"))
+    private void lifesteal$readRevivedData(ReadView view, CallbackInfo ci) {
+        this.setNewlyRevived(view.getBoolean("newly_revived", false));
+        invulnerableTicks = view.getInt("invulnerability_ticks", 0);
     }
 
-    @Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
-    private void lifesteal$writeRevivedData(NbtCompound nbt, CallbackInfo ci) {
-        nbt.putBoolean("newly_revived", this.newlyRevived);
-        nbt.putInt("invulnerability_ticks", this.invulnerableTicks);
+    @Inject(method = "writeCustomData", at = @At("TAIL"))
+    private void lifesteal$writeRevivedData(WriteView view, CallbackInfo ci) {
+        view.putBoolean("newly_revived", this.newlyRevived);
+        view.putInt("invulnerability_ticks", this.invulnerableTicks);
     }
 
     @Inject(method = "tick", at = @At("TAIL"))

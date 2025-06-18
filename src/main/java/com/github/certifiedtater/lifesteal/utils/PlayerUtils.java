@@ -22,7 +22,7 @@ public final class PlayerUtils {
      * @param data The player's DeathData
      */
     public static void handleDeadPlayerAction(ServerPlayerEntity player, DeathData data) {
-        GameRules gameRules = player.getServerWorld().getGameRules();
+        GameRules gameRules = player.getWorld().getGameRules();
         DeathAction action = gameRules.get(LifeStealGamerules.DEATH_ACTION).get();
         switch (action) {
             case BAN -> {
@@ -54,7 +54,7 @@ public final class PlayerUtils {
         if (data != null) {
             // A reviver takes highest priority
             if (data.reviverPlayerID == null) {
-                if (DeathData.shouldAutoRevive(data, player.getServerWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                if (DeathData.shouldAutoRevive(data, player.getWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
                     // Autorevival timer up
                     handlePostRevival(data, player, true);
                 } else {
@@ -75,9 +75,9 @@ public final class PlayerUtils {
      * @param autoRevived If the player was revived due to the automatic revival system
      */
     private static void handlePostRevival(DeathData data, ServerPlayerEntity player, boolean autoRevived) {
-        GameRules gameRules = player.getServerWorld().getGameRules();
+        GameRules gameRules = player.getWorld().getGameRules();
         if (!autoRevived) {
-            player.sendMessage(LifeStealText.onRevivalText(data, player.server));
+            player.sendMessage(LifeStealText.onRevivalText(data, player.getServer()));
         } else {
             // Autorevived players shouldn't be exempted from the antiHeartDupe
             ((PlayerReviveData)player).setNewlyRevived(true);
@@ -101,7 +101,7 @@ public final class PlayerUtils {
     public static void exchangeHealth(ServerPlayerEntity killed, ServerPlayerEntity attacker) {
         // Killed Player
         EntityAttributeInstance killedMaxHealth = killed.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-        GameRules gameRules = killed.getServerWorld().getGameRules();
+        GameRules gameRules = killed.getWorld().getGameRules();
         double killedMaxHealthDouble = killedMaxHealth.getBaseValue();
 
         int minHealth = gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH);
@@ -162,7 +162,7 @@ public final class PlayerUtils {
     public static boolean changeHealth(ServerPlayerEntity player, float by) {
         EntityAttributeInstance maxHealthAttribute = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
         double maxHealth = maxHealthAttribute.getBaseValue();
-        if (canChangeHealth(maxHealth, by, player.getServerWorld().getGameRules())) {
+        if (canChangeHealth(maxHealth, by, player.getWorld().getGameRules())) {
             changeHealth(player, maxHealthAttribute, by);
             // If they can change health without dying, they aren't newly revived anymore
             ((PlayerReviveData)player).setNewlyRevived(false);
