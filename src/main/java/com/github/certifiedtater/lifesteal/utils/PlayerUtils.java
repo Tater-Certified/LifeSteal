@@ -189,6 +189,12 @@ public final class PlayerUtils {
      * @param server MinecraftServer instance
      */
     public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, MinecraftServer server, boolean action) {
+        // Check for overflowing
+        if (hearts < 0) {
+            player.sendMessage(LifeStealText.LOW_HEALTH, action);
+            return;
+        }
+
         final int health = hearts * server.getGameRules().getInt(LifeStealGamerules.HEARTBONUS);
         if(health == 0) {
             player.sendMessage(LifeStealText.HEART_DISABLED, action);
