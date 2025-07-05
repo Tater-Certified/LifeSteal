@@ -27,7 +27,7 @@ public class LifestealMixinConfig implements IMixinConfigPlugin {
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.contains("GameTestUserCacheMixin")) {
             if (isInGameTest) {
-                TEST_LOGGER.warn("The UserCache as been replaced with an alternative. Errors may occur");
+                TEST_LOGGER.warn("The UserCache has been replaced with an alternative. Errors may occur");
             }
             return isInGameTest;
         }

@@ -3,10 +3,7 @@ package com.github.certifiedtater.lifesteal.mixin;
 import com.github.certifiedtater.lifesteal.data.DeathData;
 import com.github.certifiedtater.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
-import com.github.certifiedtater.lifesteal.utils.LifeStealText;
-import com.github.certifiedtater.lifesteal.utils.PlayerInvulnerabilityInterface;
-import com.github.certifiedtater.lifesteal.utils.PlayerReviveData;
-import com.github.certifiedtater.lifesteal.utils.PlayerUtils;
+import com.github.certifiedtater.lifesteal.utils.*;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
@@ -29,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity implements PlayerReviveData, PlayerInvulnerabilityInterface  {
+public abstract class ServerPlayerEntityMixin extends PlayerEntity implements PlayerReviveData, PlayerInvulnerabilityInterface, PlayerMaxHealthInterface {
 
     private boolean newlyRevived;
     private int invulnerableTicks = 0;
@@ -49,7 +46,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
             PlayerUtils.exchangeHealth(((ServerPlayerEntity) (Object) this), playerAttacker);
         } else if (!getWorld().getGameRules().getBoolean(LifeStealGamerules.PLAYERRELATEDONLY)) {
             EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-            PlayerUtils.changeHealth(((ServerPlayerEntity) (Object) this), killedMaxHealth, -getWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
+            PlayerUtils.changeHealthUnchecked(((ServerPlayerEntity) (Object) this), -getWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
             // Check to see if the player is dead
             int minHealth = this.getServer().getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH);
             if (killedMaxHealth.getBaseValue() <= minHealth) {
@@ -117,12 +114,24 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         invulnerableTicks = this.server.getGameRules().getInt(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20;
         this.addStatusEffect(new StatusEffectInstance(InvulnerableStatusEffect.INVULNERABLE, this.getRemaining(), 0, false, false, true));
     }
+
     @Override
     public boolean isReviveInvulnerable() {
         return invulnerableTicks != 0;
     }
+
     @Override
     public int getRemaining() {
         return invulnerableTicks;
+    }
+
+    @Override
+    public double getBaseMaxHealth() {
+        return this.getAttributeBaseValue(EntityAttributes.MAX_HEALTH);
+    }
+
+    @Override
+    public void setBaseMaxHealth(double value) {
+        this.getAttributeInstance(EntityAttributes.MAX_HEALTH).setBaseValue(value);
     }
 }

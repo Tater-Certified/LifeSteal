@@ -17,7 +17,6 @@ public final class LifeStealText {
             GIFT_ALTAR = Text.translatable("lifesteal.gift.altar"),
             GIFT_NONE = Text.translatable("lifesteal.gift.none"),
             GIFT_MULTIPLE = Text.translatable("lifesteal.gift.multiple"),
-            GIFT_OVER_LIMIT = Text.translatable("lifesteal.gift.over_limit"),
             PREVENT_ATTACK = Text.translatable("lifesteal.gameplay.prevent_attack"),
             GIFT_DISABLED = Text.translatable("lifesteal.gift.heart.disabled");
 

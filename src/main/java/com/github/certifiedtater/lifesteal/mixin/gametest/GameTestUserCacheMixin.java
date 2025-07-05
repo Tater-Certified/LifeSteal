@@ -1,4 +1,4 @@
-package com.github.certifiedtater.lifesteal.mixin;
+package com.github.certifiedtater.lifesteal.mixin.gametest;
 
 import com.github.certifiedtater.lifesteal.gametest.LifestealGameTest;
 import net.minecraft.server.MinecraftServer;

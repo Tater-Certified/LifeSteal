@@ -116,7 +116,7 @@ public final class PlayerUtils {
                 return;
             }
         } else {
-            changeHealth(killed, killedMaxHealth, -gameRules.getInt(LifeStealGamerules.STEALAMOUNT));
+            changeHealthUnchecked(killed, -gameRules.getInt(LifeStealGamerules.STEALAMOUNT));
         }
 
         // Attacker Player
@@ -136,20 +136,24 @@ public final class PlayerUtils {
      */
     public static boolean canChangeHealth(double currentMaxHealth, float by, GameRules gameRules) {
         double newMaxHealth = currentMaxHealth + by;
+        System.out.println(newMaxHealth);
+        System.out.println(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) + " => " + (newMaxHealth >= gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH)));
+        System.out.println(gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH) + " => " + (newMaxHealth <= gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH)));
         return newMaxHealth >= gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) && newMaxHealth <= gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH);
     }
 
     /**
      * Changes the max health of a player, then sends a message telling how much it was updated by
      * @param player ServerPlayerEntity whose health is being changed
-     * @param attribute The Player's Attributes
      * @param by The amount that the max health should be changed by (can be positive or negative)
      */
-    public static void changeHealth(ServerPlayerEntity player, EntityAttributeInstance attribute, float by) {
-        double currentValue = attribute.getValue();
-        attribute.setBaseValue(currentValue + by);
+    public static void changeHealthUnchecked(ServerPlayerEntity player, float by) {
+        double currentValue = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
+        ((PlayerMaxHealthInterface)player).setBaseMaxHealth(currentValue + by);
         float health = player.getHealth();
         player.setHealth(health + by);
+        // If they can change health without dying, they aren't newly revived anymore
+        ((PlayerReviveData)player).setNewlyRevived(false);
         player.sendMessage(LifeStealText.updateHealth(by), true);
     }
 
@@ -160,12 +164,9 @@ public final class PlayerUtils {
      * @return If the change succeeded. If the player will "die", then returns false.
      */
     public static boolean changeHealth(ServerPlayerEntity player, float by) {
-        EntityAttributeInstance maxHealthAttribute = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-        double maxHealth = maxHealthAttribute.getBaseValue();
+        double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
         if (canChangeHealth(maxHealth, by, player.getWorld().getGameRules())) {
-            changeHealth(player, maxHealthAttribute, by);
-            // If they can change health without dying, they aren't newly revived anymore
-            ((PlayerReviveData)player).setNewlyRevived(false);
+            changeHealthUnchecked(player, by);
             return true;
         } else {
             return false;

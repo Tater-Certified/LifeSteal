@@ -3,6 +3,7 @@ package com.github.certifiedtater.lifesteal.gametest;
 import com.github.certifiedtater.lifesteal.gamerules.LifeStealGamerules;
 import com.github.certifiedtater.lifesteal.mixin.FakePlayerAccessor;
 import com.github.certifiedtater.lifesteal.utils.LifestealMixinConfig;
+import com.github.certifiedtater.lifesteal.utils.PlayerMaxHealthInterface;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.entity.Entity;
@@ -139,6 +140,22 @@ public class TestSubject extends FakePlayer {
      * @param context TestContext instance
      */
     public void setLowMaxHealth(TestContext context) {
-        this.getAttributeInstance(EntityAttributes.MAX_HEALTH).setBaseValue(context.getWorld().getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH).get());
+        this.setMaxHealth(context.getWorld().getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH).get());
+    }
+
+    /**
+     * Sets the TestSubject's max health
+     * @param value Health value
+     */
+    public void setMaxHealth(double value) {
+        ((PlayerMaxHealthInterface)this).setBaseMaxHealth(value);
+    }
+
+    /**
+     * Runs a command as if it were executed by the TestSubject
+     * @param command Command string
+     */
+    public void executeCommand(String command) {
+        this.getServer().getCommandManager().executeWithPrefix(this.getCommandSource(), command);
     }
 }

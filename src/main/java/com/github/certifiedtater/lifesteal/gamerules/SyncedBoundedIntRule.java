@@ -1,6 +1,5 @@
 package com.github.certifiedtater.lifesteal.gamerules;
 
-import net.fabricmc.fabric.mixin.gamerule.GameRulesIntRuleAccessor;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
@@ -20,7 +19,7 @@ public class SyncedBoundedIntRule extends GameRules.IntRule {
     protected void deserialize(String value) {
         int i = parseInt(value);
         if (this.minimumValue <= i && this.maximumValue >= i) {
-            ((GameRulesIntRuleAccessor)this).setValue(i);
+            this.set(i, null);
         } else {
             LOGGER.warn("Failed to parse integer {}. Was out of bounds {} - {}", value, this.minimumValue, this.maximumValue);
         }
@@ -41,7 +40,7 @@ public class SyncedBoundedIntRule extends GameRules.IntRule {
             }
 
             if (this.minimumValue <= value && this.maximumValue >= value) {
-                ((GameRulesIntRuleAccessor)this).setValue(value);
+                this.set(value, null);
                 return true;
             } else {
                 return false;
@@ -52,7 +51,7 @@ public class SyncedBoundedIntRule extends GameRules.IntRule {
     }
 
     protected GameRules.IntRule copy() {
-        return new SyncedBoundedIntRule(this.type, ((GameRulesIntRuleAccessor)this).getValue(), this.minimumValue, this.maximumValue);
+        return new SyncedBoundedIntRule(this.type, this.get(), this.minimumValue, this.maximumValue);
     }
 
     private static int parseInt(String input) {

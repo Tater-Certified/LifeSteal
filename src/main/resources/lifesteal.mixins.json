@@ -7,11 +7,11 @@
   "mixins": [
     "FakePlayerAccessor",
     "GameRulesTypeInvoker",
-    "GameTestUserCacheMixin",
     "ItemStackMixin",
     "MilkMixin",
     "ServerPlayerEntityMixin",
-    "ServerPlayerInteractionManagerMixin"
+    "ServerPlayerInteractionManagerMixin",
+    "gametest.GameTestUserCacheMixin"
   ],
   "injectors": {
     "defaultRequire": 1

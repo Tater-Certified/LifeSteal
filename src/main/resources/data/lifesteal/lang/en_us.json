@@ -12,7 +12,7 @@
 
   "lifesteal.gameplay.death": "You lost your last life. You now must be revived.",
   "lifesteal.gameplay.death_time": "You lost your last life.\nYou will be revived in %s seconds.",
-  "lifesteal.gameplay.low_health": "You have insufficient health for this task.",
+  "lifesteal.gameplay.low_health": "You have insufficient max health for this task.",
   "lifesteal.gameplay.max_health": "You are already at the maximum amount of health",
   "lifesteal.gameplay.update_health": "%s Health",
   "lifesteal.gameplay.prevent_attack": "You cannot attack players while invulnerable",
@@ -28,7 +28,6 @@
   "lifesteal.gift.none": "Can't gift to nobody.",
   "lifesteal.gift.multiple": "Can't gift to multiple folks at once.",
   "lifesteal.gift.self": "%s is you, you can't gift to yourself!",
-  "lifesteal.gift.over_limit": "Cannot gift more than the legal amount.",
   "lifesteal.gift.success": "Gifted %s health to %s.",
   "lifesteal.gift.received": "Received %s health from %s.",
   "lifesteal.gift.heart.disabled": "Heart gifting is disabled",

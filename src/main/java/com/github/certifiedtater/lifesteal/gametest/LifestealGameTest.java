@@ -224,15 +224,50 @@ public class LifestealGameTest {
             context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(2, context.getWorld().getServer());
             context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(false, context.getWorld().getServer());
         });
-        context.waitAndRun(2, () -> context.getWorld().getServer().getCommandManager().executeWithPrefix(player.getCommandSource(), "withdraw 2"));
+        // Test valid amount
+        context.waitAndRun(2, () -> player.executeCommand("withdraw 2"));
         context.waitAndRun(3, () -> {
             context.assertTrue(player.getMainHandStack().getCount() == 2, Text.of("Expected 2 Hearts; Given " + player.getMainHandStack().getCount()));
             context.assertTrue(player.getMaxBaseHealth() == 16.0, Text.of("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
         });
+        // Test invalid max health
         context.waitAndRun(4, () -> {
+            player.getInventory().clear();
+            context.getWorld().getServer().getCommandManager().executeWithPrefix(player.getCommandSource(), "withdraw 16");
+        }); // Should fail
+        context.waitAndRun(5, () -> {
+            context.assertTrue(player.getMainHandStack().isEmpty(), Text.of("Expected 0 Hearts; Given " + player.getMainHandStack().getCount()));
+            context.assertTrue(player.getMaxBaseHealth() == 16.0, Text.of("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
+        });
+
+        context.waitAndRun(6, () -> {
             context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(true, context.getWorld().getServer());
             context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(1, context.getWorld().getServer());
             end(context, player);
+        });
+    }
+
+    @GameTest(setupTicks = 75)
+    public void testGiftCommand(TestContext context) {
+        LifestealMixinConfig.TEST_LOGGER.info("Test 8: Heart Gift Command");
+        TestSubject[] players = spawnDoublePlayerTest(context);
+        context.waitAndRun(1, () -> {
+            players[0].setMaxHealth(10.0);
+            players[1].setMaxHealth(20.0);
+            context.getWorld().getGameRules().get(LifeStealGamerules.GIFTHEARTS).set(true, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(false, context.getWorld().getServer());
+        });
+        // Test valid amount
+        context.waitAndRun(2, () -> players[1].executeCommand("gift " + players[0].getUuidAsString() + " 2"));
+        context.waitAndRun(3, () -> {
+            context.assertTrue(players[0].getMaxBaseHealth() == 12.0, Text.of("Expected 12.0 Max Health; Has " + players[0].getMaxBaseHealth()));
+            context.assertTrue(players[1].getMaxBaseHealth() == 18.0, Text.of("Expected 18.0 Max Health; Has " + players[1].getMaxBaseHealth()));
+        });
+        // Test invalid max health
+        //context.waitAndRun(4, () -> players[1].executeCommand("gift " + players[0].getName().getString() + " 19")); // Should fail
+        context.waitAndRun(5, () -> {
+            //context.assertTrue(players[0].getMaxBaseHealth() == 12.0, Text.of("Expected 12.0 Max Health; Has " + players[0].getMaxBaseHealth()));
+            end(context, players);
         });
     }
 
