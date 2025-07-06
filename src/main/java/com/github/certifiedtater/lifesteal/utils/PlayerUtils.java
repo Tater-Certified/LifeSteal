@@ -136,9 +136,6 @@ public final class PlayerUtils {
      */
     public static boolean canChangeHealth(double currentMaxHealth, float by, GameRules gameRules) {
         double newMaxHealth = currentMaxHealth + by;
-        System.out.println(newMaxHealth);
-        System.out.println(gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) + " => " + (newMaxHealth >= gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH)));
-        System.out.println(gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH) + " => " + (newMaxHealth <= gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH)));
         return newMaxHealth >= gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH) && newMaxHealth <= gameRules.getInt(LifeStealGamerules.MAXPLAYERHEALTH);
     }
 
