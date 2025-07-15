@@ -11,10 +11,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.github.certifiedtater.lifesteal.Lifesteal"
+      "com.github.tatercertified.lifesteal.Lifesteal"
     ],
     "fabric-gametest" : [
-      "com.github.certifiedtater.lifesteal.gametest.LifestealGameTest"
+      "com.github.tatercertified.lifesteal.gametest.LifestealGameTest"
     ]
   },
   "accessWidener" : "lifesteal.accesswidener",
