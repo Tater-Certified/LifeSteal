@@ -3,6 +3,7 @@ package com.github.certifiedtater.lifesteal;
 import com.github.certifiedtater.lifesteal.block.ModBlocks;
 import com.github.certifiedtater.lifesteal.commands.AdminReviveCommand;
 import com.github.certifiedtater.lifesteal.commands.GiftCommand;
+import com.github.certifiedtater.lifesteal.commands.ReviveCommand;
 import com.github.certifiedtater.lifesteal.commands.WithdrawCommand;
 import com.github.certifiedtater.lifesteal.data.DeathData;
 import com.github.certifiedtater.lifesteal.effect.InvulnerableStatusEffect;
@@ -45,6 +46,7 @@ public class Lifesteal implements ModInitializer {
         ModBlocks.registerBlocks();
         Ores.initOres();
         AdminReviveCommand.register();
+        ReviveCommand.register();
         GiftCommand.register();
         WithdrawCommand.register();
         LifeStealGamerules.init();

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class HeartItem extends Item implements PolymerItem, BedrockItem {
 
@@ -111,7 +112,14 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
     }
 
     public static byte revive(String playerName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
-        ServerPlayerEntity revivee = server.getPlayerManager().getPlayer(playerName);
+        return revive(server.getPlayerManager().getPlayer(playerName), null, playerName, server, world, pos, reviver, contextOptional);
+    }
+
+    public static byte revive(UUID reviveeId, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
+        return revive(server.getPlayerManager().getPlayer(reviveeId), reviveeId, null, server, world, pos, reviver, contextOptional);
+    }
+
+    private static byte revive(ServerPlayerEntity revivee, @Nullable UUID reviveeId, @Nullable String reviveeName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
         boolean fromHeart = contextOptional.isPresent();
         if (revivee != null) {
             if (reviveOnline(revivee, world, pos, reviver, fromHeart)) {
@@ -122,7 +130,15 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
             return 1;
         }
 
-        Optional<GameProfile> profile = server.getUserCache().findByName(playerName);
+        Optional<GameProfile> profile;
+        if (reviveeId != null) {
+            profile = server.getUserCache().getByUuid(reviveeId);
+        } else if (reviveeName != null) {
+            profile = server.getUserCache().findByName(reviveeName);
+        } else {
+            profile = Optional.empty();
+        }
+
         if (profile.isPresent()) {
             if (reviveOffline(profile.get(), world, pos, reviver, fromHeart)) {
                 contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, Text.of(profile.get().getName())));

@@ -40,5 +40,7 @@
   "lifesteal.player.revived.receiver": "You've been resurrected from the grave by %s",
   "lifesteal.player.not_found": "%s doesn't exist",
 
-  "lifesteal.revive.self": "%s is you, you can't revive yourself!"
+  "lifesteal.revive.self": "%s is you, you can't revive yourself!",
+  "lifesteal.revive.altar": "You must use an altar to revive players",
+  "lifesteal.revive.holding": "You must be holding a heart to use this command"
 }

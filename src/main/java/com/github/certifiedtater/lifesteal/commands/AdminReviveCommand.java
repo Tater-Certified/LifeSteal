@@ -21,7 +21,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class AdminReviveCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
-            dispatcher.register(literal("revive")
+            dispatcher.register(literal("admin-revive")
                     .requires(ServerCommandSource::isExecutedByPlayer)
                     .requires(source -> source.hasPermissionLevel(4))
                     .then(argument("player", GameProfileArgumentType.gameProfile())
