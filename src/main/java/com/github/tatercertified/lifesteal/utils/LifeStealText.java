@@ -41,7 +41,7 @@ public final class LifeStealText {
             ADMIN_REVIVE = "lifesteal.admin.revive";
 
     public static Text onRevivalText(DeathData data, MinecraftServer server) {
-        return Text.translatable(REVIVEE, server.getUserCache().getByUuid(data.reviverPlayerID).get().getName());
+        return Text.translatable(REVIVEE, server.getApiServices().nameToIdCache().getByUuid(data.reviverPlayerID).get().name());
     }
 
     public static Text notFound(String playerName) {

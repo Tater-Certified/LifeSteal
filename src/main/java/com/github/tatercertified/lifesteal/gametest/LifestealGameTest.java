@@ -18,7 +18,7 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.test.TestContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
-import net.minecraft.util.UserCache;
+import net.minecraft.util.NameToIdCache;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -29,7 +29,7 @@ import net.minecraft.world.GameRules;
 import java.util.UUID;
 
 public class LifestealGameTest {
-    public static final UserCache gameTestUserCache = new GameTestUserCache();
+    public static final NameToIdCache gameTestUserCache = new GameTestUserCache();
 
     @GameTest
     public void testHeartConsumption(TestContext context) {
@@ -71,7 +71,7 @@ public class LifestealGameTest {
             player.setSneaking(true);
             player.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, altar.toCenterPos());
         });
-        context.waitAndRun(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.getWorld(), Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(altar), Direction.NORTH, altar, true)));
+        context.waitAndRun(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.getEntityWorld(), Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(altar), Direction.NORTH, altar, true)));
         context.waitAndRun(3, () -> {
             double maxHealth = player.getMaxBaseHealth();
             context.assertTrue(maxHealth == 18.0F, Text.of("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
@@ -135,7 +135,7 @@ public class LifestealGameTest {
     public void testDeath(TestContext context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 4: Death Consequences");
         final TestSubject[] player = {spawnSinglePlayerTest(context)};
-        Vec3d playerPos = player[0].getPos();
+        Vec3d playerPos = player[0].getEntityPos();
         player[0].setLowMaxHealth(context);
         context.getWorld().getGameRules().get(LifeStealGamerules.PLAYERRELATEDONLY).set(false, context.getWorld().getServer());
 
@@ -297,14 +297,14 @@ public class LifestealGameTest {
 
     private TestSubject spawnPlayer(TestContext context, Vec3d pos) {
         TestSubject player = TestSubject.getRandomTestSubject(context.getWorld());
-        player.getWorld().spawnEntity(player);
+        player.getEntityWorld().spawnEntity(player);
         player.changeGameMode(GameMode.SURVIVAL);
         player.setPos(pos.getX(), pos.getY(), pos.getZ());
         return player;
     }
 
     private void use(TestSubject player, ItemStack stack) {
-        stack.use(player.getWorld(), player, Hand.MAIN_HAND);
+        stack.use(player.getEntityWorld(), player, Hand.MAIN_HAND);
     }
 
     private void removePlayers(TestSubject... players) {

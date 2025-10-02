@@ -1,9 +1,9 @@
 package com.github.tatercertified.lifesteal.utils;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class OfflinePlayerData {
 
-    public final GameProfile holder;
+    public final PlayerConfigEntry holder;
     public final NbtCompound root;
 
     private final Path dir;
@@ -37,7 +37,7 @@ public class OfflinePlayerData {
      * @param root The main NBTCompound for the offline player
      * @param dir The path to the offline player's NBT data
      */
-    protected OfflinePlayerData(GameProfile holder, NbtCompound root, Path dir) {
+    protected OfflinePlayerData(PlayerConfigEntry holder, NbtCompound root, Path dir) {
         this.holder = holder;
         this.root = root;
         this.dir = dir;
@@ -47,7 +47,7 @@ public class OfflinePlayerData {
      * Saves the offline player's NBT data
      */
     public void save() {
-        final String reference = holder.getId() + ".dat";
+        final String reference = holder.id() + ".dat";
         final Path tmp = dir.resolve(reference + "_tmp");
         final Path cur = dir.resolve(reference);
         final Path old = dir.resolve(reference + "_old");
@@ -67,9 +67,9 @@ public class OfflinePlayerData {
      * @param profile The profile of the player being fetched
      * @return The offline player's data if it exists and can be read, null otherwise
      */
-    public static OfflinePlayerData getOfflinePlayerData(MinecraftServer server, GameProfile profile) {
+    public static OfflinePlayerData getOfflinePlayerData(MinecraftServer server, PlayerConfigEntry profile) {
         final Path dir = server.getSavePath(WorldSavePath.PLAYERDATA);
-        final Path dat = dir.resolve(profile.getId() + ".dat");
+        final Path dat = dir.resolve(profile.id() + ".dat");
         if (Files.exists(dat) && Files.isRegularFile(dat)) {
             try (final InputStream stream = Files.newInputStream(dat)) {
                 final NbtCompound compound = NbtIo.readCompressed(stream, NbtSizeTracker.ofUnlimitedBytes());

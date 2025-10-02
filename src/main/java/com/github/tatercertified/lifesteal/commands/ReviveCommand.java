@@ -5,7 +5,6 @@ import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -14,6 +13,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -42,10 +42,10 @@ public class ReviveCommand {
         MinecraftServer server = context.getSource().getServer();
 
         for (UUID playerId : Lifesteal.DEAD_PLAYERS.keySet()) {
-            Optional<GameProfile> optionalGameProfile = server.getUserCache().getByUuid(playerId);
+            Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().getByUuid(playerId);
             optionalGameProfile.ifPresent(profile -> {
-                if (DeathData.isPlayerDead(profile.getId(), server.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
-                    builder.suggest(profile.getName());
+                if (DeathData.isPlayerDead(profile.id(), server.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                    builder.suggest(profile.name());
                 }
             });
         }
@@ -69,15 +69,15 @@ public class ReviveCommand {
         }
 
         String name = StringArgumentType.getString(context, "player");
-        Optional<GameProfile> optionalGameProfile = server.getUserCache().findByName(name);
+        Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().findByName(name);
         if (optionalGameProfile.isPresent()) {
-            GameProfile profile = optionalGameProfile.get();
-            if (DeathData.isPlayerDead(profile.getId(), 0)) {
-                ItemUsageContext usageContext = new ItemUsageContext(source.getPlayer(), Hand.MAIN_HAND, new BlockHitResult(source.getPlayer().getPos(), Direction.DOWN, source.getPlayer().getBlockPos(), true));
-                HeartItem.revive(profile.getId(), server, source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.of(usageContext));
+            PlayerConfigEntry profile = optionalGameProfile.get();
+            if (DeathData.isPlayerDead(profile.id(), 0)) {
+                ItemUsageContext usageContext = new ItemUsageContext(source.getPlayer(), Hand.MAIN_HAND, new BlockHitResult(source.getPlayer().getEntityPos(), Direction.DOWN, source.getPlayer().getBlockPos(), true));
+                HeartItem.revive(profile.id(), server, source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.of(usageContext));
                 //DeathData.removeFromDeathDataList(profile.getId());
             } else {
-                source.sendError(LifeStealText.playerIsAlive(Text.of(profile.getName())));
+                source.sendError(LifeStealText.playerIsAlive(Text.of(profile.name())));
                 return 0;
             }
         } else {

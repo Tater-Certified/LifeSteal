@@ -4,11 +4,11 @@ import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.GameProfileArgumentType;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
@@ -31,20 +31,20 @@ public class AdminReviveCommand {
 
     public static int reset(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerCommandSource source = context.getSource();
-        final Collection<GameProfile> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
+        final Collection<PlayerConfigEntry> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
         if (profiles.size() != 1) {
             // Error
             return 0;
         }
-        final GameProfile receiver = profiles.iterator().next();
-        if (!DeathData.isPlayerDead(receiver.getId(), source.getServer().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+        final PlayerConfigEntry receiver = profiles.iterator().next();
+        if (!DeathData.isPlayerDead(receiver.id(), source.getServer().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             // Error
-            source.sendError(LifeStealText.playerIsAlive(Text.of(receiver.getName())));
+            source.sendError(LifeStealText.playerIsAlive(Text.of(receiver.name())));
             return 0;
         }
-        HeartItem.revive(receiver.getName(), source.getServer(), source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.empty());
-        DeathData.removeFromDeathDataList(receiver.getId());
-        context.getSource().sendFeedback(() -> LifeStealText.adminRevive(receiver.getName()), true);
+        HeartItem.revive(receiver.name(), source.getServer(), source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.empty());
+        DeathData.removeFromDeathDataList(receiver.id());
+        context.getSource().sendFeedback(() -> LifeStealText.adminRevive(receiver.name()), true);
         return 1;
     }
 }

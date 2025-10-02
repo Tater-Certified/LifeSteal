@@ -6,13 +6,13 @@ import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.OfflinePlayerData;
 import com.github.tatercertified.lifesteal.utils.PlayerMaxHealthInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -62,7 +62,7 @@ public final class GiftCommand {
         }
 
         // Check if the target is valid
-        final Collection<GameProfile> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
+        final Collection<PlayerConfigEntry> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
         if (profiles.isEmpty()) {
             source.sendError(LifeStealText.GIFT_NONE);
             return 0;
@@ -72,21 +72,21 @@ public final class GiftCommand {
             return 0;
         }
 
-        final GameProfile receiver = profiles.iterator().next();
+        final PlayerConfigEntry receiver = profiles.iterator().next();
 
-        if (receiver.getId() == player.getUuid()) {
+        if (receiver.id() == player.getUuid()) {
             // Can't gift to yourself
             source.sendError(LifeStealText.noSelfGifting(player.getName()));
             return 0;
         }
 
-        if (DeathData.isPlayerDead(receiver.getId(), gameRules.getInt(LifeStealGamerules.AUTOREVIVAL))) {
+        if (DeathData.isPlayerDead(receiver.id(), gameRules.getInt(LifeStealGamerules.AUTOREVIVAL))) {
             // Can't gift to a dead guy
-            source.sendError(LifeStealText.isDead(Text.of(receiver.getName())));
+            source.sendError(LifeStealText.isDead(Text.of(receiver.name())));
             return 0;
         }
 
-        ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.getId());
+        ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.id());
 
         if (receiverPlayer != null) {
             // Online
@@ -103,7 +103,7 @@ public final class GiftCommand {
             // Offline
             OfflinePlayerData offlinePlayerData = OfflinePlayerData.getOfflinePlayerData(server, receiver);
             double offlineMaxHealth = offlinePlayerData.getMaxHealth();
-            Text receiverName = Text.of(receiver.getName());
+            Text receiverName = Text.of(receiver.name());
             if (PlayerUtils.canChangeHealth(offlineMaxHealth, amount, gameRules)) {
                 PlayerUtils.changeHealthUnchecked(player, -amount);
                 offlinePlayerData.setMaxHealth(offlineMaxHealth + amount);

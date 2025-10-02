@@ -10,6 +10,7 @@
     "ItemStackMixin",
     "MilkMixin",
     "ServerPlayerEntityMixin",
+    "ServerPlayerEntityServerAccessor",
     "ServerPlayerInteractionManagerMixin",
     "gametest.GameTestUserCacheMixin"
   ],

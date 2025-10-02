@@ -6,7 +6,6 @@ import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.OfflinePlayerData;
 import com.github.tatercertified.lifesteal.utils.PlayerReviveData;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
-import com.mojang.authlib.GameProfile;
 import de.olivermakesco.polyspring.api.BedrockItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.block.BlockState;
@@ -19,6 +18,7 @@ import net.minecraft.item.ItemUsageContext;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -46,7 +46,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
 
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if(world.isClient || user.isSneaking()) {
+        if(world.isClient() || user.isSneaking()) {
             return super.use(world, user, hand);
         }
 
@@ -130,21 +130,21 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
             return 1;
         }
 
-        Optional<GameProfile> profile;
+        Optional<PlayerConfigEntry> profile;
         if (reviveeId != null) {
-            profile = server.getUserCache().getByUuid(reviveeId);
+            profile = server.getApiServices().nameToIdCache().getByUuid(reviveeId);
         } else if (reviveeName != null) {
-            profile = server.getUserCache().findByName(reviveeName);
+            profile = server.getApiServices().nameToIdCache().findByName(reviveeName);
         } else {
             profile = Optional.empty();
         }
 
         if (profile.isPresent()) {
             if (reviveOffline(profile.get(), world, pos, reviver, fromHeart)) {
-                contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, Text.of(profile.get().getName())));
+                contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, Text.of(profile.get().name())));
                 return 0;
             }
-            failed(reviver, pos, Text.of(profile.get().getName()));
+            failed(reviver, pos, Text.of(profile.get().name()));
             return 1;
         }
         return 2;
@@ -165,8 +165,8 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         return true;
     }
 
-    private static boolean reviveOffline(GameProfile profile, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
-        if (!DeathData.isPlayerDead(profile.getId(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+    private static boolean reviveOffline(PlayerConfigEntry profile, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
+        if (!DeathData.isPlayerDead(profile.id(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
 
@@ -179,7 +179,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         playerData.setNewlyRevived(!fromHeart);
         playerData.save();
 
-        DeathData.setReviver(profile.getId(), reviver.getUuid());
+        DeathData.setReviver(profile.id(), reviver.getUuid());
         return true;
     }
 
@@ -194,7 +194,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
     }
 
     private static void failed(ServerPlayerEntity reviver, BlockPos alter, Text revived) {
-        failedSound(reviver.getWorld(), alter);
+        failedSound(reviver.getEntityWorld(), alter);
         reviver.sendMessage(LifeStealText.playerIsAlive(revived), true);
     }
 

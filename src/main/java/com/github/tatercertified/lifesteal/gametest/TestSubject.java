@@ -156,6 +156,6 @@ public class TestSubject extends FakePlayer {
      * @param command Command string
      */
     public void executeCommand(String command) {
-        this.getServer().getCommandManager().executeWithPrefix(this.getCommandSource(), command);
+        this.getEntityWorld().getServer().getCommandManager().executeWithPrefix(this.getCommandSource(), command);
     }
 }

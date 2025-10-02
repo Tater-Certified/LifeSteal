@@ -58,7 +58,7 @@ public class InvulnerableStatusEffect extends StatusEffect implements PolymerSta
     public void onApplied(LivingEntity entity, int amplifier) {
         super.onApplied(entity, amplifier);
         this.player = entity.getUuid();
-        this.server = entity.getServer();
+        this.server = entity.getEntityWorld().getServer();
     }
 
     public static void register() {

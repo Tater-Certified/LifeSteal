@@ -10,6 +10,7 @@ import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
+import com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityServerAccessor;
 import com.github.tatercertified.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.github.tatercertified.lifesteal.world.Ores;
@@ -56,7 +57,7 @@ public class Lifesteal implements ModInitializer {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, b) -> {
             if (((PlayerInvulnerabilityInterface)oldPlayer).isReviveInvulnerable()) {
                 newPlayer.addStatusEffect(new StatusEffectInstance(InvulnerableStatusEffect.INVULNERABLE, ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining(), 0, false, false, true));
-                newPlayer.getScoreboard().addScoreHolderToTeam(newPlayer.getNameForScoreboard(), invulnerableTeam);
+                ((ServerPlayerEntityServerAccessor) newPlayer).getServer().getScoreboard().addScoreHolderToTeam(newPlayer.getNameForScoreboard(), invulnerableTeam);
             }
         });
 
@@ -83,7 +84,7 @@ public class Lifesteal implements ModInitializer {
 		 */
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (player instanceof ServerPlayerEntity serverPlayer) {
-                MinecraftServer server = world.getServer();
+                MinecraftServer server = ((ServerPlayerEntityServerAccessor)serverPlayer).getServer();
                 if (server.getGameRules().getBoolean(LifeStealGamerules.ALTARS)
                         && serverPlayer.isSneaking()
                         && hand == serverPlayer.getActiveHand()

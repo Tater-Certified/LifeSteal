@@ -5,6 +5,7 @@ import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.DeathAction;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.items.ModItems;
+import com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityServerAccessor;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.item.ItemStack;
@@ -22,7 +23,7 @@ public final class PlayerUtils {
      * @param data The player's DeathData
      */
     public static void handleDeadPlayerAction(ServerPlayerEntity player, DeathData data) {
-        GameRules gameRules = player.getWorld().getGameRules();
+        GameRules gameRules = player.getEntityWorld().getGameRules();
         DeathAction action = gameRules.get(LifeStealGamerules.DEATH_ACTION).get();
         switch (action) {
             case BAN -> {
@@ -54,7 +55,7 @@ public final class PlayerUtils {
         if (data != null) {
             // A reviver takes highest priority
             if (data.reviverPlayerID == null) {
-                if (DeathData.shouldAutoRevive(data, player.getWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                if (DeathData.shouldAutoRevive(data, player.getEntityWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
                     // Autorevival timer up
                     handlePostRevival(data, player, true);
                 } else {
@@ -75,9 +76,9 @@ public final class PlayerUtils {
      * @param autoRevived If the player was revived due to the automatic revival system
      */
     private static void handlePostRevival(DeathData data, ServerPlayerEntity player, boolean autoRevived) {
-        GameRules gameRules = player.getWorld().getGameRules();
+        GameRules gameRules = player.getEntityWorld().getGameRules();
         if (!autoRevived) {
-            player.sendMessage(LifeStealText.onRevivalText(data, player.getServer()));
+            player.sendMessage(LifeStealText.onRevivalText(data, ((ServerPlayerEntityServerAccessor) player).getServer()));
         } else {
             // Autorevived players shouldn't be exempted from the antiHeartDupe
             ((PlayerReviveData)player).setNewlyRevived(true);
@@ -101,7 +102,7 @@ public final class PlayerUtils {
     public static void exchangeHealth(ServerPlayerEntity killed, ServerPlayerEntity attacker) {
         // Killed Player
         EntityAttributeInstance killedMaxHealth = killed.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-        GameRules gameRules = killed.getWorld().getGameRules();
+        GameRules gameRules = killed.getEntityWorld().getGameRules();
         double killedMaxHealthDouble = killedMaxHealth.getBaseValue();
 
         int minHealth = gameRules.getInt(LifeStealGamerules.MINPLAYERHEALTH);
@@ -162,7 +163,7 @@ public final class PlayerUtils {
      */
     public static boolean changeHealth(ServerPlayerEntity player, float by) {
         double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
-        if (canChangeHealth(maxHealth, by, player.getWorld().getGameRules())) {
+        if (canChangeHealth(maxHealth, by, player.getEntityWorld().getGameRules())) {
             changeHealthUnchecked(player, by);
             return true;
         } else {
