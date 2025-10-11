@@ -36,7 +36,6 @@ public final class GiftCommand {
 
     private static int gift(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerCommandSource source = context.getSource();
-        final ServerPlayerEntity player = source.getPlayerOrThrow();
         final MinecraftServer server = source.getServer();
         final GameRules gameRules = server.getGameRules();
 
@@ -53,6 +52,7 @@ public final class GiftCommand {
         }
 
         final int amount = IntegerArgumentType.getInteger(context, "healthPoints");
+        final ServerPlayerEntity player = source.getPlayerOrThrow();
 
         // Check if the source has a large enough max health
         double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();

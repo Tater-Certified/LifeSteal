@@ -233,7 +233,7 @@ public class LifestealGameTest {
         // Test invalid max health
         context.waitAndRun(4, () -> {
             player.getInventory().clear();
-            context.getWorld().getServer().getCommandManager().executeWithPrefix(player.getCommandSource(), "withdraw 16");
+            context.getWorld().getServer().getCommandManager().parseAndExecute(player.getCommandSource(), "withdraw 16");
         }); // Should fail
         context.waitAndRun(5, () -> {
             context.assertTrue(player.getMainHandStack().isEmpty(), Text.of("Expected 0 Hearts; Given " + player.getMainHandStack().getCount()));
