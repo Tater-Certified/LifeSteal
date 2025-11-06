@@ -16,17 +16,13 @@ public final class LifeStealText {
             GIFT_COMMAND_DISABLED = Text.translatable("lifesteal.command.gift.disabled"),
             REVIVE_COMMAND_DISABLED = Text.translatable("lifesteal.command.revive.disabled"),
             WITHDRAW_COMMAND_DISABLED = Text.translatable("lifesteal.command.withdraw.disabled"),
-            WITHDRAW_ALTAR = Text.translatable("lifesteal.withdraw.altar"),
-            GIFT_ALTAR = Text.translatable("lifesteal.gift.altar"),
             GIFT_NONE = Text.translatable("lifesteal.gift.none"),
             GIFT_MULTIPLE = Text.translatable("lifesteal.gift.multiple"),
             PREVENT_ATTACK = Text.translatable("lifesteal.gameplay.prevent_attack"),
-            REVIVE_ALTAR = Text.translatable("lifesteal.revive.altar"),
             REVIVE_HOLD = Text.translatable("lifesteal.revive.holding"),
             BACK = Text.translatable("lifesteal.gui.back"),
             NEXT = Text.translatable("lifesteal.gui.next"),
-            TITLE = Text.translatable("lifesteal.gui.title"),
-            GIFT_DISABLED = Text.translatable("lifesteal.gift.heart.disabled");
+            TITLE = Text.translatable("lifesteal.gui.title");
 
     private static final String
             UPDATE_HEALTH = "lifesteal.gameplay.update_health",

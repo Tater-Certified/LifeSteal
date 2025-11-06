@@ -21,17 +21,14 @@
 
   "lifesteal.heart.disabled": "Hearts are disabled.",
 
-  "lifesteal.withdraw.altar": "Please use the altar to withdraw hearts instead.",
   "lifesteal.withdraw.heart": "Converted %s health into %s hearts",
   "lifesteal.withdraw.heart.single": "Converted %s health into a heart",
 
-  "lifesteal.gift.altar": "Please use the altar to gift hearts instead.",
   "lifesteal.gift.none": "Can't gift to nobody.",
   "lifesteal.gift.multiple": "Can't gift to multiple folks at once.",
   "lifesteal.gift.self": "%s is you, you can't gift to yourself!",
   "lifesteal.gift.success": "Gifted %s health to %s.",
   "lifesteal.gift.received": "Received %s health from %s.",
-  "lifesteal.gift.heart.disabled": "Heart gifting is disabled",
   "lifesteal.gift.heart.single": "Gifted one heart",
   "lifesteal.gift.receiver.max_health": "%s cannot accept this much health",
 
@@ -42,7 +39,6 @@
   "lifesteal.player.not_found": "%s doesn't exist",
 
   "lifesteal.revive.self": "%s is you, you can't revive yourself!",
-  "lifesteal.revive.altar": "You must use an altar to revive players",
   "lifesteal.revive.holding": "You must be holding a heart to use this command",
 
   "lifesteal.command.gift.disabled": "The gift command is disabled",
