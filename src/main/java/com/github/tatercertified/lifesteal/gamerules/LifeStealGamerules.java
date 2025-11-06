@@ -25,10 +25,9 @@ public final class LifeStealGamerules {
     }
 
     /**
-     * If true: Players only get base health removed by player kills
-     * If false: Players get health removed from any death
+     * What criteria must be met in order for hearts to be removed from the player
      */
-    public static final GameRules.Key<GameRules.BooleanRule> PLAYERRELATEDONLY = GameRuleRegistry.register(Lifesteal.MOD_ID + ":playerKillOnly", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
+    public static final GameRules.Key<EnumRule<DeathCriteria>> DEATH_CRITERIA = registerPlayerRule(GameRuleFactory.createEnumRule(DeathCriteria.PLAYER_ONLY), "deathCriteria");
 
     /**
      * The action to take when the player goes below the allowed minimum health as defined by {@link #MINPLAYERHEALTH}

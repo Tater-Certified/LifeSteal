@@ -1,10 +1,7 @@
 package com.github.tatercertified.lifesteal.gametest;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
-import com.github.tatercertified.lifesteal.gamerules.DeathAction;
-import com.github.tatercertified.lifesteal.gamerules.GiftMethod;
-import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
-import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
+import com.github.tatercertified.lifesteal.gamerules.*;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.LifestealMixinConfig;
@@ -95,7 +92,7 @@ public class LifestealGameTest {
         LifestealMixinConfig.TEST_LOGGER.info("Test 3: Heart Stealing");
         TestSubject[] players = spawnDoublePlayerTest(context);
         // Test natural death gamerule
-        context.getWorld().getGameRules().get(LifeStealGamerules.PLAYERRELATEDONLY).set(false, context.getWorld().getServer());
+        context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.ANY_DEATH, context.getWorld().getServer());
         context.getWorld().getGameRules().get(GameRules.DO_IMMEDIATE_RESPAWN).set(true, context.getWorld().getServer());
         context.waitAndRun(1, () -> players[0].kill());
         context.waitAndRun(2, () -> {
@@ -105,7 +102,7 @@ public class LifestealGameTest {
         context.waitAndRun(3, () -> players[0].respawn());
 
         // Test player kill
-        context.waitAndRun(4, () -> context.getWorld().getGameRules().get(LifeStealGamerules.PLAYERRELATEDONLY).set(true, context.getWorld().getServer()));
+        context.waitAndRun(4, () -> context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.PLAYER_ONLY, context.getWorld().getServer()));
         context.waitAndRun(5, () -> players[0].kill(players[1]));
         context.waitAndRun(6, () -> {
             double killedMaxHealth = players[0].getMaxBaseHealth();
@@ -139,7 +136,7 @@ public class LifestealGameTest {
         final TestSubject[] player = {spawnSinglePlayerTest(context)};
         Vec3d playerPos = player[0].getEntityPos();
         player[0].setLowMaxHealth(context);
-        context.getWorld().getGameRules().get(LifeStealGamerules.PLAYERRELATEDONLY).set(false, context.getWorld().getServer());
+        context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.ANY_DEATH, context.getWorld().getServer());
 
         // Ban test
         context.waitAndRun(1, player[0]::kill);
@@ -170,7 +167,7 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(9, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.PLAYERRELATEDONLY).set(true, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.PLAYER_ONLY, context.getWorld().getServer());
             context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_ACTION).set(DeathAction.BAN, context.getWorld().getServer());
             end(context, player);
         });

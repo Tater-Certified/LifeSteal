@@ -2,7 +2,9 @@ package com.github.tatercertified.lifesteal.mixin;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
+import com.github.tatercertified.lifesteal.gamerules.DeathCriteria;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
+import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.*;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.Entity;
@@ -11,6 +13,7 @@ import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -46,9 +49,15 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         Entity attacker = damageSource.getAttacker();
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             PlayerUtils.exchangeHealth(((ServerPlayerEntity) (Object) this), playerAttacker);
-        } else if (!getEntityWorld().getGameRules().getBoolean(LifeStealGamerules.PLAYERRELATEDONLY)) {
+        } else if (getEntityWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).get() == DeathCriteria.ANY_DEATH ||
+                getEntityWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).get() == DeathCriteria.ANY_DEATH_DROP_HEART
+        ) {
             EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
             PlayerUtils.changeHealthUnchecked(((ServerPlayerEntity) (Object) this), -getEntityWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
+            // Drop heart in the world
+            if (getEntityWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).get() == DeathCriteria.ANY_DEATH_DROP_HEART) {
+                this.dropItem(new ItemStack(ModItems.HEART, 1), true, false);
+            }
             // Check to see if the player is dead
             int minHealth = this.server.getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH);
             if (killedMaxHealth.getBaseValue() <= minHealth) {
