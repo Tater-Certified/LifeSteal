@@ -2,7 +2,9 @@ package com.github.tatercertified.lifesteal.gametest;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.DeathAction;
+import com.github.tatercertified.lifesteal.gamerules.GiftMethod;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
+import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.LifestealMixinConfig;
@@ -222,7 +224,7 @@ public class LifestealGameTest {
         TestSubject player = spawnSinglePlayerTest(context);
         context.waitAndRun(1, () -> {
             context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(2, context.getWorld().getServer());
-            context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(false, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD).set(WithdrawMethod.COMMAND, context.getWorld().getServer());
         });
         // Test valid amount
         context.waitAndRun(2, () -> player.executeCommand("withdraw 2"));
@@ -241,7 +243,7 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(true, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD).set(WithdrawMethod.ALTAR, context.getWorld().getServer());
             context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(1, context.getWorld().getServer());
             end(context, player);
         });
@@ -254,8 +256,7 @@ public class LifestealGameTest {
         context.waitAndRun(1, () -> {
             players[0].setMaxHealth(10.0);
             players[1].setMaxHealth(20.0);
-            context.getWorld().getGameRules().get(LifeStealGamerules.GIFTHEARTS).set(true, context.getWorld().getServer());
-            context.getWorld().getGameRules().get(LifeStealGamerules.ALTARS).set(false, context.getWorld().getServer());
+            context.getWorld().getGameRules().get(LifeStealGamerules.GIFT_METHOD).set(GiftMethod.COMMAND, context.getWorld().getServer());
         });
         // Test valid amount
         context.waitAndRun(2, () -> players[1].executeCommand("gift " + players[0].getUuidAsString() + " 2"));

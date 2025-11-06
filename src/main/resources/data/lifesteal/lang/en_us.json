@@ -2,6 +2,7 @@
   "item.lifesteal.heart_dust": "Heart Dust",
   "item.lifesteal.heart_crystal": "Heart Crystal",
   "item.lifesteal.heart": "Heart",
+  "item.lifesteal.totem_of_rebirth": "Totem of Rebirth",
 
   "block.lifesteal.heart_ore": "Heart Ore",
   "block.lifesteal.deepslate_heart_ore": "Deepslate Heart Ore",
@@ -42,5 +43,13 @@
 
   "lifesteal.revive.self": "%s is you, you can't revive yourself!",
   "lifesteal.revive.altar": "You must use an altar to revive players",
-  "lifesteal.revive.holding": "You must be holding a heart to use this command"
+  "lifesteal.revive.holding": "You must be holding a heart to use this command",
+
+  "lifesteal.command.gift.disabled": "The gift command is disabled",
+  "lifesteal.command.revive.disabled": "The revive command is disabled",
+  "lifesteal.command.withdraw.disabled": "The withdraw command is disabled",
+
+  "lifesteal.gui.next": "Next",
+  "lifesteal.gui.back": "Back",
+  "lifesteal.gui.title": "Revive a Player"
 }

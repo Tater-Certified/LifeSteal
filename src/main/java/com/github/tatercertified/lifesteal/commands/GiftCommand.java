@@ -1,6 +1,7 @@
 package com.github.tatercertified.lifesteal.commands;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
+import com.github.tatercertified.lifesteal.gamerules.GiftMethod;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.OfflinePlayerData;
@@ -39,82 +40,76 @@ public final class GiftCommand {
         final MinecraftServer server = source.getServer();
         final GameRules gameRules = server.getGameRules();
 
-        // Check if altars are enabled
-        if (gameRules.getBoolean(LifeStealGamerules.ALTARS)) {
-            source.sendError(LifeStealText.GIFT_ALTAR);
-            return 0;
-        }
+        // Check if command is enabled
+        if (gameRules.get(LifeStealGamerules.GIFT_METHOD).get() == GiftMethod.COMMAND) {
+            final int amount = IntegerArgumentType.getInteger(context, "healthPoints");
+            final ServerPlayerEntity player = source.getPlayerOrThrow();
 
-        // Check if gifting is enabled
-        if (!gameRules.getBoolean(LifeStealGamerules.GIFTHEARTS)) {
-            source.sendError(LifeStealText.GIFT_DISABLED);
-            return 0;
-        }
-
-        final int amount = IntegerArgumentType.getInteger(context, "healthPoints");
-        final ServerPlayerEntity player = source.getPlayerOrThrow();
-
-        // Check if the source has a large enough max health
-        double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
-        if (!PlayerUtils.canChangeHealth(maxHealth, -amount, gameRules)) {
-            source.sendError(LifeStealText.LOW_HEALTH);
-            return 0;
-        }
-
-        // Check if the target is valid
-        final Collection<PlayerConfigEntry> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
-        if (profiles.isEmpty()) {
-            source.sendError(LifeStealText.GIFT_NONE);
-            return 0;
-        }
-        if (profiles.size() > 1) {
-            source.sendError(LifeStealText.GIFT_MULTIPLE);
-            return 0;
-        }
-
-        final PlayerConfigEntry receiver = profiles.iterator().next();
-
-        if (receiver.id() == player.getUuid()) {
-            // Can't gift to yourself
-            source.sendError(LifeStealText.noSelfGifting(player.getName()));
-            return 0;
-        }
-
-        if (DeathData.isPlayerDead(receiver.id(), gameRules.getInt(LifeStealGamerules.AUTOREVIVAL))) {
-            // Can't gift to a dead guy
-            source.sendError(LifeStealText.isDead(Text.of(receiver.name())));
-            return 0;
-        }
-
-        ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.id());
-
-        if (receiverPlayer != null) {
-            // Online
-            if (PlayerUtils.changeHealth(receiverPlayer, amount)) {
-                PlayerUtils.changeHealthUnchecked(player, -amount);
-                player.sendMessage(LifeStealText.giftSuccess(amount, receiverPlayer.getName()));
-                receiverPlayer.sendMessage(LifeStealText.receiveGift(amount, player.getName()));
-            } else {
-                // Receiver has too much health
-                source.sendError(LifeStealText.receiverTooMuchHealth(receiverPlayer.getName()));
+            // Check if the source has a large enough max health
+            double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
+            if (!PlayerUtils.canChangeHealth(maxHealth, -amount, gameRules)) {
+                source.sendError(LifeStealText.LOW_HEALTH);
                 return 0;
             }
+
+            // Check if the target is valid
+            final Collection<PlayerConfigEntry> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
+            if (profiles.isEmpty()) {
+                source.sendError(LifeStealText.GIFT_NONE);
+                return 0;
+            }
+            if (profiles.size() > 1) {
+                source.sendError(LifeStealText.GIFT_MULTIPLE);
+                return 0;
+            }
+
+            final PlayerConfigEntry receiver = profiles.iterator().next();
+
+            if (receiver.id() == player.getUuid()) {
+                // Can't gift to yourself
+                source.sendError(LifeStealText.noSelfGifting(player.getName()));
+                return 0;
+            }
+
+            if (DeathData.isPlayerDead(receiver.id(), gameRules.getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                // Can't gift to a dead guy
+                source.sendError(LifeStealText.isDead(Text.of(receiver.name())));
+                return 0;
+            }
+
+            ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.id());
+
+            if (receiverPlayer != null) {
+                // Online
+                if (PlayerUtils.changeHealth(receiverPlayer, amount)) {
+                    PlayerUtils.changeHealthUnchecked(player, -amount);
+                    player.sendMessage(LifeStealText.giftSuccess(amount, receiverPlayer.getName()));
+                    receiverPlayer.sendMessage(LifeStealText.receiveGift(amount, player.getName()));
+                } else {
+                    // Receiver has too much health
+                    source.sendError(LifeStealText.receiverTooMuchHealth(receiverPlayer.getName()));
+                    return 0;
+                }
+            } else {
+                // Offline
+                OfflinePlayerData offlinePlayerData = OfflinePlayerData.getOfflinePlayerData(server, receiver);
+                double offlineMaxHealth = offlinePlayerData.getMaxHealth();
+                Text receiverName = Text.of(receiver.name());
+                if (PlayerUtils.canChangeHealth(offlineMaxHealth, amount, gameRules)) {
+                    PlayerUtils.changeHealthUnchecked(player, -amount);
+                    offlinePlayerData.setMaxHealth(offlineMaxHealth + amount);
+
+                    player.sendMessage(LifeStealText.giftSuccess(amount, receiverName));
+                } else {
+                    // Receiver has too much health
+                    source.sendError(LifeStealText.receiverTooMuchHealth(receiverName));
+                    return 0;
+                }
+            }
+            return 1;
         } else {
-            // Offline
-            OfflinePlayerData offlinePlayerData = OfflinePlayerData.getOfflinePlayerData(server, receiver);
-            double offlineMaxHealth = offlinePlayerData.getMaxHealth();
-            Text receiverName = Text.of(receiver.name());
-            if (PlayerUtils.canChangeHealth(offlineMaxHealth, amount, gameRules)) {
-                PlayerUtils.changeHealthUnchecked(player, -amount);
-                offlinePlayerData.setMaxHealth(offlineMaxHealth + amount);
-
-                player.sendMessage(LifeStealText.giftSuccess(amount, receiverName));
-            } else {
-                // Receiver has too much health
-                source.sendError(LifeStealText.receiverTooMuchHealth(receiverName));
-                return 0;
-            }
+            source.sendError(LifeStealText.GIFT_COMMAND_DISABLED);
+            return 0;
         }
-        return 1;
     }
 }

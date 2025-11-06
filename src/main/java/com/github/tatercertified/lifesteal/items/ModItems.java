@@ -18,6 +18,12 @@ public class ModItems {
             key_heart
     );
 
+    private static final RegistryKey<Item> key_totem = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Lifesteal.MOD_ID, "totem_of_rebirth"));
+    public static final Item TOTEM = register(
+            new TotemOfRebirth(new Item.Settings().maxCount(1).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true).registryKey(key_totem)),
+            key_totem
+    );
+
     public static Item register(Item item, RegistryKey<Item> key) {
         return Registry.register(Registries.ITEM, key, item);
     }

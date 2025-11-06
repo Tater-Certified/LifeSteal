@@ -3,6 +3,7 @@ package com.github.tatercertified.lifesteal.commands;
 import com.github.tatercertified.lifesteal.Lifesteal;
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
+import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -57,33 +58,33 @@ public class ReviveCommand {
         MinecraftServer server = context.getSource().getServer();
         ServerCommandSource source = context.getSource();
 
-        if (server.getGameRules().get(LifeStealGamerules.ALTARS).get()) {
-            source.sendError(LifeStealText.REVIVE_ALTAR);
-            return 0;
-        }
-
-        ItemStack holding = source.getPlayer().getMainHandStack();
-        if (!(holding.getItem() instanceof HeartItem)) {
-            source.sendError(LifeStealText.REVIVE_HOLD);
-            return 0;
-        }
-
-        String name = StringArgumentType.getString(context, "player");
-        Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().findByName(name);
-        if (optionalGameProfile.isPresent()) {
-            PlayerConfigEntry profile = optionalGameProfile.get();
-            if (DeathData.isPlayerDead(profile.id(), 0)) {
-                ItemUsageContext usageContext = new ItemUsageContext(source.getPlayer(), Hand.MAIN_HAND, new BlockHitResult(source.getPlayer().getEntityPos(), Direction.DOWN, source.getPlayer().getBlockPos(), true));
-                HeartItem.revive(profile.id(), server, source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.of(usageContext));
-                //DeathData.removeFromDeathDataList(profile.getId());
-            } else {
-                source.sendError(LifeStealText.playerIsAlive(Text.of(profile.name())));
+        if (server.getGameRules().get(LifeStealGamerules.REVIVE_METHOD).get() == ReviveMethod.COMMAND) {
+            ItemStack holding = source.getPlayer().getMainHandStack();
+            if (!(holding.getItem() instanceof HeartItem)) {
+                source.sendError(LifeStealText.REVIVE_HOLD);
                 return 0;
             }
+
+            String name = StringArgumentType.getString(context, "player");
+            Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().findByName(name);
+            if (optionalGameProfile.isPresent()) {
+                PlayerConfigEntry profile = optionalGameProfile.get();
+                if (DeathData.isPlayerDead(profile.id(), 0)) {
+                    ItemUsageContext usageContext = new ItemUsageContext(source.getPlayer(), Hand.MAIN_HAND, new BlockHitResult(source.getPlayer().getEntityPos(), Direction.DOWN, source.getPlayer().getBlockPos(), true));
+                    DeathData.revive(profile.id(), server, source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.of(usageContext));
+                    //DeathData.removeFromDeathDataList(profile.getId());
+                } else {
+                    source.sendError(LifeStealText.playerIsAlive(Text.of(profile.name())));
+                    return 0;
+                }
+            } else {
+                source.sendError(LifeStealText.notFound(name));
+                return 0;
+            }
+            return 1;
         } else {
-            source.sendError(LifeStealText.notFound(name));
+            source.sendError(LifeStealText.REVIVE_COMMAND_DISABLED);
             return 0;
         }
-        return 1;
     }
 }

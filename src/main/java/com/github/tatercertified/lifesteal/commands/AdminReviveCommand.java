@@ -2,7 +2,6 @@ package com.github.tatercertified.lifesteal.commands;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
-import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -42,7 +41,7 @@ public class AdminReviveCommand {
             source.sendError(LifeStealText.playerIsAlive(Text.of(receiver.name())));
             return 0;
         }
-        HeartItem.revive(receiver.name(), source.getServer(), source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.empty());
+        DeathData.revive(receiver.name(), source.getServer(), source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.empty());
         DeathData.removeFromDeathDataList(receiver.id());
         context.getSource().sendFeedback(() -> LifeStealText.adminRevive(receiver.name()), true);
         return 1;

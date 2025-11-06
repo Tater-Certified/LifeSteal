@@ -1,6 +1,7 @@
 package com.github.tatercertified.lifesteal.commands;
 
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
+import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -29,14 +30,14 @@ public final class WithdrawCommand {
         final MinecraftServer server = source.getServer();
         final GameRules gameRules = server.getGameRules();
 
-        if (gameRules.getBoolean(LifeStealGamerules.ALTARS)) {
-            source.sendError(LifeStealText.WITHDRAW_ALTAR);
+        if (gameRules.get(LifeStealGamerules.WITHDRAW_METHOD).get() == WithdrawMethod.COMMAND) {
+            final int amount = IntegerArgumentType.getInteger(context, "amount");
+
+            PlayerUtils.convertHealthToHeartItems(source.getPlayer(), amount, server, false);
+            return 1;
+        } else {
+            source.sendError(LifeStealText.WITHDRAW_COMMAND_DISABLED);
             return 0;
         }
-
-        final int amount = IntegerArgumentType.getInteger(context, "amount");
-
-        PlayerUtils.convertHealthToHeartItems(source.getPlayer(), amount, server, false);
-        return 1;
     }
 }

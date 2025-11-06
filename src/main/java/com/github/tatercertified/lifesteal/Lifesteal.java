@@ -8,6 +8,7 @@ import com.github.tatercertified.lifesteal.commands.WithdrawCommand;
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
+import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityServerAccessor;
@@ -85,7 +86,7 @@ public class Lifesteal implements ModInitializer {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 MinecraftServer server = ((ServerPlayerEntityServerAccessor)serverPlayer).getServer();
-                if (server.getGameRules().getBoolean(LifeStealGamerules.ALTARS)
+                if (server.getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD).get() == WithdrawMethod.ALTAR
                         && serverPlayer.isSneaking()
                         && hand == serverPlayer.getActiveHand()
                         && serverPlayer.getStackInHand(hand).isEmpty()

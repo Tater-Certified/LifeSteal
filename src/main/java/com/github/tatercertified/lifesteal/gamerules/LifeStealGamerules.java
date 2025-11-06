@@ -34,18 +34,25 @@ public final class LifeStealGamerules {
      * The action to take when the player goes below the allowed minimum health as defined by {@link #MINPLAYERHEALTH}
      */
     public static final GameRules.Key<EnumRule<DeathAction>> DEATH_ACTION =
-            registerPlayerRule(GameRuleFactory.createEnumRule(DeathAction.BAN));
+            registerPlayerRule(GameRuleFactory.createEnumRule(DeathAction.BAN), "deathAction");
 
     /**
-     * Whether to allow gifting hearts to other players, via the command or altar.
+     * The method required to revive a player
      */
-    public static final GameRules.Key<GameRules.BooleanRule> GIFTHEARTS = GameRuleRegistry.register(Lifesteal.MOD_ID + ":giftHearts", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(true));
+    public static final GameRules.Key<EnumRule<ReviveMethod>> REVIVE_METHOD =
+            registerPlayerRule(GameRuleFactory.createEnumRule(ReviveMethod.ALTAR), "reviveMethod");
 
     /**
-     * Whether to allow creating an altar to revive and exchange player hearts for heart crystal items.
-     * Disabling this effectively disables trading and revival, except the /gift command
+     * The method required to gift a heart
      */
-    public static final GameRules.Key<GameRules.BooleanRule> ALTARS = GameRuleRegistry.register(Lifesteal.MOD_ID + ":enableAltars", GameRules.Category.MISC, GameRuleFactory.createBooleanRule(true));
+    public static final GameRules.Key<EnumRule<GiftMethod>> GIFT_METHOD =
+            registerPlayerRule(GameRuleFactory.createEnumRule(GiftMethod.ALTAR), "giftMethod");
+
+    /**
+     * The method required to withdraw a heart to a heart item
+     */
+    public static final GameRules.Key<EnumRule<WithdrawMethod>> WITHDRAW_METHOD =
+            registerPlayerRule(GameRuleFactory.createEnumRule(WithdrawMethod.ALTAR), "withdrawMethod");
 
     /**
      * Whether to disable getting "free" hearts from killing people with the minimum HP.
@@ -113,8 +120,8 @@ public final class LifeStealGamerules {
         return cachedAltarBlock;
     }
 
-    private static <R extends GameRules.Rule<R>, T extends GameRules.Type<R>> GameRules.Key<R> registerPlayerRule(T rule) {
-        return GameRuleRegistry.register(Lifesteal.MOD_ID + ':' + "deathAction", GameRules.Category.PLAYER, rule);
+    private static <R extends GameRules.Rule<R>, T extends GameRules.Type<R>> GameRules.Key<R> registerPlayerRule(T rule, String name) {
+        return GameRuleRegistry.register(Lifesteal.MOD_ID + ':' + name, GameRules.Category.PLAYER, rule);
     }
 
     private static GameRules.Type<GameRules.IntRule> createIntRule() {
