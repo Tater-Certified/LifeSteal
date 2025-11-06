@@ -29,6 +29,7 @@ public class RevivalGUI {
     public static void openGUI(ServerPlayerEntity player, Hand hand) {
         SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_9X6, player, false);
         gui.setTitle(LifeStealText.TITLE);
+        gui.setLockPlayerInventory(true);
         List<Pair<UUID, String>> deadList = DeathData.getDeadPlayers(player.getEntityWorld().getServer());
         int pages = 1 + deadList.size() / GUI_SIZE;
         int[] currentPage = {0};
