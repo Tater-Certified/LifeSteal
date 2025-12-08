@@ -45,7 +45,7 @@ public class ReviveCommand {
         for (UUID playerId : Lifesteal.DEAD_PLAYERS.keySet()) {
             Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().getByUuid(playerId);
             optionalGameProfile.ifPresent(profile -> {
-                if (DeathData.isPlayerDead(profile.id(), server.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+                if (DeathData.isPlayerDead(profile.id(), context.getSource().getWorld().getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
                     builder.suggest(profile.name());
                 }
             });
@@ -58,7 +58,7 @@ public class ReviveCommand {
         MinecraftServer server = context.getSource().getServer();
         ServerCommandSource source = context.getSource();
 
-        if (server.getGameRules().get(LifeStealGamerules.REVIVE_METHOD).get() == ReviveMethod.COMMAND) {
+        if (source.getWorld().getGameRules().getValue(LifeStealGamerules.REVIVE_METHOD) == ReviveMethod.COMMAND) {
             ItemStack holding = source.getPlayer().getMainHandStack();
             if (!(holding.getItem() instanceof HeartItem)) {
                 source.sendError(LifeStealText.REVIVE_HOLD);

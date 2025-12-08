@@ -22,6 +22,7 @@ public final class LifeStealText {
             REVIVE_HOLD = Text.translatable("lifesteal.revive.holding"),
             BACK = Text.translatable("lifesteal.gui.back"),
             NEXT = Text.translatable("lifesteal.gui.next"),
+            MIN_PLAYER_HEALTH_ADJUST = Text.translatable("lifesteal.gamerules.minplayerhealth.failed"),
             TITLE = Text.translatable("lifesteal.gui.title");
 
     private static final String

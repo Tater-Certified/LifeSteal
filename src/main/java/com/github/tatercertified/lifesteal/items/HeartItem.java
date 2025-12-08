@@ -43,7 +43,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         }
 
         final var stack = user.getStackInHand(hand);
-        final int amount = ((ServerWorld) world).getGameRules().getInt(LifeStealGamerules.HEARTBONUS);
+        final int amount = ((ServerWorld) world).getGameRules().getValue(LifeStealGamerules.HEARTBONUS);
 
         final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) user;
         if(!PlayerUtils.changeHealth(serverPlayer, amount)) {
@@ -62,7 +62,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         }
         final MinecraftServer server = world.getServer();
 
-        if (server.getGameRules().get(LifeStealGamerules.REVIVE_METHOD).get() != ReviveMethod.ALTAR) {
+        if (world.getGameRules().getValue(LifeStealGamerules.REVIVE_METHOD) != ReviveMethod.ALTAR) {
             return super.useOnBlock(context);
         }
 
@@ -77,7 +77,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         }
 
         BlockPos pos = context.getBlockPos();
-        if (player.isSneaking() && isAltar(context.getWorld(), pos)) {
+        if (player.isSneaking() && isAltar(world, pos)) {
             // Can't revive yourself
             if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
                 player.sendMessage(LifeStealText.noSelfReviving(player.getName()), true);
@@ -121,8 +121,8 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         return stack.get(DataComponentTypes.CUSTOM_NAME) != null;
     }
 
-    public static boolean isAltar(World world, BlockPos pos) {
-        if (!world.getBlockState(pos).isOf(LifeStealGamerules.getBlockFromGameRule(world.getServer().getGameRules()))) {
+    public static boolean isAltar(ServerWorld world, BlockPos pos) {
+        if (!world.getBlockState(pos).isOf(LifeStealGamerules.getBlockFromGameRule(world.getGameRules()))) {
             return false;
         }
 
@@ -139,7 +139,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
 
     @Override
     public int getMaxCount() {
-        return LifeStealGamerules.serverInstance != null ? LifeStealGamerules.serverInstance.getGameRules().getInt(LifeStealGamerules.HEART_STACK_SIZE) : 1;
+        return LifeStealGamerules.serverInstance != null ? LifeStealGamerules.serverInstance.getOverworld().getGameRules().getValue(LifeStealGamerules.HEART_STACK_SIZE) : 1;
     }
 
 

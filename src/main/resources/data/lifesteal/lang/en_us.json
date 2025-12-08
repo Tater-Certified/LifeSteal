@@ -47,5 +47,7 @@
 
   "lifesteal.gui.next": "Next",
   "lifesteal.gui.back": "Back",
-  "lifesteal.gui.title": "Revive a Player"
+  "lifesteal.gui.title": "Revive a Player",
+
+  "lifesteal.gamerules.minplayerhealth.failed": "Increasing minPlayerHealth value by 1 to be compatible with stealAmount"
 }

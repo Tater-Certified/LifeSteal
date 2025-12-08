@@ -10,6 +10,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -24,7 +25,7 @@ public class TotemOfRebirth extends Item implements PolymerItem, BedrockItem {
 
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (user instanceof ServerPlayerEntity serverPlayer && world.getServer().getGameRules().get(LifeStealGamerules.REVIVE_METHOD).get() == ReviveMethod.TOTEM) {
+        if (user instanceof ServerPlayerEntity serverPlayer && ((ServerWorld) world).getGameRules().getValue(LifeStealGamerules.REVIVE_METHOD) == ReviveMethod.TOTEM) {
             RevivalGUI.openGUI(serverPlayer, hand);
         }
         return super.use(world, user, hand);

@@ -44,7 +44,7 @@ public class RevivalGUI {
     }
 
     private static void revive(UUID uuid, ServerPlayerEntity reviver, Hand hand) {
-        if (DeathData.isPlayerDead(uuid, reviver.getEntityWorld().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+        if (DeathData.isPlayerDead(uuid, reviver.getEntityWorld().getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
             ItemUsageContext context = new ItemUsageContext(reviver, hand, FAKE_HIT_RESULT);
             DeathData.revive(uuid, reviver, Optional.of(context));
         }

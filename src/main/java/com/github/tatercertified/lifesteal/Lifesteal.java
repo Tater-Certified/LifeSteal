@@ -27,6 +27,7 @@ import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 
@@ -86,12 +87,12 @@ public class Lifesteal implements ModInitializer {
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (player instanceof ServerPlayerEntity serverPlayer) {
                 MinecraftServer server = ((ServerPlayerEntityServerAccessor)serverPlayer).getServer();
-                if (server.getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD).get() == WithdrawMethod.ALTAR
+                if (((ServerWorld) world).getGameRules().getValue(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.ALTAR
                         && serverPlayer.isSneaking()
                         && hand == serverPlayer.getActiveHand()
                         && serverPlayer.getStackInHand(hand).isEmpty()
-                        && HeartItem.isAltar(world, hitResult.getBlockPos())) {
-                    PlayerUtils.convertHealthToHeartItems(serverPlayer, 1, server, true);
+                        && HeartItem.isAltar((ServerWorld) world, hitResult.getBlockPos())) {
+                    PlayerUtils.convertHealthToHeartItems(serverPlayer, 1, true);
                 }
             }
             return ActionResult.PASS;

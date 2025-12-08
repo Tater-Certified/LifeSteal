@@ -236,14 +236,14 @@ public class DeathData {
     }
 
     private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
-        if (!DeathData.isPlayerDead(player.getUuid(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+        if (!DeathData.isPlayerDead(player.getUuid(), world.getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
         teleport(player, world, alter);
         player.changeGameMode(GameMode.SURVIVAL);
 
         player.sendMessage(LifeStealText.onRevivalText(reviver.getDisplayName()));
-        PlayerUtils.setMaxHealth(world.getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH), player);
+        PlayerUtils.setMaxHealth(world.getGameRules().getValue(LifeStealGamerules.MINPLAYERHEALTH), player);
         DeathData.removeFromDeathDataList(player.getUuid());
         // These players are not newly revived if a heart was consumed to revive them
         ((PlayerReviveData)player).setNewlyRevived(!fromHeart);
@@ -251,7 +251,7 @@ public class DeathData {
     }
 
     private static boolean reviveOffline(PlayerConfigEntry profile, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
-        if (!DeathData.isPlayerDead(profile.id(), world.getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+        if (!DeathData.isPlayerDead(profile.id(), world.getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
 
@@ -262,7 +262,7 @@ public class DeathData {
         }
         playerData.setPosition(world, alter.up().toCenterPos());
         playerData.setGamemode(GameMode.SURVIVAL);
-        playerData.setMaxHealth(world.getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH));
+        playerData.setMaxHealth(world.getGameRules().getValue(LifeStealGamerules.MINPLAYERHEALTH));
         // These players are not newly revived if a heart was consumed to revive them
         playerData.setNewlyRevived(!fromHeart);
         playerData.save();

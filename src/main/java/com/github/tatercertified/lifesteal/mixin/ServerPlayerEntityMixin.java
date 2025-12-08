@@ -49,17 +49,17 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
         Entity attacker = damageSource.getAttacker();
         if (attacker instanceof ServerPlayerEntity playerAttacker) {
             PlayerUtils.exchangeHealth(((ServerPlayerEntity) (Object) this), playerAttacker);
-        } else if (getEntityWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).get() == DeathCriteria.ANY_DEATH ||
-                getEntityWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).get() == DeathCriteria.ANY_DEATH_DROP_HEART
+        } else if (getEntityWorld().getGameRules().getValue(LifeStealGamerules.DEATH_CRITERIA) == DeathCriteria.ANY_DEATH ||
+                getEntityWorld().getGameRules().getValue(LifeStealGamerules.DEATH_CRITERIA) == DeathCriteria.ANY_DEATH_DROP_HEART
         ) {
             EntityAttributeInstance killedMaxHealth = this.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-            PlayerUtils.changeHealthUnchecked(((ServerPlayerEntity) (Object) this), -getEntityWorld().getGameRules().getInt(LifeStealGamerules.STEALAMOUNT));
+            PlayerUtils.changeHealthUnchecked(((ServerPlayerEntity) (Object) this), -getEntityWorld().getGameRules().getValue(LifeStealGamerules.STEALAMOUNT));
             // Drop heart in the world
-            if (getEntityWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).get() == DeathCriteria.ANY_DEATH_DROP_HEART) {
+            if (getEntityWorld().getGameRules().getValue(LifeStealGamerules.DEATH_CRITERIA) == DeathCriteria.ANY_DEATH_DROP_HEART) {
                 this.dropItem(new ItemStack(ModItems.HEART, 1), true, false);
             }
             // Check to see if the player is dead
-            int minHealth = this.server.getGameRules().getInt(LifeStealGamerules.MINPLAYERHEALTH);
+            int minHealth = this.getEntityWorld().getGameRules().getValue(LifeStealGamerules.MINPLAYERHEALTH);
             if (killedMaxHealth.getBaseValue() <= minHealth) {
                 // Considered dead
                 DeathData data = new DeathData(this.getUuid());
@@ -122,7 +122,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity implements Pl
 
     @Override
     public void setReviveInvulnerability() {
-        invulnerableTicks = this.server.getGameRules().getInt(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20;
+        invulnerableTicks = this.getEntityWorld().getGameRules().getValue(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20;
         this.addStatusEffect(new StatusEffectInstance(InvulnerableStatusEffect.INVULNERABLE, this.getRemaining(), 0, false, false, true));
     }
 

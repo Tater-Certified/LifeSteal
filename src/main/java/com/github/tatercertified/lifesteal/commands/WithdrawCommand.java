@@ -7,9 +7,8 @@ import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -27,13 +26,12 @@ public final class WithdrawCommand {
 
     private static int withdraw(CommandContext<ServerCommandSource> context) {
         final ServerCommandSource source = context.getSource();
-        final MinecraftServer server = source.getServer();
-        final GameRules gameRules = server.getGameRules();
+        final GameRules gameRules = source.getWorld().getGameRules();
 
-        if (gameRules.get(LifeStealGamerules.WITHDRAW_METHOD).get() == WithdrawMethod.COMMAND) {
+        if (gameRules.getValue(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.COMMAND) {
             final int amount = IntegerArgumentType.getInteger(context, "amount");
 
-            PlayerUtils.convertHealthToHeartItems(source.getPlayer(), amount, server, false);
+            PlayerUtils.convertHealthToHeartItems(source.getPlayer(), amount, false);
             return 1;
         } else {
             source.sendError(LifeStealText.WITHDRAW_COMMAND_DISABLED);

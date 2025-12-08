@@ -8,6 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.server.PlayerConfigEntry;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.GameModeCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
@@ -22,7 +24,7 @@ public class AdminReviveCommand {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
             dispatcher.register(literal("admin-revive")
                     .requires(ServerCommandSource::isExecutedByPlayer)
-                    .requires(source -> source.hasPermissionLevel(4))
+                    .requires(CommandManager.requirePermissionLevel(GameModeCommand.PERMISSION_CHECK))
                     .then(argument("player", GameProfileArgumentType.gameProfile())
                           .executes(AdminReviveCommand::reset)));
         });
@@ -36,7 +38,7 @@ public class AdminReviveCommand {
             return 0;
         }
         final PlayerConfigEntry receiver = profiles.iterator().next();
-        if (!DeathData.isPlayerDead(receiver.id(), source.getServer().getGameRules().getInt(LifeStealGamerules.AUTOREVIVAL))) {
+        if (!DeathData.isPlayerDead(receiver.id(), source.getWorld().getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
             // Error
             source.sendError(LifeStealText.playerIsAlive(Text.of(receiver.name())));
             return 0;

@@ -6,7 +6,6 @@
   "plugin": "com.github.tatercertified.lifesteal.utils.LifestealMixinConfig",
   "mixins": [
     "FakePlayerAccessor",
-    "GameRulesTypeInvoker",
     "ItemStackMixin",
     "MilkMixin",
     "ServerPlayerEntityMixin",

@@ -23,7 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 
 import java.util.UUID;
 
@@ -35,7 +35,7 @@ public class LifestealGameTest {
         LifestealMixinConfig.TEST_LOGGER.info("Test 1: Heart Consumption");
         TestSubject player = spawnSinglePlayerTest(context);
         ItemStack heart = new ItemStack(ModItems.HEART, 1);
-        context.getWorld().getGameRules().get(LifeStealGamerules.HEARTBONUS).set(2, context.getWorld().getServer());
+        context.getWorld().getGameRules().setValue(LifeStealGamerules.HEARTBONUS, 2, context.getWorld().getServer());
 
         context.waitAndRun(1, () -> player.setStackInHand(Hand.MAIN_HAND, heart.copy()));
         context.waitAndRun(2, () -> use(player, heart.copy()));
@@ -45,7 +45,7 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(4, () -> player.setStackInHand(Hand.MAIN_HAND, heart.copy()));
-        context.waitAndRun(5, () -> context.getWorld().getGameRules().get(LifeStealGamerules.HEARTBONUS).set(4, context.getWorld().getServer()));
+        context.waitAndRun(5, () -> context.getWorld().getGameRules().setValue(LifeStealGamerules.HEARTBONUS, 4, context.getWorld().getServer()));
         context.waitAndRun(6, () -> use(player, heart.copy()));
         context.waitAndRun(7, () -> {
             double maxHealth = player.getMaxBaseHealth();
@@ -53,7 +53,7 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(8, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.HEARTBONUS).set(2, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEARTBONUS, 2, context.getWorld().getServer());
             end(context, player);
         });
     }
@@ -64,7 +64,7 @@ public class LifestealGameTest {
         TestSubject player = spawnSinglePlayerTest(context);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
-        context.getWorld().getGameRules().get(LifeStealGamerules.ALTAR_BLOCK).set(Blocks.NETHERITE_BLOCK, context.getWorld().getServer());
+        context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Blocks.NETHERITE_BLOCK, context.getWorld().getServer());
         context.assertTrue(HeartItem.isAltar(context.getWorld(), altar), Text.of("Altar failed to be created"));
         context.waitAndRun(1, () -> {
             player.setSneaking(true);
@@ -76,13 +76,13 @@ public class LifestealGameTest {
             context.assertTrue(maxHealth == 18.0F, Text.of("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
         context.waitAndRun(4, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.ALTAR_BLOCK).set(Blocks.DIAMOND_BLOCK, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Blocks.DIAMOND_BLOCK, context.getWorld().getServer());
             context.getWorld().setBlockState(altar, Blocks.DIAMOND_BLOCK.getDefaultState());
         });
         context.waitAndRun(5, () -> context.assertTrue(HeartItem.isAltar(context.getWorld(), altar), Text.of("Altar block failed to be set")));
 
         context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.ALTAR_BLOCK).set(Blocks.NETHERITE_BLOCK, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Blocks.NETHERITE_BLOCK, context.getWorld().getServer());
             end(context, player);
         });
     }
@@ -92,8 +92,8 @@ public class LifestealGameTest {
         LifestealMixinConfig.TEST_LOGGER.info("Test 3: Heart Stealing");
         TestSubject[] players = spawnDoublePlayerTest(context);
         // Test natural death gamerule
-        context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.ANY_DEATH, context.getWorld().getServer());
-        context.getWorld().getGameRules().get(GameRules.DO_IMMEDIATE_RESPAWN).set(true, context.getWorld().getServer());
+        context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.ANY_DEATH, context.getWorld().getServer());
+        context.getWorld().getGameRules().setValue(GameRules.DO_IMMEDIATE_RESPAWN, true, context.getWorld().getServer());
         context.waitAndRun(1, () -> players[0].kill());
         context.waitAndRun(2, () -> {
             double maxHealth = players[0].getMaxBaseHealth();
@@ -102,7 +102,7 @@ public class LifestealGameTest {
         context.waitAndRun(3, () -> players[0].respawn());
 
         // Test player kill
-        context.waitAndRun(4, () -> context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.PLAYER_ONLY, context.getWorld().getServer()));
+        context.waitAndRun(4, () -> context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.PLAYER_ONLY, context.getWorld().getServer()));
         context.waitAndRun(5, () -> players[0].kill(players[1]));
         context.waitAndRun(6, () -> {
             double killedMaxHealth = players[0].getMaxBaseHealth();
@@ -114,7 +114,7 @@ public class LifestealGameTest {
         // Test heart steal gamerule
         context.waitAndRun(7, () -> {
             players[0].respawn();
-            context.getWorld().getGameRules().get(LifeStealGamerules.STEALAMOUNT).set(4, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.STEALAMOUNT, 4, context.getWorld().getServer());
         });
         context.waitAndRun(8, () -> players[0].kill(players[1]));
         context.waitAndRun(9, () -> {
@@ -125,7 +125,7 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(10, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.STEALAMOUNT).set(2, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.STEALAMOUNT, 2, context.getWorld().getServer());
             end(context, players);
         });
     }
@@ -136,7 +136,7 @@ public class LifestealGameTest {
         final TestSubject[] player = {spawnSinglePlayerTest(context)};
         Vec3d playerPos = player[0].getEntityPos();
         player[0].setLowMaxHealth(context);
-        context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.ANY_DEATH, context.getWorld().getServer());
+        context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.ANY_DEATH, context.getWorld().getServer());
 
         // Ban test
         context.waitAndRun(1, player[0]::kill);
@@ -146,7 +146,7 @@ public class LifestealGameTest {
         context.waitAndRun(3, () -> {
             player[0] = spawnPlayer(context, playerPos);
             player[0].setLowMaxHealth(context);
-            context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_ACTION).set(DeathAction.SPECTATOR, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_ACTION, DeathAction.SPECTATOR, context.getWorld().getServer());
         });
         context.waitAndRun(4, player[0]::kill);
         context.waitAndRun(5, () -> {
@@ -158,7 +158,7 @@ public class LifestealGameTest {
         context.waitAndRun(6, () -> {
             player[0] = spawnPlayer(context, playerPos);
             player[0].setLowMaxHealth(context);
-            context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_ACTION).set(DeathAction.REVIVE, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_ACTION, DeathAction.REVIVE, context.getWorld().getServer());
         });
         context.waitAndRun(7, player[0]::kill);
         context.waitAndRun(8, () -> {
@@ -167,8 +167,8 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(9, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA).set(DeathCriteria.PLAYER_ONLY, context.getWorld().getServer());
-            context.getWorld().getGameRules().get(LifeStealGamerules.DEATH_ACTION).set(DeathAction.BAN, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.PLAYER_ONLY, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_ACTION, DeathAction.BAN, context.getWorld().getServer());
             end(context, player);
         });
     }
@@ -205,12 +205,12 @@ public class LifestealGameTest {
         context.waitAndRun(2, () -> player.giveItemStack(heart.copy()));
         context.waitAndRun(3, () -> {
             context.assertTrue(player.getMainHandStack().getCount() == 1, Text.of("Hearts stacked when unstackable"));
-            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(2, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 2, context.getWorld().getServer());
         });
         context.waitAndRun(4, () -> player.giveItemStack(heart.copy()));
         context.waitAndRun(5, () -> context.assertTrue(player.getMainHandStack().getCount() == 2, Text.of("Hearts did not stack")));
         context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(1, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 1, context.getWorld().getServer());
             end(context, player);
         });
     }
@@ -220,8 +220,8 @@ public class LifestealGameTest {
         LifestealMixinConfig.TEST_LOGGER.info("Test 7: Heart Withdraw Command");
         TestSubject player = spawnSinglePlayerTest(context);
         context.waitAndRun(1, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(2, context.getWorld().getServer());
-            context.getWorld().getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD).set(WithdrawMethod.COMMAND, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 2, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.WITHDRAW_METHOD, WithdrawMethod.COMMAND, context.getWorld().getServer());
         });
         // Test valid amount
         context.waitAndRun(2, () -> player.executeCommand("withdraw 2"));
@@ -240,8 +240,8 @@ public class LifestealGameTest {
         });
 
         context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD).set(WithdrawMethod.ALTAR, context.getWorld().getServer());
-            context.getWorld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE).set(1, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.WITHDRAW_METHOD, WithdrawMethod.ALTAR, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 1, context.getWorld().getServer());
             end(context, player);
         });
     }
@@ -253,7 +253,7 @@ public class LifestealGameTest {
         context.waitAndRun(1, () -> {
             players[0].setMaxHealth(10.0);
             players[1].setMaxHealth(20.0);
-            context.getWorld().getGameRules().get(LifeStealGamerules.GIFT_METHOD).set(GiftMethod.COMMAND, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.GIFT_METHOD, GiftMethod.COMMAND, context.getWorld().getServer());
         });
         // Test valid amount
         context.waitAndRun(2, () -> players[1].executeCommand("gift " + players[0].getUuidAsString() + " 2"));

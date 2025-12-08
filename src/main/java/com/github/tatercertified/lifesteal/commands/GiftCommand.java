@@ -17,7 +17,7 @@ import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 
 import java.util.Collection;
 
@@ -38,10 +38,11 @@ public final class GiftCommand {
     private static int gift(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerCommandSource source = context.getSource();
         final MinecraftServer server = source.getServer();
-        final GameRules gameRules = server.getGameRules();
+        final GameRules gameRules = source.getWorld().getGameRules();
 
         // Check if command is enabled
-        if (gameRules.get(LifeStealGamerules.GIFT_METHOD).get() == GiftMethod.COMMAND) {
+
+        if (gameRules.getValue(LifeStealGamerules.GIFT_METHOD) == GiftMethod.COMMAND) {
             final int amount = IntegerArgumentType.getInteger(context, "healthPoints");
             final ServerPlayerEntity player = source.getPlayerOrThrow();
 
@@ -71,7 +72,7 @@ public final class GiftCommand {
                 return 0;
             }
 
-            if (DeathData.isPlayerDead(receiver.id(), gameRules.getInt(LifeStealGamerules.AUTOREVIVAL))) {
+            if (DeathData.isPlayerDead(receiver.id(), gameRules.getValue(LifeStealGamerules.AUTOREVIVAL))) {
                 // Can't gift to a dead guy
                 source.sendError(LifeStealText.isDead(Text.of(receiver.name())));
                 return 0;

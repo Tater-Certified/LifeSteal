@@ -1,10 +1,10 @@
 package com.github.tatercertified.lifesteal.gamerules;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.GameRules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/*
 public class SyncedBoundedIntRule extends GameRules.IntRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncedBoundedIntRule.class);
     private final int minimumValue;
@@ -66,3 +66,5 @@ public class SyncedBoundedIntRule extends GameRules.IntRule {
         return 0;
     }
 }
+
+ */
