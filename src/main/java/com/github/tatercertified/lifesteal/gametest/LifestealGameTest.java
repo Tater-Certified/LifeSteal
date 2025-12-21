@@ -14,6 +14,7 @@ import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.registry.Registries;
 import net.minecraft.test.TestContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -64,7 +65,7 @@ public class LifestealGameTest {
         TestSubject player = spawnSinglePlayerTest(context);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
-        context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Blocks.NETHERITE_BLOCK, context.getWorld().getServer());
+        context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Registries.BLOCK.getId(Blocks.NETHERITE_BLOCK).toShortString(), context.getWorld().getServer());
         context.assertTrue(HeartItem.isAltar(context.getWorld(), altar), Text.of("Altar failed to be created"));
         context.waitAndRun(1, () -> {
             player.setSneaking(true);
@@ -76,13 +77,13 @@ public class LifestealGameTest {
             context.assertTrue(maxHealth == 18.0F, Text.of("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
         context.waitAndRun(4, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Blocks.DIAMOND_BLOCK, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Registries.BLOCK.getId(Blocks.DIAMOND_BLOCK).toShortString(), context.getWorld().getServer());
             context.getWorld().setBlockState(altar, Blocks.DIAMOND_BLOCK.getDefaultState());
         });
         context.waitAndRun(5, () -> context.assertTrue(HeartItem.isAltar(context.getWorld(), altar), Text.of("Altar block failed to be set")));
 
         context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Blocks.NETHERITE_BLOCK, context.getWorld().getServer());
+            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Registries.BLOCK.getId(Blocks.NETHERITE_BLOCK).toShortString(), context.getWorld().getServer());
             end(context, player);
         });
     }

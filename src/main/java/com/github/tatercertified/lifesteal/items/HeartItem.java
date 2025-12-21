@@ -122,7 +122,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
     }
 
     public static boolean isAltar(ServerWorld world, BlockPos pos) {
-        if (!world.getBlockState(pos).isOf(LifeStealGamerules.getBlockFromGameRule(world.getGameRules()))) {
+        if (!world.getBlockState(pos).isOf(LifeStealGamerules.getAltarBlock(world.getGameRules()))) {
             return false;
         }
 

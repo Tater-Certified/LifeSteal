@@ -24,7 +24,6 @@
   "depends": {
     "fabricloader": "*",
     "fabric": "*",
-    "minecraft": ">=1.21.9",
-    "unruled_api": ">=1.3"
+    "minecraft": ">=1.21.11"
   }
 }

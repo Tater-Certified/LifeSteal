@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.13-SNAPSHOT'
+    id 'fabric-loom' version '1.14-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -12,10 +12,6 @@ base {
 
 repositories {
     maven { url 'https://maven.nucleoid.xyz/releases/' }
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-    }
     maven { url 'https://jitpack.io' }
     mavenCentral()
 }
@@ -33,7 +29,6 @@ dependencies {
     modImplementation include("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
     modImplementation include("eu.pb4:sgui:${project.sgui_version}")
     implementation include('com.google.code.gson:gson:2.13.1')
-    modApi "maven.modrinth:unruled-api:${project.unruled_version}"
     modImplementation include('com.github.QPCrummer:PolySpring:f35011d7f6')
 }
 

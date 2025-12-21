@@ -1,24 +1,25 @@
 package com.github.tatercertified.lifesteal.gamerules;
 
 import com.github.tatercertified.lifesteal.Lifesteal;
+import com.github.tatercertified.lifesteal.mixin.GameRuleRegistryInvoker;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.serialization.Codec;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleBuilder;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleEvents;
 import net.minecraft.block.Block;
+import net.minecraft.registry.Registries;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.rule.GameRule;
+import net.minecraft.world.rule.*;
 
 public final class LifeStealGamerules {
     public static MinecraftServer serverInstance;
     public static void init() {
-        // TODO Wait for Unruled API to update
-        /*
-        GameRuleEvents.changeCallback(GameRules.FIRE_DAMAGE).register((value, server) -> {
-            // Your code here
+        GameRuleEvents.changeCallback(ALTAR_BLOCK).register((value, server) -> {
+            cachedAltarBlock = Registries.BLOCK.get(Identifier.of(value));
         });
-
-         */
 
         // TODO Temp fix until SyncedBoundedIntRule is fixed
         GameRuleEvents.changeCallback(STEALAMOUNT).register((value, server) -> {
@@ -89,7 +90,7 @@ public final class LifeStealGamerules {
      * If StealAmount is a multiple of 2, so should this value
      */
     // TODO Enforce multiple of 2 using events
-            // TODO Fix SyncedBoundedIntRule
+    // TODO Fix SyncedBoundedIntRule
     public static final GameRule<Integer> MINPLAYERHEALTH = GameRuleBuilder.forInteger(2).minValue(1)
             .buildAndRegister(Identifier.of(Lifesteal.MOD_ID, "minPlayerHealth"));
 
@@ -111,14 +112,17 @@ public final class LifeStealGamerules {
     /**
      * The block that is to be used as the altar
      */
-    // TODO Wait for Unruled API to update
-            /*
-    public static final GameRules.Key<RegistryEntryRule<Block>> ALTAR_BLOCK = UnruledApi.registryEntryRuleBuilder(Registries.BLOCK, Blocks.NETHERITE_BLOCK)
-            .setChangeCallback((server, blockRegistryEntryRule) -> altarGameRuleModified = true)
-            .setFeatureSet(FeatureSet.empty())
-            .register(Lifesteal.MOD_ID + ":altarBlock", GameRules.Category.MISC);
-
-             */
+    public static final GameRule<String> ALTAR_BLOCK = GameRuleRegistryInvoker.register(
+            Lifesteal.MOD_ID + ":altarBlock",
+            GameRuleCategory.MISC,
+            GameRuleType.INT, // I don't know, this will probably be fine
+            StringArgumentType.string(),
+            Codec.STRING,
+            "minecraft:netherite_block",
+            FeatureSet.empty(),
+            GameRuleVisitor::visit, // TODO Figure this out
+            s -> Registries.BLOCK.containsId(Identifier.of(s)) ? 1 : 0
+    );
 
 
     /**
@@ -141,18 +145,12 @@ public final class LifeStealGamerules {
     public static final GameRule<Integer> HEART_STACK_SIZE = GameRuleBuilder.forInteger(1).range(1, 64)
             .buildAndRegister(Identifier.of(Lifesteal.MOD_ID, "heartStackSize"));
 
-    public static boolean altarGameRuleModified = true;
     private static Block cachedAltarBlock;
 
-    // TODO Wait for Unruled API to update
-    /*
-    public static Block getBlockFromGameRule(GameRules gameRules) {
-        if (altarGameRuleModified) {
-            cachedAltarBlock = ((IGameRulesProvider)gameRules).unruled_getRegistryEntry(ALTAR_BLOCK);
-            altarGameRuleModified = !altarGameRuleModified;
+    public static Block getAltarBlock(GameRules gameRules) {
+        if (cachedAltarBlock == null) {
+            cachedAltarBlock = Registries.BLOCK.get(Identifier.of(gameRules.getValue(ALTAR_BLOCK)));
         }
         return cachedAltarBlock;
     }
-
-     */
 }
