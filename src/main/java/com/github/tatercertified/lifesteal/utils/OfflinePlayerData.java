@@ -2,13 +2,17 @@ package com.github.tatercertified.lifesteal.utils;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Util;
-import net.minecraft.util.WorldSavePath;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.GameType;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -24,8 +28,8 @@ import java.util.Objects;
  */
 public class OfflinePlayerData {
 
-    public final PlayerConfigEntry holder;
-    public final NbtCompound root;
+    public final NameAndId holder;
+    public final CompoundTag root;
 
     private final Path dir;
 
@@ -37,7 +41,7 @@ public class OfflinePlayerData {
      * @param root The main NBTCompound for the offline player
      * @param dir The path to the offline player's NBT data
      */
-    protected OfflinePlayerData(PlayerConfigEntry holder, NbtCompound root, Path dir) {
+    protected OfflinePlayerData(NameAndId holder, CompoundTag root, Path dir) {
         this.holder = holder;
         this.root = root;
         this.dir = dir;
@@ -54,7 +58,7 @@ public class OfflinePlayerData {
 
         try (final OutputStream stream = Files.newOutputStream(tmp)) {
             NbtIo.writeCompressed(root, stream);
-            Util.backupAndReplace(cur, tmp, old);
+            Util.safeReplaceFile(cur, tmp, old);
         } catch (IOException ioe) {
             logger.warn("Cannot save data for {}", holder, ioe);
         }
@@ -67,12 +71,12 @@ public class OfflinePlayerData {
      * @param profile The profile of the player being fetched
      * @return The offline player's data if it exists and can be read, null otherwise
      */
-    public static OfflinePlayerData getOfflinePlayerData(MinecraftServer server, PlayerConfigEntry profile) {
-        final Path dir = server.getSavePath(WorldSavePath.PLAYERDATA);
+    public static OfflinePlayerData getOfflinePlayerData(MinecraftServer server, NameAndId profile) {
+        final Path dir = server.getWorldPath(LevelResource.PLAYER_DATA_DIR);
         final Path dat = dir.resolve(profile.id() + ".dat");
         if (Files.exists(dat) && Files.isRegularFile(dat)) {
             try (final InputStream stream = Files.newInputStream(dat)) {
-                final NbtCompound compound = NbtIo.readCompressed(stream, NbtSizeTracker.ofUnlimitedBytes());
+                final CompoundTag compound = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
                 return new OfflinePlayerData(profile, compound, dir);
             } catch (IOException ioe) {
                 logger.warn("Unable to read NBT for {}", profile, ioe);
@@ -86,12 +90,12 @@ public class OfflinePlayerData {
      * @param world The ServerWorld that the player should be placed in
      * @param pos The location inside of that world the player should be placed at
      */
-    public void setPosition(ServerWorld world, Vec3d pos) {
-        NbtList nbtPos = this.root.getListOrEmpty("Pos");
-        nbtPos.set(0, NbtDouble.of(pos.getX()));
-        nbtPos.set(1, NbtDouble.of(pos.getY()));
-        nbtPos.set(2, NbtDouble.of(pos.getZ()));
-        this.root.putString("Dimension", world.getRegistryKey().getValue().toString());
+    public void setPosition(ServerLevel world, Vec3 pos) {
+        ListTag nbtPos = this.root.getListOrEmpty("Pos");
+        nbtPos.set(0, DoubleTag.valueOf(pos.x()));
+        nbtPos.set(1, DoubleTag.valueOf(pos.y()));
+        nbtPos.set(2, DoubleTag.valueOf(pos.z()));
+        this.root.putString("Dimension", world.dimension().identifier().toString());
     }
 
     /**
@@ -107,15 +111,15 @@ public class OfflinePlayerData {
      * @param health The new max health
      */
     public void setMaxHealth(double health) {
-        NbtList nbtAttributes = this.root.getListOrEmpty("Attributes");
+        ListTag nbtAttributes = this.root.getListOrEmpty("Attributes");
         for (int i = 0; i < nbtAttributes.size(); i++) {
-            NbtCompound compound = nbtAttributes.getCompoundOrEmpty(i);
-            if (Objects.equals(compound.getString("Name"), "minecraft:generic.max_health")) {
+            CompoundTag compound = nbtAttributes.getCompoundOrEmpty(i);
+            if (Objects.equals(compound.getString("Name").orElse(null), "minecraft:generic.max_health")) {
                 compound.putDouble("Base", health);
                 return;
             }
         }
-        NbtCompound compound = new NbtCompound();
+        CompoundTag compound = new CompoundTag();
         compound.putDouble("Base", health);
         compound.putString("Name", "minecraft:generic.max_health");
         nbtAttributes.add(compound);
@@ -126,10 +130,10 @@ public class OfflinePlayerData {
      * @return the offline player's max health
      */
     public double getMaxHealth() {
-        NbtList nbtAttributes = this.root.getListOrEmpty("Attributes");
+        ListTag nbtAttributes = this.root.getListOrEmpty("Attributes");
         for (int i = 0; i < nbtAttributes.size(); i++) {
-            NbtCompound compound = nbtAttributes.getCompoundOrEmpty(i);
-            if (Objects.equals(compound.getString("Name"), "minecraft:generic.max_health")) {
+            CompoundTag compound = nbtAttributes.getCompoundOrEmpty(i);
+            if (Objects.equals(compound.getString("Name").orElse(null), "minecraft:generic.max_health")) {
                 return compound.getDouble("Base").orElse(20.0);
             }
         }
@@ -140,7 +144,7 @@ public class OfflinePlayerData {
      * Sets the offline player's gamemode
      * @param gamemode The GameMode to set for the offline player
      */
-    public void setGamemode(GameMode gamemode) {
-        this.root.putInt("playerGameType", gamemode.getIndex());
+    public void setGamemode(GameType gamemode) {
+        this.root.putInt("playerGameType", gamemode.getId());
     }
 }

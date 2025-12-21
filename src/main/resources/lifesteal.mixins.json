@@ -9,9 +9,9 @@
     "GameRuleRegistryInvoker",
     "ItemStackMixin",
     "MilkMixin",
-    "ServerPlayerEntityMixin",
-    "ServerPlayerEntityServerAccessor",
-    "ServerPlayerInteractionManagerMixin",
+    "ServerPlayerMixin",
+    "ServerPlayerServerAccessor",
+    "ServerPlayerGameModeMixin",
     "gametest.GameTestUserCacheMixin"
   ],
   "injectors": {

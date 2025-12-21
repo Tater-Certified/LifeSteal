@@ -1,7 +1,7 @@
 package com.github.tatercertified.lifesteal.utils;
 
-import net.minecraft.world.GameMode;
+import net.minecraft.world.level.GameType;
 
 public interface PlayerGameModeInterface {
-    void setPreviousGameMode(GameMode gameMode);
+    void setPreviousGameMode(GameType gameMode);
 }

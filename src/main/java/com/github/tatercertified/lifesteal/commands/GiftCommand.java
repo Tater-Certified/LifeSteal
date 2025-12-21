@@ -11,105 +11,105 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.argument.GameProfileArgumentType;
+import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.gamerules.GameRules;
 
 import java.util.Collection;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public final class GiftCommand {
 
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
             dispatcher.register(literal("gift")
-                    .requires(ServerCommandSource::isExecutedByPlayer)
-                    .then(argument("player", GameProfileArgumentType.gameProfile())
+                    .requires(CommandSourceStack::isPlayer)
+                    .then(argument("player", GameProfileArgument.gameProfile())
                             .then(argument("healthPoints", IntegerArgumentType.integer(1)).executes(GiftCommand::gift))));
         });
     }
 
-    private static int gift(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        final ServerCommandSource source = context.getSource();
+    private static int gift(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        final CommandSourceStack source = context.getSource();
         final MinecraftServer server = source.getServer();
-        final GameRules gameRules = source.getWorld().getGameRules();
+        final GameRules gameRules = source.getLevel().getGameRules();
 
         // Check if command is enabled
 
-        if (gameRules.getValue(LifeStealGamerules.GIFT_METHOD) == GiftMethod.COMMAND) {
+        if (gameRules.get(LifeStealGamerules.GIFT_METHOD) == GiftMethod.COMMAND) {
             final int amount = IntegerArgumentType.getInteger(context, "healthPoints");
-            final ServerPlayerEntity player = source.getPlayerOrThrow();
+            final ServerPlayer player = source.getPlayerOrException();
 
             // Check if the source has a large enough max health
             double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
             if (!PlayerUtils.canChangeHealth(maxHealth, -amount, gameRules)) {
-                source.sendError(LifeStealText.LOW_HEALTH);
+                source.sendFailure(LifeStealText.LOW_HEALTH);
                 return 0;
             }
 
             // Check if the target is valid
-            final Collection<PlayerConfigEntry> profiles = GameProfileArgumentType.getProfileArgument(context, "player");
+            final Collection<NameAndId> profiles = GameProfileArgument.getGameProfiles(context, "player");
             if (profiles.isEmpty()) {
-                source.sendError(LifeStealText.GIFT_NONE);
+                source.sendFailure(LifeStealText.GIFT_NONE);
                 return 0;
             }
             if (profiles.size() > 1) {
-                source.sendError(LifeStealText.GIFT_MULTIPLE);
+                source.sendFailure(LifeStealText.GIFT_MULTIPLE);
                 return 0;
             }
 
-            final PlayerConfigEntry receiver = profiles.iterator().next();
+            final NameAndId receiver = profiles.iterator().next();
 
-            if (receiver.id() == player.getUuid()) {
+            if (receiver.id() == player.getUUID()) {
                 // Can't gift to yourself
-                source.sendError(LifeStealText.noSelfGifting(player.getName()));
+                source.sendFailure(LifeStealText.noSelfGifting(player.getName()));
                 return 0;
             }
 
-            if (DeathData.isPlayerDead(receiver.id(), gameRules.getValue(LifeStealGamerules.AUTOREVIVAL))) {
+            if (DeathData.isPlayerDead(receiver.id(), gameRules.get(LifeStealGamerules.AUTOREVIVAL))) {
                 // Can't gift to a dead guy
-                source.sendError(LifeStealText.isDead(Text.of(receiver.name())));
+                source.sendFailure(LifeStealText.isDead(Component.nullToEmpty(receiver.name())));
                 return 0;
             }
 
-            ServerPlayerEntity receiverPlayer = server.getPlayerManager().getPlayer(receiver.id());
+            ServerPlayer receiverPlayer = server.getPlayerList().getPlayer(receiver.id());
 
             if (receiverPlayer != null) {
                 // Online
                 if (PlayerUtils.changeHealth(receiverPlayer, amount)) {
                     PlayerUtils.changeHealthUnchecked(player, -amount);
-                    player.sendMessage(LifeStealText.giftSuccess(amount, receiverPlayer.getName()));
-                    receiverPlayer.sendMessage(LifeStealText.receiveGift(amount, player.getName()));
+                    player.sendSystemMessage(LifeStealText.giftSuccess(amount, receiverPlayer.getName()));
+                    receiverPlayer.sendSystemMessage(LifeStealText.receiveGift(amount, player.getName()));
                 } else {
                     // Receiver has too much health
-                    source.sendError(LifeStealText.receiverTooMuchHealth(receiverPlayer.getName()));
+                    source.sendFailure(LifeStealText.receiverTooMuchHealth(receiverPlayer.getName()));
                     return 0;
                 }
             } else {
                 // Offline
                 OfflinePlayerData offlinePlayerData = OfflinePlayerData.getOfflinePlayerData(server, receiver);
                 double offlineMaxHealth = offlinePlayerData.getMaxHealth();
-                Text receiverName = Text.of(receiver.name());
+                Component receiverName = Component.nullToEmpty(receiver.name());
                 if (PlayerUtils.canChangeHealth(offlineMaxHealth, amount, gameRules)) {
                     PlayerUtils.changeHealthUnchecked(player, -amount);
                     offlinePlayerData.setMaxHealth(offlineMaxHealth + amount);
 
-                    player.sendMessage(LifeStealText.giftSuccess(amount, receiverName));
+                    player.sendSystemMessage(LifeStealText.giftSuccess(amount, receiverName));
                 } else {
                     // Receiver has too much health
-                    source.sendError(LifeStealText.receiverTooMuchHealth(receiverName));
+                    source.sendFailure(LifeStealText.receiverTooMuchHealth(receiverName));
                     return 0;
                 }
             }
             return 1;
         } else {
-            source.sendError(LifeStealText.GIFT_COMMAND_DISABLED);
+            source.sendFailure(LifeStealText.GIFT_COMMAND_DISABLED);
             return 0;
         }
     }

@@ -5,13 +5,13 @@ import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.DeathAction;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.items.ModItems;
-import com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityServerAccessor;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.rule.GameRules;
+import com.github.tatercertified.lifesteal.mixin.ServerPlayerServerAccessor;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.gamerules.GameRules;
 
 public final class PlayerUtils {
 
@@ -21,25 +21,25 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity that died
      * @param data The player's DeathData
      */
-    public static void handleDeadPlayerAction(ServerPlayerEntity player, DeathData data) {
-        GameRules gameRules = player.getEntityWorld().getGameRules();
-        DeathAction action = gameRules.getValue(LifeStealGamerules.DEATH_ACTION);
+    public static void handleDeadPlayerAction(ServerPlayer player, DeathData data) {
+        GameRules gameRules = player.level().getGameRules();
+        DeathAction action = gameRules.get(LifeStealGamerules.DEATH_ACTION);
         switch (action) {
             case BAN -> {
-                if (gameRules.getValue(LifeStealGamerules.AUTOREVIVAL) == 0) {
-                    player.networkHandler.disconnect(LifeStealText.DEATH);
+                if (gameRules.get(LifeStealGamerules.AUTOREVIVAL) == 0) {
+                    player.connection.disconnect(LifeStealText.DEATH);
                 } else {
-                    player.networkHandler.disconnect(LifeStealText.deathTime((int) (data.deathTime + gameRules.getValue(LifeStealGamerules.AUTOREVIVAL) - (System.currentTimeMillis() * 0.001))));
+                    player.connection.disconnect(LifeStealText.deathTime((int) (data.deathTime + gameRules.get(LifeStealGamerules.AUTOREVIVAL) - (System.currentTimeMillis() * 0.001))));
                 }
             }
             case REVIVE -> {
-                setMaxHealth(gameRules.getValue(LifeStealGamerules.MINPLAYERHEALTH), player);
-                DeathData.removeFromDeathDataList(player.getUuid()); // I know this is a waste of processing power... but I don't care
+                setMaxHealth(gameRules.get(LifeStealGamerules.MINPLAYERHEALTH), player);
+                DeathData.removeFromDeathDataList(player.getUUID()); // I know this is a waste of processing power... but I don't care
                 ((PlayerReviveData)player).setNewlyRevived(true); // Prevent heart duplication
             }
             case SPECTATOR -> {
-                player.changeGameMode(GameMode.SPECTATOR);
-                ((PlayerGameModeInterface)(player.interactionManager)).setPreviousGameMode(GameMode.SPECTATOR);
+                player.setGameMode(GameType.SPECTATOR);
+                ((PlayerGameModeInterface)(player.gameMode)).setPreviousGameMode(GameType.SPECTATOR);
             }
         }
     }
@@ -49,12 +49,12 @@ public final class PlayerUtils {
      * It determines if the player should be revived or not
      * @param player ServerPlayerEntity that joined
      */
-    public static void handlePlayerJoin(ServerPlayerEntity player) {
-        DeathData data = Lifesteal.DEAD_PLAYERS.get(player.getUuid());
+    public static void handlePlayerJoin(ServerPlayer player) {
+        DeathData data = Lifesteal.DEAD_PLAYERS.get(player.getUUID());
         if (data != null) {
             // A reviver takes highest priority
             if (data.reviverPlayerID == null) {
-                if (DeathData.shouldAutoRevive(data, player.getEntityWorld().getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
+                if (DeathData.shouldAutoRevive(data, player.level().getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
                     // Autorevival timer up
                     handlePostRevival(data, player, true);
                 } else {
@@ -74,20 +74,20 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity that was revived
      * @param autoRevived If the player was revived due to the automatic revival system
      */
-    private static void handlePostRevival(DeathData data, ServerPlayerEntity player, boolean autoRevived) {
-        GameRules gameRules = player.getEntityWorld().getGameRules();
+    private static void handlePostRevival(DeathData data, ServerPlayer player, boolean autoRevived) {
+        GameRules gameRules = player.level().getGameRules();
         if (!autoRevived) {
-            player.sendMessage(LifeStealText.onRevivalText(data, ((ServerPlayerEntityServerAccessor) player).getServer()));
+            player.sendSystemMessage(LifeStealText.onRevivalText(data, ((ServerPlayerServerAccessor) player).getServer()));
         } else {
             // Autorevived players shouldn't be exempted from the antiHeartDupe
             ((PlayerReviveData)player).setNewlyRevived(true);
         }
         // Check if invulnerability should be applied
-        int invulnerability = gameRules.getValue(LifeStealGamerules.RESPAWN_INVULNERABILITY);
+        int invulnerability = gameRules.get(LifeStealGamerules.RESPAWN_INVULNERABILITY);
         if (invulnerability != 0) {
             ((PlayerInvulnerabilityInterface)player).setReviveInvulnerability();
         }
-        DeathData.removeFromDeathDataList(player.getUuid());
+        DeathData.removeFromDeathDataList(player.getUUID());
     }
 
     /**
@@ -98,31 +98,31 @@ public final class PlayerUtils {
      * @param killed The ServerPlayerEntity that was killed
      * @param attacker The ServerPlayerEntity that killed the other player
      */
-    public static void exchangeHealth(ServerPlayerEntity killed, ServerPlayerEntity attacker) {
+    public static void exchangeHealth(ServerPlayer killed, ServerPlayer attacker) {
         // Killed Player
-        EntityAttributeInstance killedMaxHealth = killed.getAttributeInstance(EntityAttributes.MAX_HEALTH);
-        GameRules gameRules = killed.getEntityWorld().getGameRules();
+        AttributeInstance killedMaxHealth = killed.getAttribute(Attributes.MAX_HEALTH);
+        GameRules gameRules = killed.level().getGameRules();
         double killedMaxHealthDouble = killedMaxHealth.getBaseValue();
 
-        int minHealth = gameRules.getValue(LifeStealGamerules.MINPLAYERHEALTH);
+        int minHealth = gameRules.get(LifeStealGamerules.MINPLAYERHEALTH);
         if (killedMaxHealthDouble <= minHealth) {
             // Considered dead
-            DeathData data = new DeathData(killed.getUuid());
+            DeathData data = new DeathData(killed.getUUID());
             data.addToDeathDataList();
             handleDeadPlayerAction(killed, data);
 
             // Check to see if heart should be rewarded
-            if (((PlayerReviveData)killed).newlyRevived() && gameRules.getValue(LifeStealGamerules.ANTIHEARTDUPE)) {
+            if (((PlayerReviveData)killed).newlyRevived() && gameRules.get(LifeStealGamerules.ANTIHEARTDUPE)) {
                 return;
             }
         } else {
-            changeHealthUnchecked(killed, -gameRules.getValue(LifeStealGamerules.STEALAMOUNT));
+            changeHealthUnchecked(killed, -gameRules.get(LifeStealGamerules.STEALAMOUNT));
         }
 
         // Attacker Player
-        if (!changeHealth(attacker, gameRules.getValue(LifeStealGamerules.STEALAMOUNT))) {
+        if (!changeHealth(attacker, gameRules.get(LifeStealGamerules.STEALAMOUNT))) {
             // They can't get more health, but they can still get an item to prevent heart deletion
-            attacker.sendMessage(LifeStealText.MAX_HEALTH, true);
+            attacker.displayClientMessage(LifeStealText.MAX_HEALTH, true);
             givePlayerHeart(attacker, 1);
         }
     }
@@ -136,7 +136,7 @@ public final class PlayerUtils {
      */
     public static boolean canChangeHealth(double currentMaxHealth, float by, GameRules gameRules) {
         double newMaxHealth = currentMaxHealth + by;
-        return newMaxHealth >= gameRules.getValue(LifeStealGamerules.MINPLAYERHEALTH) && newMaxHealth <= gameRules.getValue(LifeStealGamerules.MAXPLAYERHEALTH);
+        return newMaxHealth >= gameRules.get(LifeStealGamerules.MINPLAYERHEALTH) && newMaxHealth <= gameRules.get(LifeStealGamerules.MAXPLAYERHEALTH);
     }
 
     /**
@@ -144,14 +144,14 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity whose health is being changed
      * @param by The amount that the max health should be changed by (can be positive or negative)
      */
-    public static void changeHealthUnchecked(ServerPlayerEntity player, float by) {
+    public static void changeHealthUnchecked(ServerPlayer player, float by) {
         double currentValue = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
         ((PlayerMaxHealthInterface)player).setBaseMaxHealth(currentValue + by);
         float health = player.getHealth();
         player.setHealth(health + by);
         // If they can change health without dying, they aren't newly revived anymore
         ((PlayerReviveData)player).setNewlyRevived(false);
-        player.sendMessage(LifeStealText.updateHealth(by), true);
+        player.displayClientMessage(LifeStealText.updateHealth(by), true);
     }
 
     /**
@@ -160,9 +160,9 @@ public final class PlayerUtils {
      * @param by The amount the max health should be changed by (can be positive or negative)
      * @return If the change succeeded. If the player will "die", then returns false.
      */
-    public static boolean changeHealth(ServerPlayerEntity player, float by) {
+    public static boolean changeHealth(ServerPlayer player, float by) {
         double maxHealth = ((PlayerMaxHealthInterface)player).getBaseMaxHealth();
-        if (canChangeHealth(maxHealth, by, player.getEntityWorld().getGameRules())) {
+        if (canChangeHealth(maxHealth, by, player.level().getGameRules())) {
             changeHealthUnchecked(player, by);
             return true;
         } else {
@@ -175,8 +175,8 @@ public final class PlayerUtils {
      * @param value The new max health
      * @param player The ServerPlayerEntity whose max health is changing
      */
-    public static void setMaxHealth(double value, ServerPlayerEntity player) {
-        EntityAttributeInstance maxHealth = player.getAttributeInstance(EntityAttributes.MAX_HEALTH);
+    public static void setMaxHealth(double value, ServerPlayer player) {
+        AttributeInstance maxHealth = player.getAttribute(Attributes.MAX_HEALTH);
         maxHealth.setBaseValue(value);
     }
 
@@ -185,26 +185,26 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity that gets the health converted
      * @param hearts Number of hearts (2HP) to convert
      */
-    public static void convertHealthToHeartItems(ServerPlayerEntity player, int hearts, boolean action) {
+    public static void convertHealthToHeartItems(ServerPlayer player, int hearts, boolean action) {
 
-        final int health = hearts * player.getEntityWorld().getGameRules().getValue(LifeStealGamerules.HEARTBONUS);
+        final int health = hearts * player.level().getGameRules().get(LifeStealGamerules.HEARTBONUS);
         // Detect overflow
         if (health < 0) {
-            player.sendMessage(LifeStealText.LOW_HEALTH, action);
+            player.displayClientMessage(LifeStealText.LOW_HEALTH, action);
             return;
         }
         if(health == 0) {
-            player.sendMessage(LifeStealText.HEART_DISABLED, action);
+            player.displayClientMessage(LifeStealText.HEART_DISABLED, action);
             return;
         }
 
         if (!PlayerUtils.changeHealth(player, -health)) {
-            player.sendMessage(LifeStealText.LOW_HEALTH, action);
+            player.displayClientMessage(LifeStealText.LOW_HEALTH, action);
             return;
         }
 
         givePlayerHeart(player, hearts);
-        player.sendMessage(LifeStealText.withdrawnHealth(health, hearts), action);
+        player.displayClientMessage(LifeStealText.withdrawnHealth(health, hearts), action);
     }
 
     /**
@@ -212,13 +212,13 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity that gets the hearts
      * @param hearts Number of hearts
      */
-    private static void givePlayerHeart(ServerPlayerEntity player, int hearts) {
+    private static void givePlayerHeart(ServerPlayer player, int hearts) {
         final ItemStack heartStack = new ItemStack(ModItems.HEART, 1);
         for (int i = 0; i < hearts; i++) {
-            if (!player.giveItemStack(heartStack.copy())) {
+            if (!player.addItem(heartStack.copy())) {
                 // Quick path for dropping the rest of the hearts to avoid unnecessary checks
                 for (int j = i; j < hearts; j++) {
-                    player.dropItem(heartStack.copy(), false, true);
+                    player.drop(heartStack.copy(), false, true);
                 }
                 break;
             }

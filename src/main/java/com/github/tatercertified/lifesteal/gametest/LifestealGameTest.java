@@ -7,303 +7,303 @@ import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.LifestealMixinConfig;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.CandleBlock;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.registry.Registries;
-import net.minecraft.test.TestContext;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NameToIdCache;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CandleBlock;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.server.players.UserNameToIdResolver;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.gamerules.GameRules;
 
 import java.util.UUID;
 
 public class LifestealGameTest {
-    public static final NameToIdCache gameTestUserCache = new GameTestUserCache();
+    public static final UserNameToIdResolver gameTestUserCache = new GameTestUserCache();
 
     @GameTest
-    public void testHeartConsumption(TestContext context) {
+    public void testHeartConsumption(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 1: Heart Consumption");
         TestSubject player = spawnSinglePlayerTest(context);
         ItemStack heart = new ItemStack(ModItems.HEART, 1);
-        context.getWorld().getGameRules().setValue(LifeStealGamerules.HEARTBONUS, 2, context.getWorld().getServer());
+        context.getLevel().getGameRules().set(LifeStealGamerules.HEARTBONUS, 2, context.getLevel().getServer());
 
-        context.waitAndRun(1, () -> player.setStackInHand(Hand.MAIN_HAND, heart.copy()));
-        context.waitAndRun(2, () -> use(player, heart.copy()));
-        context.waitAndRun(3, () -> {
+        context.runAfterDelay(1, () -> player.setItemInHand(InteractionHand.MAIN_HAND, heart.copy()));
+        context.runAfterDelay(2, () -> use(player, heart.copy()));
+        context.runAfterDelay(3, () -> {
             double maxHealth = player.getMaxBaseHealth();
-            context.assertTrue(maxHealth == 22.0F, Text.of("Max Health Mismatch; Expected: 22.0, Got: " + maxHealth));
+            context.assertTrue(maxHealth == 22.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 22.0, Got: " + maxHealth));
         });
 
-        context.waitAndRun(4, () -> player.setStackInHand(Hand.MAIN_HAND, heart.copy()));
-        context.waitAndRun(5, () -> context.getWorld().getGameRules().setValue(LifeStealGamerules.HEARTBONUS, 4, context.getWorld().getServer()));
-        context.waitAndRun(6, () -> use(player, heart.copy()));
-        context.waitAndRun(7, () -> {
+        context.runAfterDelay(4, () -> player.setItemInHand(InteractionHand.MAIN_HAND, heart.copy()));
+        context.runAfterDelay(5, () -> context.getLevel().getGameRules().set(LifeStealGamerules.HEARTBONUS, 4, context.getLevel().getServer()));
+        context.runAfterDelay(6, () -> use(player, heart.copy()));
+        context.runAfterDelay(7, () -> {
             double maxHealth = player.getMaxBaseHealth();
-            context.assertTrue(maxHealth == 26.0F, Text.of("Max Health Mismatch; Expected: 26.0, Got: " + maxHealth));
+            context.assertTrue(maxHealth == 26.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 26.0, Got: " + maxHealth));
         });
 
-        context.waitAndRun(8, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEARTBONUS, 2, context.getWorld().getServer());
+        context.runAfterDelay(8, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.HEARTBONUS, 2, context.getLevel().getServer());
             end(context, player);
         });
     }
 
     @GameTest(setupTicks = 10)
-    public void testAltar(TestContext context) {
+    public void testAltar(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 2: Altar");
         TestSubject player = spawnSinglePlayerTest(context);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
-        context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Registries.BLOCK.getId(Blocks.NETHERITE_BLOCK).toShortString(), context.getWorld().getServer());
-        context.assertTrue(HeartItem.isAltar(context.getWorld(), altar), Text.of("Altar failed to be created"));
-        context.waitAndRun(1, () -> {
-            player.setSneaking(true);
-            player.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, altar.toCenterPos());
+        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.NETHERITE_BLOCK).toShortString(), context.getLevel().getServer());
+        context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar failed to be created"));
+        context.runAfterDelay(1, () -> {
+            player.setShiftKeyDown(true);
+            player.lookAt(EntityAnchorArgument.Anchor.FEET, altar.getCenter());
         });
-        context.waitAndRun(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.getEntityWorld(), Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(altar), Direction.NORTH, altar, true)));
-        context.waitAndRun(3, () -> {
+        context.runAfterDelay(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.level(), InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(altar), Direction.NORTH, altar, true)));
+        context.runAfterDelay(3, () -> {
             double maxHealth = player.getMaxBaseHealth();
-            context.assertTrue(maxHealth == 18.0F, Text.of("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
+            context.assertTrue(maxHealth == 18.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
-        context.waitAndRun(4, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Registries.BLOCK.getId(Blocks.DIAMOND_BLOCK).toShortString(), context.getWorld().getServer());
-            context.getWorld().setBlockState(altar, Blocks.DIAMOND_BLOCK.getDefaultState());
+        context.runAfterDelay(4, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.DIAMOND_BLOCK).toShortString(), context.getLevel().getServer());
+            context.getLevel().setBlockAndUpdate(altar, Blocks.DIAMOND_BLOCK.defaultBlockState());
         });
-        context.waitAndRun(5, () -> context.assertTrue(HeartItem.isAltar(context.getWorld(), altar), Text.of("Altar block failed to be set")));
+        context.runAfterDelay(5, () -> context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar block failed to be set")));
 
-        context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.ALTAR_BLOCK, Registries.BLOCK.getId(Blocks.NETHERITE_BLOCK).toShortString(), context.getWorld().getServer());
+        context.runAfterDelay(6, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.NETHERITE_BLOCK).toShortString(), context.getLevel().getServer());
             end(context, player);
         });
     }
 
     @GameTest(setupTicks = 20, maxTicks = 15)
-    public void testHeartSteal(TestContext context) {
+    public void testHeartSteal(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 3: Heart Stealing");
         TestSubject[] players = spawnDoublePlayerTest(context);
         // Test natural death gamerule
-        context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.ANY_DEATH, context.getWorld().getServer());
-        context.getWorld().getGameRules().setValue(GameRules.DO_IMMEDIATE_RESPAWN, true, context.getWorld().getServer());
-        context.waitAndRun(1, () -> players[0].kill());
-        context.waitAndRun(2, () -> {
+        context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.ANY_DEATH, context.getLevel().getServer());
+        context.getLevel().getGameRules().set(GameRules.IMMEDIATE_RESPAWN, true, context.getLevel().getServer());
+        context.runAfterDelay(1, () -> players[0].kill());
+        context.runAfterDelay(2, () -> {
             double maxHealth = players[0].getMaxBaseHealth();
-            context.assertTrue(maxHealth == 18.0F, Text.of("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
+            context.assertTrue(maxHealth == 18.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
-        context.waitAndRun(3, () -> players[0].respawn());
+        context.runAfterDelay(3, () -> players[0].respawn());
 
         // Test player kill
-        context.waitAndRun(4, () -> context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.PLAYER_ONLY, context.getWorld().getServer()));
-        context.waitAndRun(5, () -> players[0].kill(players[1]));
-        context.waitAndRun(6, () -> {
+        context.runAfterDelay(4, () -> context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.PLAYER_ONLY, context.getLevel().getServer()));
+        context.runAfterDelay(5, () -> players[0].kill(players[1]));
+        context.runAfterDelay(6, () -> {
             double killedMaxHealth = players[0].getMaxBaseHealth();
-            context.assertTrue(killedMaxHealth == 16.0F, Text.of("Max Health Mismatch; Expected: 16.0, Got: " + killedMaxHealth));
+            context.assertTrue(killedMaxHealth == 16.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 16.0, Got: " + killedMaxHealth));
             double attackerMaxHealth = players[1].getMaxBaseHealth();
-            context.assertTrue(attackerMaxHealth == 22.0F, Text.of("Max Health Mismatch; Expected: 22.0, Got: " + attackerMaxHealth));
+            context.assertTrue(attackerMaxHealth == 22.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 22.0, Got: " + attackerMaxHealth));
         });
 
         // Test heart steal gamerule
-        context.waitAndRun(7, () -> {
+        context.runAfterDelay(7, () -> {
             players[0].respawn();
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.STEALAMOUNT, 4, context.getWorld().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.STEALAMOUNT, 4, context.getLevel().getServer());
         });
-        context.waitAndRun(8, () -> players[0].kill(players[1]));
-        context.waitAndRun(9, () -> {
+        context.runAfterDelay(8, () -> players[0].kill(players[1]));
+        context.runAfterDelay(9, () -> {
             double killedMaxHealth = players[0].getMaxBaseHealth();
-            context.assertTrue(killedMaxHealth == 12.0F, Text.of("Max Health Mismatch; Expected: 12.0, Got: " + killedMaxHealth));
+            context.assertTrue(killedMaxHealth == 12.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 12.0, Got: " + killedMaxHealth));
             double attackerMaxHealth = players[1].getMaxBaseHealth();
-            context.assertTrue(attackerMaxHealth == 26.0F, Text.of("Max Health Mismatch; Expected: 26.0, Got: " + attackerMaxHealth));
+            context.assertTrue(attackerMaxHealth == 26.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 26.0, Got: " + attackerMaxHealth));
         });
 
-        context.waitAndRun(10, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.STEALAMOUNT, 2, context.getWorld().getServer());
+        context.runAfterDelay(10, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.STEALAMOUNT, 2, context.getLevel().getServer());
             end(context, players);
         });
     }
 
     @GameTest(setupTicks = 35)
-    public void testDeath(TestContext context) {
+    public void testDeath(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 4: Death Consequences");
         final TestSubject[] player = {spawnSinglePlayerTest(context)};
-        Vec3d playerPos = player[0].getEntityPos();
+        Vec3 playerPos = player[0].position();
         player[0].setLowMaxHealth(context);
-        context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.ANY_DEATH, context.getWorld().getServer());
+        context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.ANY_DEATH, context.getLevel().getServer());
 
         // Ban test
-        context.waitAndRun(1, player[0]::kill);
-        context.waitAndRun(2, () -> context.assertTrue(DeathData.isPlayerDead(player[0].getUuid(), 0), Text.of("Player should be banned")));
+        context.runAfterDelay(1, player[0]::kill);
+        context.runAfterDelay(2, () -> context.assertTrue(DeathData.isPlayerDead(player[0].getUUID(), 0), Component.nullToEmpty("Player should be banned")));
 
         // Spectator test
-        context.waitAndRun(3, () -> {
+        context.runAfterDelay(3, () -> {
             player[0] = spawnPlayer(context, playerPos);
             player[0].setLowMaxHealth(context);
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_ACTION, DeathAction.SPECTATOR, context.getWorld().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_ACTION, DeathAction.SPECTATOR, context.getLevel().getServer());
         });
-        context.waitAndRun(4, player[0]::kill);
-        context.waitAndRun(5, () -> {
+        context.runAfterDelay(4, player[0]::kill);
+        context.runAfterDelay(5, () -> {
             // TODO Fix the FakePlayer somehow being in survival mode when they should be spectating. This feature DOES work properly for real players
             //context.assertTrue(player[0].getGameMode() == GameMode.SPECTATOR, Text.of("Player should be spectating"));
         });
 
         // Revive test
-        context.waitAndRun(6, () -> {
+        context.runAfterDelay(6, () -> {
             player[0] = spawnPlayer(context, playerPos);
             player[0].setLowMaxHealth(context);
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_ACTION, DeathAction.REVIVE, context.getWorld().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_ACTION, DeathAction.REVIVE, context.getLevel().getServer());
         });
-        context.waitAndRun(7, player[0]::kill);
-        context.waitAndRun(8, () -> {
-            context.assertTrue(player[0].isAlive(), Text.of("Player should be alive"));
-            context.assertFalse(DeathData.isPlayerDead(player[0].getUuid(), 0), Text.of("Player should not be banned"));
+        context.runAfterDelay(7, player[0]::kill);
+        context.runAfterDelay(8, () -> {
+            context.assertTrue(player[0].isAlive(), Component.nullToEmpty("Player should be alive"));
+            context.assertFalse(DeathData.isPlayerDead(player[0].getUUID(), 0), Component.nullToEmpty("Player should not be banned"));
         });
 
-        context.waitAndRun(9, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.PLAYER_ONLY, context.getWorld().getServer());
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.DEATH_ACTION, DeathAction.BAN, context.getWorld().getServer());
+        context.runAfterDelay(9, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_CRITERIA, DeathCriteria.PLAYER_ONLY, context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.DEATH_ACTION, DeathAction.BAN, context.getLevel().getServer());
             end(context, player);
         });
     }
 
     @GameTest(setupTicks = 45)
-    public void testRevive(TestContext context) {
+    public void testRevive(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 5: Revival");
         TestSubject[] players = spawnDoublePlayerTest(context);
         players[0].setLowMaxHealth(context);
-        Text name = players[0].getName();
-        UUID uuid = players[0].getUuid();
+        Component name = players[0].getName();
+        UUID uuid = players[0].getUUID();
         ItemStack heart = new ItemStack(ModItems.HEART);
-        heart.set(DataComponentTypes.CUSTOM_NAME, name);
+        heart.set(DataComponents.CUSTOM_NAME, name);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
 
-        context.waitAndRun(1, players[0]::kill);
-        context.waitAndRun(2, () -> {
-            players[1].setStackInHand(Hand.MAIN_HAND, heart.copy());
-            players[1].setSneaking(true);
-            players[1].lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, altar.toCenterPos());
+        context.runAfterDelay(1, players[0]::kill);
+        context.runAfterDelay(2, () -> {
+            players[1].setItemInHand(InteractionHand.MAIN_HAND, heart.copy());
+            players[1].setShiftKeyDown(true);
+            players[1].lookAt(EntityAnchorArgument.Anchor.FEET, altar.getCenter());
         });
-        context.waitAndRun(3, () -> heart.useOnBlock(new ItemUsageContext(players[1], Hand.MAIN_HAND, new BlockHitResult(Vec3d.ofCenter(altar), Direction.NORTH, altar, true))));
-        context.waitAndRun(5, () -> context.assertFalse(DeathData.isPlayerDead(uuid, 0), Text.of("Player was not revived")));
-        context.waitAndRun(6, () -> end(context, players));
+        context.runAfterDelay(3, () -> heart.useOn(new UseOnContext(players[1], InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(altar), Direction.NORTH, altar, true))));
+        context.runAfterDelay(5, () -> context.assertFalse(DeathData.isPlayerDead(uuid, 0), Component.nullToEmpty("Player was not revived")));
+        context.runAfterDelay(6, () -> end(context, players));
     }
 
     @GameTest(setupTicks = 55)
-    public void testHeartStacks(TestContext context) {
+    public void testHeartStacks(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 6: Heart Stacking");
         TestSubject player = spawnSinglePlayerTest(context);
         ItemStack heart = new ItemStack(ModItems.HEART);
-        context.waitAndRun(1, () -> player.giveItemStack(heart.copy()));
-        context.waitAndRun(2, () -> player.giveItemStack(heart.copy()));
-        context.waitAndRun(3, () -> {
-            context.assertTrue(player.getMainHandStack().getCount() == 1, Text.of("Hearts stacked when unstackable"));
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 2, context.getWorld().getServer());
+        context.runAfterDelay(1, () -> player.addItem(heart.copy()));
+        context.runAfterDelay(2, () -> player.addItem(heart.copy()));
+        context.runAfterDelay(3, () -> {
+            context.assertTrue(player.getMainHandItem().getCount() == 1, Component.nullToEmpty("Hearts stacked when unstackable"));
+            context.getLevel().getGameRules().set(LifeStealGamerules.HEART_STACK_SIZE, 2, context.getLevel().getServer());
         });
-        context.waitAndRun(4, () -> player.giveItemStack(heart.copy()));
-        context.waitAndRun(5, () -> context.assertTrue(player.getMainHandStack().getCount() == 2, Text.of("Hearts did not stack")));
-        context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 1, context.getWorld().getServer());
+        context.runAfterDelay(4, () -> player.addItem(heart.copy()));
+        context.runAfterDelay(5, () -> context.assertTrue(player.getMainHandItem().getCount() == 2, Component.nullToEmpty("Hearts did not stack")));
+        context.runAfterDelay(6, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.HEART_STACK_SIZE, 1, context.getLevel().getServer());
             end(context, player);
         });
     }
 
     @GameTest(setupTicks = 65)
-    public void testWithdrawCommand(TestContext context) {
+    public void testWithdrawCommand(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 7: Heart Withdraw Command");
         TestSubject player = spawnSinglePlayerTest(context);
-        context.waitAndRun(1, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 2, context.getWorld().getServer());
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.WITHDRAW_METHOD, WithdrawMethod.COMMAND, context.getWorld().getServer());
+        context.runAfterDelay(1, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.HEART_STACK_SIZE, 2, context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.WITHDRAW_METHOD, WithdrawMethod.COMMAND, context.getLevel().getServer());
         });
         // Test valid amount
-        context.waitAndRun(2, () -> player.executeCommand("withdraw 2"));
-        context.waitAndRun(3, () -> {
-            context.assertTrue(player.getMainHandStack().getCount() == 2, Text.of("Expected 2 Hearts; Given " + player.getMainHandStack().getCount()));
-            context.assertTrue(player.getMaxBaseHealth() == 16.0, Text.of("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
+        context.runAfterDelay(2, () -> player.executeCommand("withdraw 2"));
+        context.runAfterDelay(3, () -> {
+            context.assertTrue(player.getMainHandItem().getCount() == 2, Component.nullToEmpty("Expected 2 Hearts; Given " + player.getMainHandItem().getCount()));
+            context.assertTrue(player.getMaxBaseHealth() == 16.0, Component.nullToEmpty("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
         });
         // Test invalid max health
-        context.waitAndRun(4, () -> {
-            player.getInventory().clear();
-            context.getWorld().getServer().getCommandManager().parseAndExecute(player.getCommandSource(), "withdraw 16");
+        context.runAfterDelay(4, () -> {
+            player.getInventory().clearContent();
+            context.getLevel().getServer().getCommands().performPrefixedCommand(player.createCommandSourceStack(), "withdraw 16");
         }); // Should fail
-        context.waitAndRun(5, () -> {
-            context.assertTrue(player.getMainHandStack().isEmpty(), Text.of("Expected 0 Hearts; Given " + player.getMainHandStack().getCount()));
-            context.assertTrue(player.getMaxBaseHealth() == 16.0, Text.of("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
+        context.runAfterDelay(5, () -> {
+            context.assertTrue(player.getMainHandItem().isEmpty(), Component.nullToEmpty("Expected 0 Hearts; Given " + player.getMainHandItem().getCount()));
+            context.assertTrue(player.getMaxBaseHealth() == 16.0, Component.nullToEmpty("Expected 16.0 Max Health; Has " + player.getMaxBaseHealth()));
         });
 
-        context.waitAndRun(6, () -> {
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.WITHDRAW_METHOD, WithdrawMethod.ALTAR, context.getWorld().getServer());
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.HEART_STACK_SIZE, 1, context.getWorld().getServer());
+        context.runAfterDelay(6, () -> {
+            context.getLevel().getGameRules().set(LifeStealGamerules.WITHDRAW_METHOD, WithdrawMethod.ALTAR, context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.HEART_STACK_SIZE, 1, context.getLevel().getServer());
             end(context, player);
         });
     }
 
     @GameTest(setupTicks = 75)
-    public void testGiftCommand(TestContext context) {
+    public void testGiftCommand(GameTestHelper context) {
         LifestealMixinConfig.TEST_LOGGER.info("Test 8: Heart Gift Command");
         TestSubject[] players = spawnDoublePlayerTest(context);
-        context.waitAndRun(1, () -> {
+        context.runAfterDelay(1, () -> {
             players[0].setMaxHealth(10.0);
             players[1].setMaxHealth(20.0);
-            context.getWorld().getGameRules().setValue(LifeStealGamerules.GIFT_METHOD, GiftMethod.COMMAND, context.getWorld().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.GIFT_METHOD, GiftMethod.COMMAND, context.getLevel().getServer());
         });
         // Test valid amount
-        context.waitAndRun(2, () -> players[1].executeCommand("gift " + players[0].getUuidAsString() + " 2"));
-        context.waitAndRun(3, () -> {
-            context.assertTrue(players[0].getMaxBaseHealth() == 12.0, Text.of("Expected 12.0 Max Health; Has " + players[0].getMaxBaseHealth()));
-            context.assertTrue(players[1].getMaxBaseHealth() == 18.0, Text.of("Expected 18.0 Max Health; Has " + players[1].getMaxBaseHealth()));
+        context.runAfterDelay(2, () -> players[1].executeCommand("gift " + players[0].getStringUUID() + " 2"));
+        context.runAfterDelay(3, () -> {
+            context.assertTrue(players[0].getMaxBaseHealth() == 12.0, Component.nullToEmpty("Expected 12.0 Max Health; Has " + players[0].getMaxBaseHealth()));
+            context.assertTrue(players[1].getMaxBaseHealth() == 18.0, Component.nullToEmpty("Expected 18.0 Max Health; Has " + players[1].getMaxBaseHealth()));
         });
         // Test invalid max health
         //context.waitAndRun(4, () -> players[1].executeCommand("gift " + players[0].getName().getString() + " 19")); // Should fail
-        context.waitAndRun(5, () -> {
+        context.runAfterDelay(5, () -> {
             //context.assertTrue(players[0].getMaxBaseHealth() == 12.0, Text.of("Expected 12.0 Max Health; Has " + players[0].getMaxBaseHealth()));
             end(context, players);
         });
     }
 
-    private TestSubject spawnSinglePlayerTest(TestContext context) {
+    private TestSubject spawnSinglePlayerTest(GameTestHelper context) {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                context.setBlockState(new BlockPos(i, 150, j), Blocks.BEDROCK);
+                context.setBlock(new BlockPos(i, 150, j), Blocks.BEDROCK);
             }
         }
-        Vec3d playerPos = context.getAbsolute(new Vec3d(2.5, 151.5, 2.5));
+        Vec3 playerPos = context.absoluteVec(new Vec3(2.5, 151.5, 2.5));
         return spawnPlayer(context, playerPos);
     }
 
-    private TestSubject[] spawnDoublePlayerTest(TestContext context) {
+    private TestSubject[] spawnDoublePlayerTest(GameTestHelper context) {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                context.setBlockState(new BlockPos(i, 150, j), Blocks.BEDROCK);
+                context.setBlock(new BlockPos(i, 150, j), Blocks.BEDROCK);
             }
         }
         TestSubject[] players = new TestSubject[2];
         for (int i = 0; i < 2; i++) {
-            Vec3d playerPos = context.getAbsolute(new Vec3d(2.5 + i, 151.5, 2.5));
+            Vec3 playerPos = context.absoluteVec(new Vec3(2.5 + i, 151.5, 2.5));
             players[i] = spawnPlayer(context, playerPos);;
         }
         return players;
     }
 
-    private TestSubject spawnPlayer(TestContext context, Vec3d pos) {
-        TestSubject player = TestSubject.getRandomTestSubject(context.getWorld());
-        player.getEntityWorld().spawnEntity(player);
-        player.changeGameMode(GameMode.SURVIVAL);
-        player.setPos(pos.getX(), pos.getY(), pos.getZ());
+    private TestSubject spawnPlayer(GameTestHelper context, Vec3 pos) {
+        TestSubject player = TestSubject.getRandomTestSubject(context.getLevel());
+        player.level().addFreshEntity(player);
+        player.setGameMode(GameType.SURVIVAL);
+        player.setPosRaw(pos.x(), pos.y(), pos.z());
         return player;
     }
 
     private void use(TestSubject player, ItemStack stack) {
-        stack.use(player.getEntityWorld(), player, Hand.MAIN_HAND);
+        stack.use(player.level(), player, InteractionHand.MAIN_HAND);
     }
 
     private void removePlayers(TestSubject... players) {
@@ -312,19 +312,19 @@ public class LifestealGameTest {
         }
     }
 
-    private BlockPos spawnAltar(TestContext context, BlockPos center) {
-        context.setBlockState(center, Blocks.NETHERITE_BLOCK);
-        BlockState candle = Blocks.CANDLE.getDefaultState().with(CandleBlock.LIT, true);
-        context.setBlockState(center.north(), candle);
-        context.setBlockState(center.east(), candle);
-        context.setBlockState(center.south(), candle);
-        context.setBlockState(center.west(), candle);
-        return context.getAbsolutePos(center);
+    private BlockPos spawnAltar(GameTestHelper context, BlockPos center) {
+        context.setBlock(center, Blocks.NETHERITE_BLOCK);
+        BlockState candle = Blocks.CANDLE.defaultBlockState().setValue(CandleBlock.LIT, true);
+        context.setBlock(center.north(), candle);
+        context.setBlock(center.east(), candle);
+        context.setBlock(center.south(), candle);
+        context.setBlock(center.west(), candle);
+        return context.absolutePos(center);
     }
 
-    private void end(TestContext context, TestSubject... players) {
+    private void end(GameTestHelper context, TestSubject... players) {
         removePlayers(players);
-        context.complete();
+        context.succeed();
         LifestealMixinConfig.TEST_LOGGER.info("Test Passed");
     }
 }

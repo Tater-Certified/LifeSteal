@@ -5,34 +5,35 @@ import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.RevivalGUI;
 import de.olivermakesco.polyspring.api.BedrockItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Item.Properties;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class TotemOfRebirth extends Item implements PolymerItem, BedrockItem {
 
-    public TotemOfRebirth(Settings settings) {
+    public TotemOfRebirth(Properties settings) {
         super(settings);
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (user instanceof ServerPlayerEntity serverPlayer && ((ServerWorld) world).getGameRules().getValue(LifeStealGamerules.REVIVE_METHOD) == ReviveMethod.TOTEM) {
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if (user instanceof ServerPlayer serverPlayer && ((ServerLevel) world).getGameRules().get(LifeStealGamerules.REVIVE_METHOD) == ReviveMethod.TOTEM) {
             RevivalGUI.openGUI(serverPlayer, hand);
         }
         return super.use(world, user, hand);
     }
 
     @Override
-    public int getMaxCount() {
+    public int getDefaultMaxStackSize() {
         return 1;
     }
 
@@ -48,7 +49,7 @@ public class TotemOfRebirth extends Item implements PolymerItem, BedrockItem {
 
     @Override
     public String bedrockName() {
-        return Text.translatable(this.getTranslationKey()).getLiteralString();
+        return Component.translatable(this.getDescriptionId()).tryCollapseToString();
     }
 
     @Override

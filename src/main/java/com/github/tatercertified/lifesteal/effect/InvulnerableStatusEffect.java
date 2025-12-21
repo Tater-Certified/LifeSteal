@@ -1,42 +1,42 @@
 package com.github.tatercertified.lifesteal.effect;
 import com.github.tatercertified.lifesteal.Lifesteal;
 import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.AttributeContainer;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.core.Holder;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.UUID;
 
-public class InvulnerableStatusEffect extends StatusEffect implements PolymerStatusEffect {
+public class InvulnerableStatusEffect extends MobEffect implements PolymerStatusEffect {
     private UUID player;
     private MinecraftServer server;
-    public static final RegistryEntry<StatusEffect> INVULNERABLE = Registry.registerReference(Registries.STATUS_EFFECT, Identifier.of(Lifesteal.MOD_ID, "tater"), new InvulnerableStatusEffect());
+    public static final Holder<MobEffect> INVULNERABLE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "tater"), new InvulnerableStatusEffect());
 
     public InvulnerableStatusEffect() {
-        super(StatusEffectCategory.BENEFICIAL, 16262179, ParticleTypes.MYCELIUM);
+        super(MobEffectCategory.BENEFICIAL, 16262179, ParticleTypes.MYCELIUM);
     }
 
     @Override
-    public @Nullable ItemStack getPolymerIcon(StatusEffect effect, ServerPlayerEntity player) {
-        return Items.SHIELD.getDefaultStack();
+    public @Nullable ItemStack getPolymerIcon(MobEffect effect, ServerPlayer player) {
+        return Items.SHIELD.getDefaultInstance();
     }
 
     @Override
-    public @Nullable StatusEffect getPolymerReplacement(StatusEffect effect, PacketContext context) {
-        return StatusEffects.UNLUCK.value();
+    public @Nullable MobEffect getPolymerReplacement(MobEffect effect, PacketContext context) {
+        return MobEffects.UNLUCK.value();
     }
 
     @Override
@@ -44,21 +44,21 @@ public class InvulnerableStatusEffect extends StatusEffect implements PolymerSta
         return true;
     }
     @Override
-    public StatusEffectCategory getCategory() {
-        return StatusEffectCategory.BENEFICIAL;
+    public MobEffectCategory getCategory() {
+        return MobEffectCategory.BENEFICIAL;
     }
 
     @Override
-    public void onRemoved(AttributeContainer attributeContainer) {
-        super.onRemoved(attributeContainer);
-        server.getScoreboard().removeScoreHolderFromTeam(server.getPlayerManager().getPlayer(player).getNameForScoreboard(), Lifesteal.invulnerableTeam);
+    public void removeAttributeModifiers(AttributeMap attributeContainer) {
+        super.removeAttributeModifiers(attributeContainer);
+        server.getScoreboard().removePlayerFromTeam(server.getPlayerList().getPlayer(player).getScoreboardName(), Lifesteal.invulnerableTeam);
     }
 
     @Override
-    public void onApplied(LivingEntity entity, int amplifier) {
-        super.onApplied(entity, amplifier);
-        this.player = entity.getUuid();
-        this.server = entity.getEntityWorld().getServer();
+    public void onEffectStarted(LivingEntity entity, int amplifier) {
+        super.onEffectStarted(entity, amplifier);
+        this.player = entity.getUUID();
+        this.server = entity.level().getServer();
     }
 
     public static void register() {

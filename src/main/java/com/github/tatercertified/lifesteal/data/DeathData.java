@@ -9,21 +9,21 @@ import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemUsageContext;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.TeleportTarget;
-import net.minecraft.world.World;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Tuple;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -140,12 +140,12 @@ public class DeathData {
      * @param server MinecraftServer instance
      * @return List of all dead players' UUIDs and names
      */
-    public static List<Pair<UUID, String>> getDeadPlayers(MinecraftServer server) {
-        List<Pair<UUID, String>> dead = new ArrayList<>();
+    public static List<Tuple<UUID, String>> getDeadPlayers(MinecraftServer server) {
+        List<Tuple<UUID, String>> dead = new ArrayList<>();
         for (Map.Entry<UUID, DeathData> entry : Lifesteal.DEAD_PLAYERS.entrySet()) {
             if (entry.getValue().reviverPlayerID == null) {
-                Optional<PlayerConfigEntry> playerName = server.getApiServices().nameToIdCache().getByUuid(entry.getKey());
-                playerName.ifPresent(playerConfigEntry -> dead.add(new Pair<>(entry.getKey(), playerConfigEntry.name())));
+                Optional<NameAndId> playerName = server.services().nameToIdCache().get(entry.getKey());
+                playerName.ifPresent(playerConfigEntry -> dead.add(new Tuple<>(entry.getKey(), playerConfigEntry.name())));
             }
         }
         return dead;
@@ -172,8 +172,8 @@ public class DeathData {
      * @param contextOptional If an item was used
      * @return 0 if success, 1 if error, and 2 if the player was not found
      */
-    public static byte revive(UUID reviveeId, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
-        return revive(reviveeId, reviver.getEntityWorld().getServer(), reviver.getEntityWorld(), reviver.getBlockPos(), reviver, contextOptional);
+    public static byte revive(UUID reviveeId, ServerPlayer reviver, Optional<UseOnContext> contextOptional) {
+        return revive(reviveeId, reviver.level().getServer(), reviver.level(), reviver.blockPosition(), reviver, contextOptional);
     }
 
     /**
@@ -186,8 +186,8 @@ public class DeathData {
      * @param contextOptional If an item was used
      * @return 0 if success, 1 if error, and 2 if the player was not found
      */
-    public static byte revive(String playerName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
-        return revive(server.getPlayerManager().getPlayer(playerName), null, playerName, server, world, pos, reviver, contextOptional);
+    public static byte revive(String playerName, MinecraftServer server, ServerLevel world, BlockPos pos, ServerPlayer reviver, Optional<UseOnContext> contextOptional) {
+        return revive(server.getPlayerList().getPlayerByName(playerName), null, playerName, server, world, pos, reviver, contextOptional);
     }
 
     /**
@@ -200,11 +200,11 @@ public class DeathData {
      * @param contextOptional If an item was used
      * @return 0 if success, 1 if error, and 2 if the player was not found
      */
-    public static byte revive(UUID reviveeId, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
-        return revive(server.getPlayerManager().getPlayer(reviveeId), reviveeId, null, server, world, pos, reviver, contextOptional);
+    public static byte revive(UUID reviveeId, MinecraftServer server, ServerLevel world, BlockPos pos, ServerPlayer reviver, Optional<UseOnContext> contextOptional) {
+        return revive(server.getPlayerList().getPlayer(reviveeId), reviveeId, null, server, world, pos, reviver, contextOptional);
     }
 
-    private static byte revive(ServerPlayerEntity revivee, @Nullable UUID reviveeId, @Nullable String reviveeName, MinecraftServer server, ServerWorld world, BlockPos pos, ServerPlayerEntity reviver, Optional<ItemUsageContext> contextOptional) {
+    private static byte revive(ServerPlayer revivee, @Nullable UUID reviveeId, @Nullable String reviveeName, MinecraftServer server, ServerLevel world, BlockPos pos, ServerPlayer reviver, Optional<UseOnContext> contextOptional) {
         boolean fromHeart = contextOptional.isPresent();
         if (revivee != null) {
             if (reviveOnline(revivee, world, pos, reviver, fromHeart)) {
@@ -215,43 +215,43 @@ public class DeathData {
             return 1;
         }
 
-        Optional<PlayerConfigEntry> profile;
+        Optional<NameAndId> profile;
         if (reviveeId != null) {
-            profile = server.getApiServices().nameToIdCache().getByUuid(reviveeId);
+            profile = server.services().nameToIdCache().get(reviveeId);
         } else if (reviveeName != null) {
-            profile = server.getApiServices().nameToIdCache().findByName(reviveeName);
+            profile = server.services().nameToIdCache().get(reviveeName);
         } else {
             profile = Optional.empty();
         }
 
         if (profile.isPresent()) {
             if (reviveOffline(profile.get(), world, pos, reviver, fromHeart)) {
-                contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, Text.of(profile.get().name())));
+                contextOptional.ifPresent(itemUsageContext -> revived(reviver, itemUsageContext, Component.nullToEmpty(profile.get().name())));
                 return 0;
             }
-            failed(reviver, pos, Text.of(profile.get().name()));
+            failed(reviver, pos, Component.nullToEmpty(profile.get().name()));
             return 1;
         }
         return 2;
     }
 
-    private static boolean reviveOnline(ServerPlayerEntity player, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
-        if (!DeathData.isPlayerDead(player.getUuid(), world.getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
+    private static boolean reviveOnline(ServerPlayer player, ServerLevel world, BlockPos alter, Player reviver, boolean fromHeart) {
+        if (!DeathData.isPlayerDead(player.getUUID(), world.getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
         teleport(player, world, alter);
-        player.changeGameMode(GameMode.SURVIVAL);
+        player.setGameMode(GameType.SURVIVAL);
 
-        player.sendMessage(LifeStealText.onRevivalText(reviver.getDisplayName()));
-        PlayerUtils.setMaxHealth(world.getGameRules().getValue(LifeStealGamerules.MINPLAYERHEALTH), player);
-        DeathData.removeFromDeathDataList(player.getUuid());
+        player.sendSystemMessage(LifeStealText.onRevivalText(reviver.getDisplayName()));
+        PlayerUtils.setMaxHealth(world.getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH), player);
+        DeathData.removeFromDeathDataList(player.getUUID());
         // These players are not newly revived if a heart was consumed to revive them
         ((PlayerReviveData)player).setNewlyRevived(!fromHeart);
         return true;
     }
 
-    private static boolean reviveOffline(PlayerConfigEntry profile, ServerWorld world, BlockPos alter, PlayerEntity reviver, boolean fromHeart) {
-        if (!DeathData.isPlayerDead(profile.id(), world.getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
+    private static boolean reviveOffline(NameAndId profile, ServerLevel world, BlockPos alter, Player reviver, boolean fromHeart) {
+        if (!DeathData.isPlayerDead(profile.id(), world.getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
             return false;
         }
 
@@ -260,30 +260,30 @@ public class DeathData {
         if (playerData == null) {
             return false;
         }
-        playerData.setPosition(world, alter.up().toCenterPos());
-        playerData.setGamemode(GameMode.SURVIVAL);
-        playerData.setMaxHealth(world.getGameRules().getValue(LifeStealGamerules.MINPLAYERHEALTH));
+        playerData.setPosition(world, alter.above().getCenter());
+        playerData.setGamemode(GameType.SURVIVAL);
+        playerData.setMaxHealth(world.getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH));
         // These players are not newly revived if a heart was consumed to revive them
         playerData.setNewlyRevived(!fromHeart);
         playerData.save();
 
-        DeathData.setReviver(profile.id(), reviver.getUuid());
+        DeathData.setReviver(profile.id(), reviver.getUUID());
         return true;
     }
 
-    private static void revived(ServerPlayerEntity reviver, ItemUsageContext context, Text revived) {
-        successSound(context.getWorld(), context.getBlockPos());
-        context.getStack().decrement(1);
-        reviver.sendMessage(LifeStealText.revived(revived), true);
+    private static void revived(ServerPlayer reviver, UseOnContext context, Component revived) {
+        successSound(context.getLevel(), context.getClickedPos());
+        context.getItemInHand().shrink(1);
+        reviver.displayClientMessage(LifeStealText.revived(revived), true);
     }
 
-    private static void successSound(World world, BlockPos alter) {
-        world.playSound(null, alter, SoundEvents.BLOCK_BEACON_ACTIVATE, SoundCategory.PLAYERS, 16.f, 1);
+    private static void successSound(Level world, BlockPos alter) {
+        world.playSound(null, alter, SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 16.f, 1);
     }
 
-    private static void failed(ServerPlayerEntity reviver, BlockPos alter, Text revived) {
-        failedSound(reviver.getEntityWorld(), alter);
-        reviver.sendMessage(LifeStealText.playerIsAlive(revived), true);
+    private static void failed(ServerPlayer reviver, BlockPos alter, Component revived) {
+        failedSound(reviver.level(), alter);
+        reviver.displayClientMessage(LifeStealText.playerIsAlive(revived), true);
     }
 
     /**
@@ -291,12 +291,12 @@ public class DeathData {
      * @param world The world to play the sound in
      * @param pos The position to play it at
      */
-    public static void failedSound(World world, BlockPos pos) {
-        world.playSound(null, pos, SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(), SoundCategory.PLAYERS, 16.f, 1);
+    public static void failedSound(Level world, BlockPos pos) {
+        world.playSound(null, pos, SoundEvents.NOTE_BLOCK_DIDGERIDOO.value(), SoundSource.PLAYERS, 16.f, 1);
     }
 
-    private static void teleport(PlayerEntity player, ServerWorld target, BlockPos alterPos) {
-        Vec3d pos = alterPos.up().toCenterPos();
-        player.teleportTo(new TeleportTarget(target, pos, Vec3d.ZERO, player.getYaw(), player.getPitch(), TeleportTarget.NO_OP));
+    private static void teleport(Player player, ServerLevel target, BlockPos alterPos) {
+        Vec3 pos = alterPos.above().getCenter();
+        player.teleport(new TeleportTransition(target, pos, Vec3.ZERO, player.getYRot(), player.getXRot(), TeleportTransition.DO_NOTHING));
     }
 }

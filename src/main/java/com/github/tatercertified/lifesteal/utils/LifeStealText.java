@@ -2,28 +2,28 @@ package com.github.tatercertified.lifesteal.utils;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.ChatFormatting;
 
 public final class LifeStealText {
-    public static final Text
-            FAILURE_UNKNOWN = Text.translatable("lifesteal.failure.unknown"), // For debug purposes
-            DEATH = Text.translatable("lifesteal.gameplay.death"),
-            MAX_HEALTH = Text.translatable("lifesteal.gameplay.max_health"),
-            LOW_HEALTH = Text.translatable("lifesteal.gameplay.low_health"),
-            HEART_DISABLED = Text.translatable("lifesteal.heart.disabled"),
-            GIFT_COMMAND_DISABLED = Text.translatable("lifesteal.command.gift.disabled"),
-            REVIVE_COMMAND_DISABLED = Text.translatable("lifesteal.command.revive.disabled"),
-            WITHDRAW_COMMAND_DISABLED = Text.translatable("lifesteal.command.withdraw.disabled"),
-            GIFT_NONE = Text.translatable("lifesteal.gift.none"),
-            GIFT_MULTIPLE = Text.translatable("lifesteal.gift.multiple"),
-            PREVENT_ATTACK = Text.translatable("lifesteal.gameplay.prevent_attack"),
-            REVIVE_HOLD = Text.translatable("lifesteal.revive.holding"),
-            BACK = Text.translatable("lifesteal.gui.back"),
-            NEXT = Text.translatable("lifesteal.gui.next"),
-            MIN_PLAYER_HEALTH_ADJUST = Text.translatable("lifesteal.gamerules.minplayerhealth.failed"),
-            TITLE = Text.translatable("lifesteal.gui.title");
+    public static final Component
+            FAILURE_UNKNOWN = Component.translatable("lifesteal.failure.unknown"), // For debug purposes
+            DEATH = Component.translatable("lifesteal.gameplay.death"),
+            MAX_HEALTH = Component.translatable("lifesteal.gameplay.max_health"),
+            LOW_HEALTH = Component.translatable("lifesteal.gameplay.low_health"),
+            HEART_DISABLED = Component.translatable("lifesteal.heart.disabled"),
+            GIFT_COMMAND_DISABLED = Component.translatable("lifesteal.command.gift.disabled"),
+            REVIVE_COMMAND_DISABLED = Component.translatable("lifesteal.command.revive.disabled"),
+            WITHDRAW_COMMAND_DISABLED = Component.translatable("lifesteal.command.withdraw.disabled"),
+            GIFT_NONE = Component.translatable("lifesteal.gift.none"),
+            GIFT_MULTIPLE = Component.translatable("lifesteal.gift.multiple"),
+            PREVENT_ATTACK = Component.translatable("lifesteal.gameplay.prevent_attack"),
+            REVIVE_HOLD = Component.translatable("lifesteal.revive.holding"),
+            BACK = Component.translatable("lifesteal.gui.back"),
+            NEXT = Component.translatable("lifesteal.gui.next"),
+            MIN_PLAYER_HEALTH_ADJUST = Component.translatable("lifesteal.gamerules.minplayerhealth.failed"),
+            TITLE = Component.translatable("lifesteal.gui.title");
 
     private static final String
             UPDATE_HEALTH = "lifesteal.gameplay.update_health",
@@ -43,74 +43,74 @@ public final class LifeStealText {
             PREVENT_DAMAGE = "lifesteal.gameplay.prevent_damage",
             ADMIN_REVIVE = "lifesteal.admin.revive";
 
-    public static Text onRevivalText(DeathData data, MinecraftServer server) {
-        return Text.translatable(REVIVEE, server.getApiServices().nameToIdCache().getByUuid(data.reviverPlayerID).get().name());
+    public static Component onRevivalText(DeathData data, MinecraftServer server) {
+        return Component.translatable(REVIVEE, server.services().nameToIdCache().get(data.reviverPlayerID).get().name());
     }
 
-    public static Text notFound(String playerName) {
-        return Text.translatable(PLAYER_DOES_NOT_EXIST, playerName);
+    public static Component notFound(String playerName) {
+        return Component.translatable(PLAYER_DOES_NOT_EXIST, playerName);
     }
 
-    public static Text onRevivalText(Text reviver) {
-        return Text.translatable(REVIVEE, reviver);
+    public static Component onRevivalText(Component reviver) {
+        return Component.translatable(REVIVEE, reviver);
     }
 
-    public static Text revived(Text revived) {
-        return Text.translatable(REVIVER, revived);
+    public static Component revived(Component revived) {
+        return Component.translatable(REVIVER, revived);
     }
 
-    public static Text playerIsAlive(Text player) {
-        return Text.translatable(PLAYER_IS_ALIVE, player);
+    public static Component playerIsAlive(Component player) {
+        return Component.translatable(PLAYER_IS_ALIVE, player);
     }
 
-    public static Text withdrawnHealth(int health, int hearts) {
+    public static Component withdrawnHealth(int health, int hearts) {
         if (hearts == 1) {
-            return Text.translatable(HEART_WITHDRAWN_SINGLE, health);
+            return Component.translatable(HEART_WITHDRAWN_SINGLE, health);
         }
-        return Text.translatable(HEART_WITHDRAWN, health, hearts);
+        return Component.translatable(HEART_WITHDRAWN, health, hearts);
     }
 
-    public static Text receiverTooMuchHealth(Text receiver) {
-        return Text.translatable(GIFT_RECEIVER_MAX_HEALTH, receiver);
+    public static Component receiverTooMuchHealth(Component receiver) {
+        return Component.translatable(GIFT_RECEIVER_MAX_HEALTH, receiver);
     }
 
-    public static Text giftSuccess(double health, Text receiver) {
-        return Text.translatable(GIFT_SUCCESS, health, receiver);
+    public static Component giftSuccess(double health, Component receiver) {
+        return Component.translatable(GIFT_SUCCESS, health, receiver);
     }
 
-    public static Text receiveGift(double health, Text sender) {
-        return Text.translatable(RECEIVE_SUCCESS, health, sender);
+    public static Component receiveGift(double health, Component sender) {
+        return Component.translatable(RECEIVE_SUCCESS, health, sender);
     }
 
-    public static Text noSelfGifting(Text name) {
-        return Text.translatable(PLAYER_IS_YOU, name);
+    public static Component noSelfGifting(Component name) {
+        return Component.translatable(PLAYER_IS_YOU, name);
     }
 
-    public static Text noSelfReviving(Text name) {
-        return Text.translatable(SELF_REVIVE, name);
+    public static Component noSelfReviving(Component name) {
+        return Component.translatable(SELF_REVIVE, name);
     }
 
-    public static Text isDead(Text name) {
-        return Text.translatable(PLAYER_IS_DEAD, name);
+    public static Component isDead(Component name) {
+        return Component.translatable(PLAYER_IS_DEAD, name);
     }
 
-    public static Text updateHealth(double changeAmount) { // +X Health
+    public static Component updateHealth(double changeAmount) { // +X Health
         String changeStr = String.valueOf(changeAmount);
         if (changeAmount > 0) {
             changeStr = "+" + changeStr;
         }
-        return Text.translatable(UPDATE_HEALTH, changeStr).withColor(TextColor.fromFormatting(Formatting.RED).getRgb());
+        return Component.translatable(UPDATE_HEALTH, changeStr).withColor(TextColor.fromLegacyFormat(ChatFormatting.RED).getValue());
     }
 
-    public static Text adminRevive(String player) {
-        return Text.translatable(ADMIN_REVIVE, player);
+    public static Component adminRevive(String player) {
+        return Component.translatable(ADMIN_REVIVE, player);
     }
 
-    public static Text deathTime(int seconds) {
-        return Text.translatable(DEATH_TIME, seconds);
+    public static Component deathTime(int seconds) {
+        return Component.translatable(DEATH_TIME, seconds);
     }
 
-    public static Text preventDamage(Text player) {
-        return Text.translatable(PREVENT_DAMAGE, player);
+    public static Component preventDamage(Component player) {
+        return Component.translatable(PREVENT_DAMAGE, player);
     }
 }

@@ -11,7 +11,7 @@ import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
-import com.github.tatercertified.lifesteal.mixin.ServerPlayerEntityServerAccessor;
+import com.github.tatercertified.lifesteal.mixin.ServerPlayerServerAccessor;
 import com.github.tatercertified.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.github.tatercertified.lifesteal.world.Ores;
@@ -22,14 +22,14 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.scoreboard.Team;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.scores.Team;
+import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.ChatFormatting;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -39,7 +39,7 @@ public class Lifesteal implements ModInitializer {
     public static final String MOD_ID = "lifesteal";
     public static final Map<UUID, DeathData> DEAD_PLAYERS = new HashMap<>();
     public static final Path DEAD_PLAYERS_FILE_PATH = Path.of(FabricLoader.getInstance().getConfigDir().resolve("lifesteal-deaths.json").toString());
-    public static Team invulnerableTeam;
+    public static PlayerTeam invulnerableTeam;
 
     @Override
     public void onInitialize() {
@@ -58,21 +58,21 @@ public class Lifesteal implements ModInitializer {
         // You can't remove the effect through suicide either... sorry
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, b) -> {
             if (((PlayerInvulnerabilityInterface)oldPlayer).isReviveInvulnerable()) {
-                newPlayer.addStatusEffect(new StatusEffectInstance(InvulnerableStatusEffect.INVULNERABLE, ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining(), 0, false, false, true));
-                ((ServerPlayerEntityServerAccessor) newPlayer).getServer().getScoreboard().addScoreHolderToTeam(newPlayer.getNameForScoreboard(), invulnerableTeam);
+                newPlayer.addEffect(new MobEffectInstance(InvulnerableStatusEffect.INVULNERABLE, ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining(), 0, false, false, true));
+                ((ServerPlayerServerAccessor) newPlayer).getServer().getScoreboard().addPlayerToTeam(newPlayer.getScoreboardName(), invulnerableTeam);
             }
         });
 
         ServerLifecycleEvents.SERVER_STARTING.register(minecraftServer -> LifeStealGamerules.serverInstance = minecraftServer);
 
         ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> {
-            boolean containsTeam = minecraftServer.getScoreboard().getTeams().stream()
+            boolean containsTeam = minecraftServer.getScoreboard().getPlayerTeams().stream()
                     .anyMatch(team -> team.getName().equals("invulnerable"));
 
             if (!containsTeam) {
-                invulnerableTeam = minecraftServer.getScoreboard().addTeam("invulnerable");
-                invulnerableTeam.setColor(Formatting.DARK_RED);
-                invulnerableTeam.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.ALWAYS);
+                invulnerableTeam = minecraftServer.getScoreboard().addPlayerTeam("invulnerable");
+                invulnerableTeam.setColor(ChatFormatting.DARK_RED);
+                invulnerableTeam.setNameTagVisibility(Team.Visibility.ALWAYS);
             }
         });
 
@@ -85,17 +85,17 @@ public class Lifesteal implements ModInitializer {
 		 This callback exchanges HP for heart items if right-clicking on an altar
 		 */
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (player instanceof ServerPlayerEntity serverPlayer) {
-                MinecraftServer server = ((ServerPlayerEntityServerAccessor)serverPlayer).getServer();
-                if (((ServerWorld) world).getGameRules().getValue(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.ALTAR
-                        && serverPlayer.isSneaking()
-                        && hand == serverPlayer.getActiveHand()
-                        && serverPlayer.getStackInHand(hand).isEmpty()
-                        && HeartItem.isAltar((ServerWorld) world, hitResult.getBlockPos())) {
+            if (player instanceof ServerPlayer serverPlayer) {
+                MinecraftServer server = ((ServerPlayerServerAccessor)serverPlayer).getServer();
+                if (((ServerLevel) world).getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.ALTAR
+                        && serverPlayer.isShiftKeyDown()
+                        && hand == serverPlayer.getUsedItemHand()
+                        && serverPlayer.getItemInHand(hand).isEmpty()
+                        && HeartItem.isAltar((ServerLevel) world, hitResult.getBlockPos())) {
                     PlayerUtils.convertHealthToHeartItems(serverPlayer, 1, true);
                 }
             }
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
     }
 }

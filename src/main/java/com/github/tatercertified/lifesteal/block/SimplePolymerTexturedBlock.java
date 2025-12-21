@@ -6,20 +6,21 @@ import eu.pb4.polymer.blocks.api.BlockModelType;
 import eu.pb4.polymer.blocks.api.PolymerBlockModel;
 import eu.pb4.polymer.blocks.api.PolymerBlockResourceUtils;
 import eu.pb4.polymer.blocks.api.PolymerTexturedBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.resources.Identifier;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class SimplePolymerTexturedBlock extends Block implements PolymerTexturedBlock, BedrockBlock {
     private final BlockState polymerBlockState;
 
-    public SimplePolymerTexturedBlock(Settings settings, String modelId) {
+    public SimplePolymerTexturedBlock(Properties settings, String modelId) {
         super(settings);
 
         this.polymerBlockState = PolymerBlockResourceUtils.requestBlock(
                 BlockModelType.FULL_BLOCK,
-                PolymerBlockModel.of(Identifier.of(Lifesteal.MOD_ID, modelId)));
+                PolymerBlockModel.of(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, modelId)));
 
     }
 
@@ -30,6 +31,6 @@ public class SimplePolymerTexturedBlock extends Block implements PolymerTextured
 
     @Override
     public String bedrockName() {
-        return polymerBlockState.getBlock().getName().getLiteralString();
+        return polymerBlockState.getBlock().getName().tryCollapseToString();
     }
 }

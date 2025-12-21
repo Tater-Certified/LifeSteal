@@ -11,41 +11,41 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.Direction;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.Direction;
 
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
+import static net.minecraft.commands.Commands.argument;
+import static net.minecraft.commands.Commands.literal;
 
 public class ReviveCommand {
     public static void register() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, dedicated) -> {
             dispatcher.register(literal("revive")
-                    .requires(ServerCommandSource::isExecutedByPlayer)
+                    .requires(CommandSourceStack::isPlayer)
                     .then(argument("player", StringArgumentType.string())
                             .suggests(ReviveCommand::suggestPlayers)
                             .executes(ReviveCommand::revive)));
         });
     }
 
-    private static CompletableFuture<Suggestions> suggestPlayers(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
+    private static CompletableFuture<Suggestions> suggestPlayers(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
         MinecraftServer server = context.getSource().getServer();
 
         for (UUID playerId : Lifesteal.DEAD_PLAYERS.keySet()) {
-            Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().getByUuid(playerId);
+            Optional<NameAndId> optionalGameProfile = server.services().nameToIdCache().get(playerId);
             optionalGameProfile.ifPresent(profile -> {
-                if (DeathData.isPlayerDead(profile.id(), context.getSource().getWorld().getGameRules().getValue(LifeStealGamerules.AUTOREVIVAL))) {
+                if (DeathData.isPlayerDead(profile.id(), context.getSource().getLevel().getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
                     builder.suggest(profile.name());
                 }
             });
@@ -54,36 +54,36 @@ public class ReviveCommand {
         return builder.buildFuture();
     }
 
-    private static int revive(CommandContext<ServerCommandSource> context) {
+    private static int revive(CommandContext<CommandSourceStack> context) {
         MinecraftServer server = context.getSource().getServer();
-        ServerCommandSource source = context.getSource();
+        CommandSourceStack source = context.getSource();
 
-        if (source.getWorld().getGameRules().getValue(LifeStealGamerules.REVIVE_METHOD) == ReviveMethod.COMMAND) {
-            ItemStack holding = source.getPlayer().getMainHandStack();
+        if (source.getLevel().getGameRules().get(LifeStealGamerules.REVIVE_METHOD) == ReviveMethod.COMMAND) {
+            ItemStack holding = source.getPlayer().getMainHandItem();
             if (!(holding.getItem() instanceof HeartItem)) {
-                source.sendError(LifeStealText.REVIVE_HOLD);
+                source.sendFailure(LifeStealText.REVIVE_HOLD);
                 return 0;
             }
 
             String name = StringArgumentType.getString(context, "player");
-            Optional<PlayerConfigEntry> optionalGameProfile = server.getApiServices().nameToIdCache().findByName(name);
+            Optional<NameAndId> optionalGameProfile = server.services().nameToIdCache().get(name);
             if (optionalGameProfile.isPresent()) {
-                PlayerConfigEntry profile = optionalGameProfile.get();
+                NameAndId profile = optionalGameProfile.get();
                 if (DeathData.isPlayerDead(profile.id(), 0)) {
-                    ItemUsageContext usageContext = new ItemUsageContext(source.getPlayer(), Hand.MAIN_HAND, new BlockHitResult(source.getPlayer().getEntityPos(), Direction.DOWN, source.getPlayer().getBlockPos(), true));
-                    DeathData.revive(profile.id(), server, source.getWorld(), source.getPlayer().getBlockPos(), source.getPlayer(), Optional.of(usageContext));
+                    UseOnContext usageContext = new UseOnContext(source.getPlayer(), InteractionHand.MAIN_HAND, new BlockHitResult(source.getPlayer().position(), Direction.DOWN, source.getPlayer().blockPosition(), true));
+                    DeathData.revive(profile.id(), server, source.getLevel(), source.getPlayer().blockPosition(), source.getPlayer(), Optional.of(usageContext));
                     //DeathData.removeFromDeathDataList(profile.getId());
                 } else {
-                    source.sendError(LifeStealText.playerIsAlive(Text.of(profile.name())));
+                    source.sendFailure(LifeStealText.playerIsAlive(Component.nullToEmpty(profile.name())));
                     return 0;
                 }
             } else {
-                source.sendError(LifeStealText.notFound(name));
+                source.sendFailure(LifeStealText.notFound(name));
                 return 0;
             }
             return 1;
         } else {
-            source.sendError(LifeStealText.REVIVE_COMMAND_DISABLED);
+            source.sendFailure(LifeStealText.REVIVE_COMMAND_DISABLED);
             return 0;
         }
     }

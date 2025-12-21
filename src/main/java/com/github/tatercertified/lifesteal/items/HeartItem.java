@@ -7,23 +7,23 @@ import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import de.olivermakesco.polyspring.api.BedrockItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CandleBlock;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.Items;
-import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.CandleBlock;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.Items;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
@@ -31,77 +31,77 @@ import java.util.Optional;
 
 public class HeartItem extends Item implements PolymerItem, BedrockItem {
 
-    public HeartItem(Item.Settings settings) {
+    public HeartItem(Item.Properties settings) {
         super(settings);
     }
 
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if(world.isClient() || user.isSneaking()) {
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if(world.isClientSide() || user.isShiftKeyDown()) {
             return super.use(world, user, hand);
         }
 
-        final var stack = user.getStackInHand(hand);
-        final int amount = ((ServerWorld) world).getGameRules().getValue(LifeStealGamerules.HEARTBONUS);
+        final var stack = user.getItemInHand(hand);
+        final int amount = ((ServerLevel) world).getGameRules().get(LifeStealGamerules.HEARTBONUS);
 
-        final ServerPlayerEntity serverPlayer = (ServerPlayerEntity) user;
+        final ServerPlayer serverPlayer = (ServerPlayer) user;
         if(!PlayerUtils.changeHealth(serverPlayer, amount)) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
-        stack.decrement(1);
-        return ActionResult.SUCCESS;
+        stack.shrink(1);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context) {
+    public InteractionResult useOn(UseOnContext context) {
 
-        if (!(context.getWorld() instanceof ServerWorld world)) {
-            return super.useOnBlock(context);
+        if (!(context.getLevel() instanceof ServerLevel world)) {
+            return super.useOn(context);
         }
         final MinecraftServer server = world.getServer();
 
-        if (world.getGameRules().getValue(LifeStealGamerules.REVIVE_METHOD) != ReviveMethod.ALTAR) {
-            return super.useOnBlock(context);
+        if (world.getGameRules().get(LifeStealGamerules.REVIVE_METHOD) != ReviveMethod.ALTAR) {
+            return super.useOn(context);
         }
 
-        ServerPlayerEntity player = (ServerPlayerEntity) context.getPlayer();
+        ServerPlayer player = (ServerPlayer) context.getPlayer();
         if (player == null) {
-            return super.useOnBlock(context);
+            return super.useOn(context);
         }
 
-        String playerName = getCustomName(context.getStack());
+        String playerName = getCustomName(context.getItemInHand());
         if (playerName == null) {
-            return super.useOnBlock(context);
+            return super.useOn(context);
         }
 
-        BlockPos pos = context.getBlockPos();
-        if (player.isSneaking() && isAltar(world, pos)) {
+        BlockPos pos = context.getClickedPos();
+        if (player.isShiftKeyDown() && isAltar(world, pos)) {
             // Can't revive yourself
             if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
-                player.sendMessage(LifeStealText.noSelfReviving(player.getName()), true);
+                player.displayClientMessage(LifeStealText.noSelfReviving(player.getName()), true);
                 DeathData.failedSound(world, pos);
-                return ActionResult.FAIL;
+                return InteractionResult.FAIL;
             }
 
             byte val = DeathData.revive(playerName, server, world, pos, player, Optional.of(context));
 
             switch (val) {
                 case 0 -> {
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
                 case 1 -> {
-                    return ActionResult.FAIL;
+                    return InteractionResult.FAIL;
                 }
                 default -> {
-                    player.sendMessage(LifeStealText.notFound(playerName), true);
+                    player.displayClientMessage(LifeStealText.notFound(playerName), true);
                     DeathData.failedSound(world, pos);
-                    return ActionResult.FAIL;
+                    return InteractionResult.FAIL;
                 }
             }
         }
-        return super.useOnBlock(context);
+        return super.useOn(context);
     }
 
     @Nullable
@@ -111,18 +111,18 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         }
 
         if (hasCustomName(stack)) {
-            return stack.getName().getString();
+            return stack.getHoverName().getString();
         }
 
         return null;
     }
 
     private static boolean hasCustomName(ItemStack stack) {
-        return stack.get(DataComponentTypes.CUSTOM_NAME) != null;
+        return stack.get(DataComponents.CUSTOM_NAME) != null;
     }
 
-    public static boolean isAltar(ServerWorld world, BlockPos pos) {
-        if (!world.getBlockState(pos).isOf(LifeStealGamerules.getAltarBlock(world.getGameRules()))) {
+    public static boolean isAltar(ServerLevel world, BlockPos pos) {
+        if (!world.getBlockState(pos).is(LifeStealGamerules.getAltarBlock(world.getGameRules()))) {
             return false;
         }
 
@@ -131,15 +131,15 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
         BlockState south = world.getBlockState(pos.south());
         BlockState west = world.getBlockState(pos.west());
 
-        return north.isIn(BlockTags.CANDLES) && north.get(CandleBlock.LIT)
-                && east.isIn(BlockTags.CANDLES) && east.get(CandleBlock.LIT)
-                && south.isIn(BlockTags.CANDLES) && south.get(CandleBlock.LIT)
-                && west.isIn(BlockTags.CANDLES) && west.get(CandleBlock.LIT);
+        return north.is(BlockTags.CANDLES) && north.getValue(CandleBlock.LIT)
+                && east.is(BlockTags.CANDLES) && east.getValue(CandleBlock.LIT)
+                && south.is(BlockTags.CANDLES) && south.getValue(CandleBlock.LIT)
+                && west.is(BlockTags.CANDLES) && west.getValue(CandleBlock.LIT);
     }
 
     @Override
-    public int getMaxCount() {
-        return LifeStealGamerules.serverInstance != null ? LifeStealGamerules.serverInstance.getOverworld().getGameRules().getValue(LifeStealGamerules.HEART_STACK_SIZE) : 1;
+    public int getDefaultMaxStackSize() {
+        return LifeStealGamerules.serverInstance != null ? LifeStealGamerules.serverInstance.overworld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE) : 1;
     }
 
 
@@ -150,7 +150,7 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
 
     @Override
     public String bedrockName() {
-        return Text.translatable(this.getTranslationKey()).getLiteralString();
+        return Component.translatable(this.getDescriptionId()).tryCollapseToString();
     }
 
     @Override
