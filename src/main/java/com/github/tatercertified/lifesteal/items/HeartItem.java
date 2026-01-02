@@ -5,7 +5,6 @@ import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
-import de.olivermakesco.polyspring.api.BedrockItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.CandleBlock;
@@ -19,7 +18,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
@@ -29,7 +27,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Optional;
 
-public class HeartItem extends Item implements PolymerItem, BedrockItem {
+public class HeartItem extends Item implements PolymerItem {
 
     public HeartItem(Item.Properties settings) {
         super(settings);
@@ -146,20 +144,5 @@ public class HeartItem extends Item implements PolymerItem, BedrockItem {
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.NETHER_STAR;
-    }
-
-    @Override
-    public String bedrockName() {
-        return Component.translatable(this.getDescriptionId()).tryCollapseToString();
-    }
-
-    @Override
-    public boolean bedrockEdible() {
-        return true;
-    }
-
-    @Override
-    public boolean bedrockFoil() {
-        return true;
     }
 }

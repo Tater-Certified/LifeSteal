@@ -3,22 +3,19 @@ package com.github.tatercertified.lifesteal.items;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.RevivalGUI;
-import de.olivermakesco.polyspring.api.BedrockItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.Level;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-public class TotemOfRebirth extends Item implements PolymerItem, BedrockItem {
+public class TotemOfRebirth extends Item implements PolymerItem {
 
     public TotemOfRebirth(Properties settings) {
         super(settings);
@@ -35,21 +32,6 @@ public class TotemOfRebirth extends Item implements PolymerItem, BedrockItem {
     @Override
     public int getDefaultMaxStackSize() {
         return 1;
-    }
-
-    @Override
-    public boolean bedrockEdible() {
-        return true;
-    }
-
-    @Override
-    public boolean bedrockFoil() {
-        return true;
-    }
-
-    @Override
-    public String bedrockName() {
-        return Component.translatable(this.getDescriptionId()).tryCollapseToString();
     }
 
     @Override

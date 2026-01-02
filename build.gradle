@@ -13,6 +13,10 @@ base {
 repositories {
     maven { url 'https://maven.nucleoid.xyz/releases/' }
     maven { url 'https://jitpack.io' }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
     mavenCentral()
 }
 
@@ -29,7 +33,8 @@ dependencies {
     modImplementation include("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
     modImplementation include("eu.pb4:sgui:${project.sgui_version}")
     implementation include('com.google.code.gson:gson:2.13.1')
-    modImplementation include('com.github.QPCrummer:PolySpring:f35011d7f6')
+    //modImplementation include('com.github.QPCrummer:PolySpring:f35011d7f6')
+    modApi "maven.modrinth:unruled-api:${project.unruled_version}"
 }
 
 loom {
