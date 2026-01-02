@@ -65,7 +65,7 @@ public class LifestealGameTest {
         TestSubject player = spawnSinglePlayerTest(context);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
-        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.NETHERITE_BLOCK).toShortString(), context.getLevel().getServer());
+        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.NETHERITE_BLOCK), context.getLevel().getServer());
         context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar failed to be created"));
         context.runAfterDelay(1, () -> {
             player.setShiftKeyDown(true);
@@ -77,13 +77,13 @@ public class LifestealGameTest {
             context.assertTrue(maxHealth == 18.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
         context.runAfterDelay(4, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.DIAMOND_BLOCK).toShortString(), context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.DIAMOND_BLOCK), context.getLevel().getServer());
             context.getLevel().setBlockAndUpdate(altar, Blocks.DIAMOND_BLOCK.defaultBlockState());
         });
         context.runAfterDelay(5, () -> context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar block failed to be set")));
 
         context.runAfterDelay(6, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.NETHERITE_BLOCK).toShortString(), context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.NETHERITE_BLOCK), context.getLevel().getServer());
             end(context, player);
         });
     }

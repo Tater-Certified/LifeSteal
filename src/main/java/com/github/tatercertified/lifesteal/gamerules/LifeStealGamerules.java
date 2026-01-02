@@ -1,31 +1,26 @@
 package com.github.tatercertified.lifesteal.gamerules;
 
 import com.github.tatercertified.lifesteal.Lifesteal;
-import com.github.tatercertified.lifesteal.mixin.GameRuleRegistryInvoker;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.serialization.Codec;
+import com.nerjal.unruled_api.UnruledApi;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleBuilder;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleEvents;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gamerules.GameRule;
 import net.minecraft.world.level.gamerules.GameRuleCategory;
-import net.minecraft.world.level.gamerules.GameRuleType;
-import net.minecraft.world.level.gamerules.GameRuleTypeVisitor;
 import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.NotNull;
 
 public final class LifeStealGamerules {
     public static MinecraftServer serverInstance;
     public static void init() {
-        GameRuleEvents.changeCallback(ALTAR_BLOCK).register((value, server) -> {
-            cachedAltarBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(value));
-        });
-
         // TODO Temp fix until SyncedBoundedIntRule is fixed
         GameRuleEvents.changeCallback(STEALAMOUNT).register((value, server) -> {
             boolean minPlayerEven = server.overworld().getGameRules().get(MINPLAYERHEALTH) % 2 == 0;
@@ -67,7 +62,7 @@ public final class LifeStealGamerules {
     /**
      * The method required to gift a heart
      */
-    public static final GameRule<@NotNull GiftMethod> GIFT_METHOD = GameRuleBuilder.forEnum(GiftMethod.ALTAR)
+    public static final GameRule<@NotNull GiftMethod> GIFT_METHOD = GameRuleBuilder.forEnum(GiftMethod.MANUAL)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "gift_method"));
 
     /**
@@ -117,17 +112,10 @@ public final class LifeStealGamerules {
     /**
      * The block that is to be used as the altar
      */
-    public static final GameRule<@NotNull String> ALTAR_BLOCK = GameRuleRegistryInvoker.register(
-            Lifesteal.MOD_ID + ":altar_block",
-            GameRuleCategory.MISC,
-            GameRuleType.INT, // I don't know, this will probably be fine
-            StringArgumentType.string(),
-            Codec.STRING,
-            "minecraft:netherite_block",
-            FeatureFlagSet.of(),
-            GameRuleTypeVisitor::visit, // TODO Figure this out
-            s -> BuiltInRegistries.BLOCK.containsKey(Identifier.parse(s)) ? 1 : 0
-    );
+    public static final GameRule<Holder.Reference<Block>> ALTAR_BLOCK = UnruledApi.dynamicRegistryEntryRuleBuilder(GameRuleCategory.MISC, Registries.BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.NETHERITE_BLOCK))
+            .setChangeCallback((minecraftServer, gameRule, blockReference) -> cachedAltarBlock = blockReference.value())
+            .setRequiredFeatures(FeatureFlagSet.of())
+            .register(Identifier.tryBuild(Lifesteal.MOD_ID, "altar_block"));
 
 
     /**
@@ -154,7 +142,7 @@ public final class LifeStealGamerules {
 
     public static Block getAltarBlock(GameRules gameRules) {
         if (cachedAltarBlock == null) {
-            cachedAltarBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(gameRules.get(ALTAR_BLOCK)));
+            cachedAltarBlock = gameRules.get(ALTAR_BLOCK).value();
         }
         return cachedAltarBlock;
     }
