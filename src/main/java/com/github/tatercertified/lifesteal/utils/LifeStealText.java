@@ -3,8 +3,6 @@ package com.github.tatercertified.lifesteal.utils;
 import com.github.tatercertified.lifesteal.data.DeathData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.ChatFormatting;
 
 public final class LifeStealText {
     public static final Component
@@ -12,7 +10,6 @@ public final class LifeStealText {
             DEATH = Component.translatable("lifesteal.gameplay.death"),
             MAX_HEALTH = Component.translatable("lifesteal.gameplay.max_health"),
             LOW_HEALTH = Component.translatable("lifesteal.gameplay.low_health"),
-            HEART_DISABLED = Component.translatable("lifesteal.heart.disabled"),
             GIFT_COMMAND_DISABLED = Component.translatable("lifesteal.command.gift.disabled"),
             REVIVE_COMMAND_DISABLED = Component.translatable("lifesteal.command.revive.disabled"),
             WITHDRAW_COMMAND_DISABLED = Component.translatable("lifesteal.command.withdraw.disabled"),
@@ -22,11 +19,9 @@ public final class LifeStealText {
             REVIVE_HOLD = Component.translatable("lifesteal.revive.holding"),
             BACK = Component.translatable("lifesteal.gui.back"),
             NEXT = Component.translatable("lifesteal.gui.next"),
-            MIN_PLAYER_HEALTH_ADJUST = Component.translatable("lifesteal.gamerules.minplayerhealth.failed"),
             TITLE = Component.translatable("lifesteal.gui.title");
 
     private static final String
-            UPDATE_HEALTH = "lifesteal.gameplay.update_health",
             HEART_WITHDRAWN = "lifesteal.withdraw.heart",
             HEART_WITHDRAWN_SINGLE = "lifesteal.withdraw.heart.single",
             GIFT_RECEIVER_MAX_HEALTH = "lifesteal.gift.receiver.max_health",
@@ -92,14 +87,6 @@ public final class LifeStealText {
 
     public static Component isDead(Component name) {
         return Component.translatable(PLAYER_IS_DEAD, name);
-    }
-
-    public static Component updateHealth(double changeAmount) { // +X Health
-        String changeStr = String.valueOf(changeAmount);
-        if (changeAmount > 0) {
-            changeStr = "+" + changeStr;
-        }
-        return Component.translatable(UPDATE_HEALTH, changeStr).withColor(TextColor.fromLegacyFormat(ChatFormatting.RED).getValue());
     }
 
     public static Component adminRevive(String player) {
