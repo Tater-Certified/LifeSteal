@@ -22,10 +22,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayer.class)
-public abstract class ServerPlayerMixin extends Player implements PlayerReviveData, PlayerInvulnerabilityInterface, PlayerMaxHealthInterface {
+public abstract class ServerPlayerMixin extends Player implements PlayerReviveData, PlayerInvulnerabilityInterface, PlayerMaxHealthInterface, CraftedHeartsInterface {
 
     private boolean newlyRevived;
     private int invulnerableTicks = 0;
+    private int heartsCrafted = 0;
 
     public ServerPlayerMixin(Level world, GameProfile profile) {
         super(world, profile);
@@ -49,13 +50,15 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void lifesteal$readRevivedData(ValueInput view, CallbackInfo ci) {
         this.setNewlyRevived(view.getBooleanOr("newly_revived", false));
-        invulnerableTicks = view.getIntOr("invulnerability_ticks", 0);
+        this.invulnerableTicks = view.getIntOr("invulnerability_ticks", 0);
+        this.heartsCrafted = view.getIntOr("hearts_crafted", 0);
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void lifesteal$writeRevivedData(ValueOutput view, CallbackInfo ci) {
         view.putBoolean("newly_revived", this.newlyRevived);
         view.putInt("invulnerability_ticks", this.invulnerableTicks);
+        view.putInt("hearts_crafted", this.heartsCrafted);
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
@@ -115,5 +118,25 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     @Override
     public void setBaseMaxHealth(double value) {
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(value);
+    }
+
+    @Override
+    public int getHeartsCrafted() {
+        return this.heartsCrafted;
+    }
+
+    @Override
+    public void resetHeartsCrafted() {
+        this.heartsCrafted = 0;
+    }
+
+    @Override
+    public ServerPlayer getInstance() {
+        return (ServerPlayer) (Object) this;
+    }
+
+    @Override
+    public void incrementHeartsCrafted() {
+        this.heartsCrafted++;
     }
 }

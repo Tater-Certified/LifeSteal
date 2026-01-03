@@ -5,13 +5,15 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.github.tatercertified.lifesteal.utils.LifestealMixinConfig",
   "mixins": [
+    "CraftingMenuMixin",
+    "CrafterBlockMixin",
     "FakePlayerAccessor",
     "GameRuleRegistryInvoker",
     "ItemStackMixin",
     "MilkMixin",
+    "ServerPlayerGameModeMixin",
     "ServerPlayerMixin",
     "ServerPlayerServerAccessor",
-    "ServerPlayerGameModeMixin",
     "gametest.GameTestUserCacheMixin"
   ],
   "injectors": {

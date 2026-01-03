@@ -106,6 +106,24 @@ public final class LifeStealGamerules {
     public static final GameRule<@NotNull Integer> HEART_STACK_SIZE = GameRuleBuilder.forInteger(1).range(1, 64)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "heart_stack_size"));
 
+    /**
+     * If a heart can be crafted in a crafter
+     */
+    public static final GameRule<@NotNull Boolean> HEART_CRAFT_IN_CRAFTER = GameRuleBuilder.forBoolean(false)
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "heart_craft_in_crafter"));
+
+    /**
+     * The type of limited crafting of hearts
+     */
+    public static final GameRule<@NotNull LimitedCraftingType> LIMITED_CRAFTING_TYPE = GameRuleBuilder.forEnum(LimitedCraftingType.NONE)
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "limited_heart_crafting_type"));
+
+    /**
+     * The amount of hearts that can be crafted before limited
+     */
+    public static final GameRule<@NotNull Integer> LIMITED_CRAFTING_AMOUNT = GameRuleBuilder.forInteger(0)
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "limited_heart_crafting_amount"));
+
     private static Block cachedAltarBlock;
 
     public static Block getAltarBlock(GameRules gameRules) {

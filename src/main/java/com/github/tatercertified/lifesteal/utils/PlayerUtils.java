@@ -5,6 +5,7 @@ import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.DeathAction;
 import com.github.tatercertified.lifesteal.gamerules.DeathCriteria;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
+import com.github.tatercertified.lifesteal.gamerules.LimitedCraftingType;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.mixin.ServerPlayerServerAccessor;
 import net.minecraft.core.BlockPos;
@@ -124,6 +125,9 @@ public final class PlayerUtils {
 
         if (isDead) {
             // Considered "banned"
+            if (gameRules.get(LifeStealGamerules.LIMITED_CRAFTING_TYPE) == LimitedCraftingType.UNTIL_BANNED) {
+                ((CraftedHeartsInterface)killed).resetHeartsCrafted();
+            }
             DeathData data = new DeathData(killed.getUUID());
             data.addToDeathDataList();
             handleDeadPlayerAction(killed, data);
