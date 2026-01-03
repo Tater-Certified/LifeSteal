@@ -107,10 +107,11 @@ public class OfflinePlayerData {
     }
 
     /**
-     * Sets the max health of an offline player
-     * @param health The new max health
+     * Sets the max hearts of an offline player
+     * @param hearts The new max number of hearts
      */
-    public void setMaxHealth(double health) {
+    public void setMaxHearts(int hearts) {
+        double health = hearts * 2.0;
         ListTag nbtAttributes = this.root.getListOrEmpty("Attributes");
         for (int i = 0; i < nbtAttributes.size(); i++) {
             CompoundTag compound = nbtAttributes.getCompoundOrEmpty(i);
@@ -126,18 +127,19 @@ public class OfflinePlayerData {
     }
 
     /**
-     * Gets the offline player's max health
-     * @return the offline player's max health
+     * Gets the offline player's max hearts
+     * @return the offline player's max hearts
      */
-    public double getMaxHealth() {
+    public int getMaxHearts() {
         ListTag nbtAttributes = this.root.getListOrEmpty("Attributes");
         for (int i = 0; i < nbtAttributes.size(); i++) {
             CompoundTag compound = nbtAttributes.getCompoundOrEmpty(i);
             if (Objects.equals(compound.getString("Name").orElse(null), "minecraft:generic.max_health")) {
-                return compound.getDouble("Base").orElse(20.0);
+                double health = compound.getDouble("Base").orElse(20.0);
+                return (int) health / 2;
             }
         }
-        return 20.0; // If it doesn't exist, assume it is default
+        return 10; // If it doesn't exist, assume it is default
     }
 
     /**

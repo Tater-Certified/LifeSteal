@@ -3,6 +3,7 @@ package com.github.tatercertified.lifesteal.commands;
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
+import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -14,7 +15,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
 import java.util.Collection;
-import java.util.Optional;
 
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
@@ -38,13 +38,12 @@ public class AdminReviveCommand {
             return 0;
         }
         final NameAndId receiver = profiles.iterator().next();
-        if (!DeathData.isPlayerDead(receiver.id(), source.getLevel().getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
+        if (!DeathData.isPlayerDead(receiver.id(), source.getLevel().getGameRules().get(LifeStealGamerules.AUTO_REVIVAL))) {
             // Error
             source.sendFailure(LifeStealText.playerIsAlive(Component.nullToEmpty(receiver.name())));
             return 0;
         }
-        DeathData.revive(receiver.name(), source.getServer(), source.getLevel(), source.getPlayer().blockPosition(), source.getPlayer(), Optional.empty());
-        DeathData.removeFromDeathDataList(receiver.id());
+        PlayerUtils.revive(receiver.name(), source.getServer(), source.getLevel(), source.getPlayer().blockPosition(), source.getPlayer(), null);
         context.getSource().sendSuccess(() -> LifeStealText.adminRevive(receiver.name()), true);
         return 1;
     }

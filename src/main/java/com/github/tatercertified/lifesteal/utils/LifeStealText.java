@@ -63,11 +63,11 @@ public final class LifeStealText {
         return Component.translatable(PLAYER_IS_ALIVE, player);
     }
 
-    public static Component withdrawnHealth(int health, int hearts) {
+    public static Component withdrawnHealth(int hearts) {
         if (hearts == 1) {
-            return Component.translatable(HEART_WITHDRAWN_SINGLE, health);
+            return Component.translatable(HEART_WITHDRAWN_SINGLE);
         }
-        return Component.translatable(HEART_WITHDRAWN, health, hearts);
+        return Component.translatable(HEART_WITHDRAWN, hearts);
     }
 
     public static Component receiverTooMuchHealth(Component receiver) {

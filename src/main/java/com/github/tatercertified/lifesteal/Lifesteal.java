@@ -25,7 +25,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.scores.Team;
 import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -86,13 +85,12 @@ public class Lifesteal implements ModInitializer {
 		 */
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (player instanceof ServerPlayer serverPlayer) {
-                MinecraftServer server = ((ServerPlayerServerAccessor)serverPlayer).getServer();
                 if (((ServerLevel) world).getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.ALTAR
                         && serverPlayer.isShiftKeyDown()
                         && hand == serverPlayer.getUsedItemHand()
                         && serverPlayer.getItemInHand(hand).isEmpty()
                         && HeartItem.isAltar((ServerLevel) world, hitResult.getBlockPos())) {
-                    PlayerUtils.convertHealthToHeartItems(serverPlayer, 1, true);
+                    PlayerUtils.handleWithdraw(serverPlayer, 1);
                 }
             }
             return InteractionResult.PASS;

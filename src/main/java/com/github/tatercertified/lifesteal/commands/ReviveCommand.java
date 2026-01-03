@@ -6,6 +6,7 @@ import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
+import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -45,7 +46,7 @@ public class ReviveCommand {
         for (UUID playerId : Lifesteal.DEAD_PLAYERS.keySet()) {
             Optional<NameAndId> optionalGameProfile = server.services().nameToIdCache().get(playerId);
             optionalGameProfile.ifPresent(profile -> {
-                if (DeathData.isPlayerDead(profile.id(), context.getSource().getLevel().getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
+                if (DeathData.isPlayerDead(profile.id(), context.getSource().getLevel().getGameRules().get(LifeStealGamerules.AUTO_REVIVAL))) {
                     builder.suggest(profile.name());
                 }
             });
@@ -71,8 +72,7 @@ public class ReviveCommand {
                 NameAndId profile = optionalGameProfile.get();
                 if (DeathData.isPlayerDead(profile.id(), 0)) {
                     UseOnContext usageContext = new UseOnContext(source.getPlayer(), InteractionHand.MAIN_HAND, new BlockHitResult(source.getPlayer().position(), Direction.DOWN, source.getPlayer().blockPosition(), true));
-                    DeathData.revive(profile.id(), server, source.getLevel(), source.getPlayer().blockPosition(), source.getPlayer(), Optional.of(usageContext));
-                    //DeathData.removeFromDeathDataList(profile.getId());
+                    PlayerUtils.revive(profile.id(), server, source.getLevel(), source.getPlayer().blockPosition(), source.getPlayer(), usageContext);
                 } else {
                     source.sendFailure(LifeStealText.playerIsAlive(Component.nullToEmpty(profile.name())));
                     return 0;

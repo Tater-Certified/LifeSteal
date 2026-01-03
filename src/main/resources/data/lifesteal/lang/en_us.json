@@ -21,8 +21,8 @@
 
   "lifesteal.heart.disabled": "Hearts are disabled.",
 
-  "lifesteal.withdraw.heart": "Converted %s health into %s hearts",
-  "lifesteal.withdraw.heart.single": "Converted %s health into a heart",
+  "lifesteal.withdraw.heart": "You withdrew %s hearts",
+  "lifesteal.withdraw.heart.single": "You withdrew a heart",
 
   "lifesteal.gift.none": "Can't gift to nobody.",
   "lifesteal.gift.multiple": "Can't gift to multiple folks at once.",

@@ -1,10 +1,8 @@
 package com.github.tatercertified.lifesteal.gamerules;
 
 import com.github.tatercertified.lifesteal.Lifesteal;
-import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.nerjal.unruled_api.UnruledApi;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleBuilder;
-import net.fabricmc.fabric.api.gamerule.v1.GameRuleEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
@@ -20,26 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class LifeStealGamerules {
     public static MinecraftServer serverInstance;
-    public static void init() {
-        // TODO Temp fix until SyncedBoundedIntRule is fixed
-        GameRuleEvents.changeCallback(STEALAMOUNT).register((value, server) -> {
-            boolean minPlayerEven = server.overworld().getGameRules().get(MINPLAYERHEALTH) % 2 == 0;
-            boolean stealEven = value % 2 == 0;
-            if (stealEven != minPlayerEven) {
-                server.overworld().getGameRules().set(MINPLAYERHEALTH, value + 1, server);
-                server.sendSystemMessage(LifeStealText.MIN_PLAYER_HEALTH_ADJUST);
-            }
-        });
-
-        GameRuleEvents.changeCallback(MINPLAYERHEALTH).register((value, server) -> {
-            boolean stealEven = server.overworld().getGameRules().get(STEALAMOUNT) % 2 == 0;
-            boolean minPlayerEven = value % 2 == 0;
-            if (stealEven != minPlayerEven) {
-                server.overworld().getGameRules().set(MINPLAYERHEALTH, value + 1, server);
-                server.sendSystemMessage(LifeStealText.MIN_PLAYER_HEALTH_ADJUST);
-            }
-        });
-    }
+    public static void init() {}
 
     /**
      * What criteria must be met in order for hearts to be removed from the player
@@ -48,7 +27,7 @@ public final class LifeStealGamerules {
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "death_criteria"));
 
     /**
-     * The action to take when the player goes below the allowed minimum health as defined by {@link #MINPLAYERHEALTH}
+     * The action to take when the player goes below the allowed minimum health as defined by {@link #MIN_PLAYER_HEARTS}
      */
     public static final GameRule<@NotNull DeathAction> DEATH_ACTION = GameRuleBuilder.forEnum(DeathAction.BAN)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "death_action"));
@@ -75,38 +54,27 @@ public final class LifeStealGamerules {
      * Whether to disable getting "free" hearts from killing people with the minimum HP.
      * This can prevent spawn camping and harvesting tons of hearts from teammates
      */
-    public static final GameRule<@NotNull Boolean> ANTIHEARTDUPE = GameRuleBuilder.forBoolean(true)
+    public static final GameRule<@NotNull Boolean> ANTI_HEART_DUPE = GameRuleBuilder.forBoolean(true)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "enable_anti_heart_dupe"));
 
     /**
-     * The amount of health "stolen" from players when other players kill them.
+     * The number of hearts "stolen" from players when other players kill them.
      */
-    public static final GameRule<@NotNull Integer> STEALAMOUNT = GameRuleBuilder.forInteger(2).minValue(0)
+    public static final GameRule<@NotNull Integer> STEAL_AMOUNT = GameRuleBuilder.forInteger(1).minValue(0)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "steal_amount"));
 
     /**
      * This value determines the threshold for being considered "dead".
-     * If a player reaches lower than this value, they will be categorized as dead unless BanWhenMaxHealth is disabled
-     * If StealAmount is a multiple of 2, so should this value
+     * If a player reaches lower than this value, they will be categorized as dead
      */
-    // TODO Enforce multiple of 2 using events
-    // TODO Fix SyncedBoundedIntRule
-    public static final GameRule<@NotNull Integer> MINPLAYERHEALTH = GameRuleBuilder.forInteger(2).minValue(1)
+    public static final GameRule<@NotNull Integer> MIN_PLAYER_HEARTS = GameRuleBuilder.forInteger(2).minValue(1)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "min_player_health"));
 
-
-
     /**
-     * The max amount of health a player can obtain
+     * The max amount of hearts a player can obtain
      */
-    public static final GameRule<@NotNull Integer> MAXPLAYERHEALTH = GameRuleBuilder.forInteger(40).minValue(1)
+    public static final GameRule<@NotNull Integer> MAX_PLAYER_HEARTS = GameRuleBuilder.forInteger(20).minValue(1)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "max_player_health"));
-
-    /**
-     * The amount of health received from heart crystals
-     */
-    public static final GameRule<@NotNull Integer> HEARTBONUS = GameRuleBuilder.forInteger(2).minValue(0)
-            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "health_from_heart"));
 
 
     /**
@@ -122,7 +90,7 @@ public final class LifeStealGamerules {
      * The amount of seconds until the player is automatically revived
      * Setting this to 0 will disable auto-revival
      */
-    public static final GameRule<@NotNull Integer> AUTOREVIVAL = GameRuleBuilder.forInteger(0).minValue(0)
+    public static final GameRule<@NotNull Integer> AUTO_REVIVAL = GameRuleBuilder.forInteger(0).minValue(0)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "auto_revival_seconds"));
 
     /**

@@ -36,7 +36,6 @@ public class LifestealGameTest {
         LifestealMixinConfig.TEST_LOGGER.info("Test 1: Heart Consumption");
         TestSubject player = spawnSinglePlayerTest(context);
         ItemStack heart = new ItemStack(ModItems.HEART, 1);
-        context.getLevel().getGameRules().set(LifeStealGamerules.HEARTBONUS, 2, context.getLevel().getServer());
 
         context.runAfterDelay(1, () -> player.setItemInHand(InteractionHand.MAIN_HAND, heart.copy()));
         context.runAfterDelay(2, () -> use(player, heart.copy()));
@@ -45,18 +44,7 @@ public class LifestealGameTest {
             context.assertTrue(maxHealth == 22.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 22.0, Got: " + maxHealth));
         });
 
-        context.runAfterDelay(4, () -> player.setItemInHand(InteractionHand.MAIN_HAND, heart.copy()));
-        context.runAfterDelay(5, () -> context.getLevel().getGameRules().set(LifeStealGamerules.HEARTBONUS, 4, context.getLevel().getServer()));
-        context.runAfterDelay(6, () -> use(player, heart.copy()));
-        context.runAfterDelay(7, () -> {
-            double maxHealth = player.getMaxBaseHealth();
-            context.assertTrue(maxHealth == 26.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 26.0, Got: " + maxHealth));
-        });
-
-        context.runAfterDelay(8, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.HEARTBONUS, 2, context.getLevel().getServer());
-            end(context, player);
-        });
+        context.runAfterDelay(4, () -> end(context, player));
     }
 
     @GameTest(setupTicks = 10)
@@ -115,7 +103,7 @@ public class LifestealGameTest {
         // Test heart steal gamerule
         context.runAfterDelay(7, () -> {
             players[0].respawn();
-            context.getLevel().getGameRules().set(LifeStealGamerules.STEALAMOUNT, 4, context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.STEAL_AMOUNT, 4, context.getLevel().getServer());
         });
         context.runAfterDelay(8, () -> players[0].kill(players[1]));
         context.runAfterDelay(9, () -> {
@@ -126,7 +114,7 @@ public class LifestealGameTest {
         });
 
         context.runAfterDelay(10, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.STEALAMOUNT, 2, context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.STEAL_AMOUNT, 2, context.getLevel().getServer());
             end(context, players);
         });
     }

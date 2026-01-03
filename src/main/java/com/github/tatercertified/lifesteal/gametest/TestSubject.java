@@ -140,7 +140,7 @@ public class TestSubject extends FakePlayer {
      * @param context TestContext instance
      */
     public void setLowMaxHealth(GameTestHelper context) {
-        this.setMaxHealth(context.getLevel().getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH));
+        this.setMaxHealth(context.getLevel().getGameRules().get(LifeStealGamerules.MIN_PLAYER_HEARTS));
     }
 
     /**

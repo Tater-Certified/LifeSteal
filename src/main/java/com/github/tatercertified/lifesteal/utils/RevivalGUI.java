@@ -18,7 +18,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public class RevivalGUI {
@@ -45,9 +44,9 @@ public class RevivalGUI {
     }
 
     private static void revive(UUID uuid, ServerPlayer reviver, InteractionHand hand) {
-        if (DeathData.isPlayerDead(uuid, reviver.level().getGameRules().get(LifeStealGamerules.AUTOREVIVAL))) {
+        if (DeathData.isPlayerDead(uuid, reviver.level().getGameRules().get(LifeStealGamerules.AUTO_REVIVAL))) {
             UseOnContext context = new UseOnContext(reviver, hand, FAKE_HIT_RESULT);
-            DeathData.revive(uuid, reviver, Optional.of(context));
+            PlayerUtils.revive(uuid, reviver, context);
         }
     }
 

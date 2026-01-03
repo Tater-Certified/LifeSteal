@@ -1,26 +1,19 @@
 package com.github.tatercertified.lifesteal.mixin;
 
-import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
-import com.github.tatercertified.lifesteal.gamerules.DeathCriteria;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
-import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.*;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.Level;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,35 +31,13 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
         super(world, profile);
     }
 
-    @Shadow @Final
-    private MinecraftServer server;
-
     @Shadow
     public abstract ServerLevel level();
 
     @Inject(method = "die", at = @At("TAIL"))
     private void lifesteal$onDeath(DamageSource damageSource, CallbackInfo ci) {
-        Entity attacker = damageSource.getEntity();
-        if (attacker instanceof ServerPlayer playerAttacker) {
-            PlayerUtils.exchangeHealth(((ServerPlayer) (Object) this), playerAttacker);
-        } else if (level().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA) == DeathCriteria.ANY_DEATH ||
-                level().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA) == DeathCriteria.ANY_DEATH_DROP_HEART
-        ) {
-            AttributeInstance killedMaxHealth = this.getAttribute(Attributes.MAX_HEALTH);
-            PlayerUtils.changeHealthUnchecked(((ServerPlayer) (Object) this), -level().getGameRules().get(LifeStealGamerules.STEALAMOUNT));
-            // Drop heart in the world
-            if (level().getGameRules().get(LifeStealGamerules.DEATH_CRITERIA) == DeathCriteria.ANY_DEATH_DROP_HEART) {
-                this.drop(new ItemStack(ModItems.HEART, 1), true, false);
-            }
-            // Check to see if the player is dead
-            int minHealth = this.level().getGameRules().get(LifeStealGamerules.MINPLAYERHEALTH);
-            if (killedMaxHealth.getBaseValue() <= minHealth) {
-                // Considered dead
-                DeathData data = new DeathData(this.getUUID());
-                data.addToDeathDataList();
-                PlayerUtils.handleDeadPlayerAction((ServerPlayer)(Object)this, data);
-            }
-        }
+        ServerPlayer attacker = damageSource.getEntity() instanceof ServerPlayer ? (ServerPlayer) damageSource.getEntity() : null;
+        PlayerUtils.handleDeath((ServerPlayer) (Object) this, attacker);
     }
 
     @Inject(method = "restoreFrom", at = @At("TAIL"))

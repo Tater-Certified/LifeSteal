@@ -1,6 +1,5 @@
 package com.github.tatercertified.lifesteal.items;
 
-import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
@@ -25,8 +24,6 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-import java.util.Optional;
-
 public class HeartItem extends Item implements PolymerItem {
 
     public HeartItem(Item.Properties settings) {
@@ -41,15 +38,13 @@ public class HeartItem extends Item implements PolymerItem {
         }
 
         final var stack = user.getItemInHand(hand);
-        final int amount = ((ServerLevel) world).getGameRules().get(LifeStealGamerules.HEARTBONUS);
 
-        final ServerPlayer serverPlayer = (ServerPlayer) user;
-        if(!PlayerUtils.changeHealth(serverPlayer, amount)) {
+        if (PlayerUtils.incrementHearts((ServerPlayer) user)) {
+            stack.shrink(1);
+            return InteractionResult.SUCCESS;
+        } else {
             return InteractionResult.FAIL;
         }
-
-        stack.shrink(1);
-        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -79,11 +74,11 @@ public class HeartItem extends Item implements PolymerItem {
             // Can't revive yourself
             if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
                 player.displayClientMessage(LifeStealText.noSelfReviving(player.getName()), true);
-                DeathData.failedSound(world, pos);
+                PlayerUtils.failedSound(world, pos);
                 return InteractionResult.FAIL;
             }
 
-            byte val = DeathData.revive(playerName, server, world, pos, player, Optional.of(context));
+            byte val = PlayerUtils.revive(playerName, server, world, pos, player, context);
 
             switch (val) {
                 case 0 -> {
@@ -94,7 +89,7 @@ public class HeartItem extends Item implements PolymerItem {
                 }
                 default -> {
                     player.displayClientMessage(LifeStealText.notFound(playerName), true);
-                    DeathData.failedSound(world, pos);
+                    PlayerUtils.failedSound(world, pos);
                     return InteractionResult.FAIL;
                 }
             }
