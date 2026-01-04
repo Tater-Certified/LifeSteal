@@ -70,13 +70,13 @@ public final class LifeStealGamerules {
      * If a player reaches lower than this value, they will be categorized as dead
      */
     public static final GameRule<@NotNull Integer> MIN_PLAYER_HEARTS = GameRuleBuilder.forInteger(1).minValue(1)
-            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "min_player_health"));
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "min_player_hearts"));
 
     /**
      * The max amount of hearts a player can obtain
      */
     public static final GameRule<@NotNull Integer> MAX_PLAYER_HEARTS = GameRuleBuilder.forInteger(10).minValue(1)
-            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "max_player_health"));
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "max_player_hearts"));
 
 
     /**
