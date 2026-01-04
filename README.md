@@ -25,7 +25,7 @@ Configuration is purely managed through gamerules, here is a list of gamerules a
 | lifesteal:revival_invulnerability_seconds | Integer             | The amount of time a player is invulnerable after being revived in seconds. Set to 0 to disable.   | `0`                         |
 | lifesteal:heart_stack_size                | Integer             | The maximum stack size of the heart item                                                           | `1`                         |
 | lifesteal:heart_craft_in_crafter          | Boolean             | If a heart item can be crafted in a crafter                                                        | `false`                     |
-| lifesteal:limited_heart_crafting_type     | LimitedCraftingType | How limited crafting works: `until_banned`, `forever`, heart_based`, or `none`                     | `none`                      |
+| lifesteal:limited_heart_crafting_type     | LimitedCraftingType | How limited crafting works: `until_banned`, `forever`, `heart_based`, or `none`                    | `none`                      |
 | lifesteal:limited_heart_crafting_amount   | Integer             | The value/limit of limited crafting. It changes meaning depending on the limited crafting gamerule | `0`                         |
 
 ### Dead Player Json:
