@@ -130,7 +130,7 @@ public final class LifeStealGamerules {
     /**
      * The amount of hearts that can be crafted before limited
      */
-    public static final GameRule<@NotNull Integer> LIMITED_CRAFTING_AMOUNT = GameRuleBuilder.forInteger(0)
+    public static final GameRule<@NotNull Integer> LIMITED_CRAFTING_AMOUNT = GameRuleBuilder.forInteger(0).minValue(0)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "limited_heart_crafting_amount"));
 
     private static Block cachedAltarBlock;

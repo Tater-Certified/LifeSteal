@@ -22,6 +22,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class HeartItem extends Item implements PolymerItem {
@@ -48,7 +49,7 @@ public class HeartItem extends Item implements PolymerItem {
     }
 
     @Override
-    public InteractionResult useOn(UseOnContext context) {
+    public @NonNull InteractionResult useOn(UseOnContext context) {
 
         if (!(context.getLevel() instanceof ServerLevel world)) {
             return super.useOn(context);

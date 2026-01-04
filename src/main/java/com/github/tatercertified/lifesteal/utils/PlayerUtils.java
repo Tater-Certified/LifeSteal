@@ -166,7 +166,7 @@ public final class PlayerUtils {
         if (hearts < 0) {
             return 0;
         }
-        int newHearts = Math.max(gameRules.get(LifeStealGamerules.MAX_PLAYER_HEARTS), hearts + currentHearts);
+        int newHearts = Math.min(gameRules.get(LifeStealGamerules.MAX_PLAYER_HEARTS), hearts + currentHearts);
         return newHearts - currentHearts;
     }
 
@@ -315,9 +315,9 @@ public final class PlayerUtils {
     }
 
     private static byte revive(ServerPlayer revivee, @Nullable UUID reviveeId, @Nullable String reviveeName, MinecraftServer server, ServerLevel world, BlockPos pos, ServerPlayer reviver, UseOnContext context) {
-        boolean fromHeart = context != null;
+        boolean fromHeartItem = context != null;
         if (revivee != null) {
-            if (reviveOnline(revivee, world, pos, reviver, fromHeart)) {
+            if (reviveOnline(revivee, world, pos, reviver, fromHeartItem)) {
                 revived(reviver, context, revivee.getDisplayName());
                 return 0;
             }
@@ -335,7 +335,7 @@ public final class PlayerUtils {
         }
 
         if (profile.isPresent()) {
-            if (reviveOffline(profile.get(), world, pos, reviver, fromHeart)) {
+            if (reviveOffline(profile.get(), world, pos, reviver, fromHeartItem)) {
                 revived(reviver, context, Component.nullToEmpty(profile.get().name()));
                 return 0;
             }
@@ -345,7 +345,7 @@ public final class PlayerUtils {
         return 2;
     }
 
-    private static boolean reviveOnline(ServerPlayer player, ServerLevel world, BlockPos alter, Player reviver, boolean fromHeart) {
+    private static boolean reviveOnline(ServerPlayer player, ServerLevel world, BlockPos alter, Player reviver, boolean fromHeartItem) {
         if (!DeathData.isPlayerDead(player.getUUID(), world.getGameRules().get(LifeStealGamerules.AUTO_REVIVAL))) {
             return false;
         }
@@ -355,12 +355,12 @@ public final class PlayerUtils {
         player.sendSystemMessage(LifeStealText.onRevivalText(reviver.getDisplayName()));
         PlayerUtils.setMaxHearts(player, world.getGameRules().get(LifeStealGamerules.MIN_PLAYER_HEARTS));
         DeathData.removeFromDeathDataList(player.getUUID());
-        // These players are not newly revived if a heart was consumed to revive them
-        ((PlayerReviveData)player).setNewlyRevived(!fromHeart);
+        // These players are not newly revived if a heart wasn't consumed to revive them
+        ((PlayerReviveData)player).setNewlyRevived(!fromHeartItem);
         return true;
     }
 
-    private static boolean reviveOffline(NameAndId profile, ServerLevel world, BlockPos alter, Player reviver, boolean fromHeart) {
+    private static boolean reviveOffline(NameAndId profile, ServerLevel world, BlockPos alter, Player reviver, boolean fromHeartItem) {
         if (!DeathData.isPlayerDead(profile.id(), world.getGameRules().get(LifeStealGamerules.AUTO_REVIVAL))) {
             return false;
         }
@@ -373,12 +373,12 @@ public final class PlayerUtils {
         playerData.setPosition(world, alter.above().getCenter());
         playerData.setGamemode(GameType.SURVIVAL);
         playerData.setMaxHearts(world.getGameRules().get(LifeStealGamerules.MIN_PLAYER_HEARTS));
-        DeathData.removeFromDeathDataList(profile.id());
         // These players are not newly revived if a heart was consumed to revive them
-        playerData.setNewlyRevived(!fromHeart);
+        playerData.setNewlyRevived(!fromHeartItem);
         playerData.save();
 
         DeathData.setReviver(profile.id(), reviver.getUUID());
+        DeathData.removeFromDeathDataList(profile.id());
         return true;
     }
 
