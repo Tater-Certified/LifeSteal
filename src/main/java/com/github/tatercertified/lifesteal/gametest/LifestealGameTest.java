@@ -14,7 +14,6 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -53,7 +52,7 @@ public class LifestealGameTest {
         TestSubject player = spawnSinglePlayerTest(context);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
-        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.NETHERITE_BLOCK), context.getLevel().getServer());
+        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, "minecraft:netherite_block", context.getLevel().getServer());
         context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar failed to be created"));
         context.runAfterDelay(1, () -> {
             player.setShiftKeyDown(true);
@@ -65,13 +64,13 @@ public class LifestealGameTest {
             context.assertTrue(maxHealth == 18.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
         context.runAfterDelay(4, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.DIAMOND_BLOCK), context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, "minecraft:diamond_block", context.getLevel().getServer());
             context.getLevel().setBlockAndUpdate(altar, Blocks.DIAMOND_BLOCK.defaultBlockState());
         });
         context.runAfterDelay(5, () -> context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar block failed to be set")));
 
         context.runAfterDelay(6, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.NETHERITE_BLOCK), context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, "minecraft:netherite_block", context.getLevel().getServer());
             end(context, player);
         });
     }

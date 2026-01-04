@@ -1,24 +1,26 @@
 package com.github.tatercertified.lifesteal.gamerules;
 
 import com.github.tatercertified.lifesteal.Lifesteal;
-import com.nerjal.unruled_api.UnruledApi;
+import com.github.tatercertified.lifesteal.mixin.GameRuleRegistryInvoker;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.serialization.Codec;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleBuilder;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleEvents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.gamerules.GameRule;
-import net.minecraft.world.level.gamerules.GameRuleCategory;
-import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.gamerules.*;
 import org.jetbrains.annotations.NotNull;
 
 public final class LifeStealGamerules {
     public static MinecraftServer serverInstance;
-    public static void init() {}
+    public static void init() {
+        GameRuleEvents.changeCallback(ALTAR_BLOCK).register((value, server) -> {
+            cachedAltarBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(value));
+        });
+    }
 
     /**
      * What criteria must be met in order for hearts to be removed from the player
@@ -67,24 +69,31 @@ public final class LifeStealGamerules {
      * This value determines the threshold for being considered "dead".
      * If a player reaches lower than this value, they will be categorized as dead
      */
-    public static final GameRule<@NotNull Integer> MIN_PLAYER_HEARTS = GameRuleBuilder.forInteger(2).minValue(1)
+    public static final GameRule<@NotNull Integer> MIN_PLAYER_HEARTS = GameRuleBuilder.forInteger(1).minValue(1)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "min_player_health"));
 
     /**
      * The max amount of hearts a player can obtain
      */
-    public static final GameRule<@NotNull Integer> MAX_PLAYER_HEARTS = GameRuleBuilder.forInteger(20).minValue(1)
+    public static final GameRule<@NotNull Integer> MAX_PLAYER_HEARTS = GameRuleBuilder.forInteger(10).minValue(1)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "max_player_health"));
 
 
     /**
      * The block that is to be used as the altar
      */
-    public static final GameRule<Holder.Reference<Block>> ALTAR_BLOCK = UnruledApi.dynamicRegistryEntryRuleBuilder(GameRuleCategory.MISC, Registries.BLOCK, BuiltInRegistries.BLOCK.getKey(Blocks.NETHERITE_BLOCK))
-            .setChangeCallback((minecraftServer, gameRule, blockReference) -> cachedAltarBlock = blockReference.value())
-            .setRequiredFeatures(FeatureFlagSet.of())
-            .register(Identifier.tryBuild(Lifesteal.MOD_ID, "altar_block"));
 
+    public static final GameRule<@NotNull String> ALTAR_BLOCK = GameRuleRegistryInvoker.register(
+            Lifesteal.MOD_ID + ":altar_block",
+            GameRuleCategory.MISC,
+            GameRuleType.INT, // I don't know, this will probably be fine
+            StringArgumentType.string(),
+            Codec.STRING,
+            "minecraft:netherite_block",
+            FeatureFlagSet.of(),
+            GameRuleTypeVisitor::visit, // TODO Figure this out
+            s -> BuiltInRegistries.BLOCK.containsKey(Identifier.parse(s)) ? 1 : 0
+    );
 
     /**
      * The amount of seconds until the player is automatically revived
@@ -127,8 +136,9 @@ public final class LifeStealGamerules {
     private static Block cachedAltarBlock;
 
     public static Block getAltarBlock(GameRules gameRules) {
+
         if (cachedAltarBlock == null) {
-            cachedAltarBlock = gameRules.get(ALTAR_BLOCK).value();
+            cachedAltarBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(gameRules.get(ALTAR_BLOCK)));
         }
         return cachedAltarBlock;
     }
