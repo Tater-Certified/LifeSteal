@@ -5,8 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.github.tatercertified.lifesteal.utils.LifestealMixinConfig",
   "mixins": [
-    "CraftingMenuMixin",
+    "FlintAndSteelMixin",
     "CrafterBlockMixin",
+    "CraftingMenuMixin",
     "FakePlayerAccessor",
     "GameRuleRegistryInvoker",
     "ItemStackMixin",

@@ -6,6 +6,7 @@ import com.github.tatercertified.lifesteal.commands.GiftCommand;
 import com.github.tatercertified.lifesteal.commands.ReviveCommand;
 import com.github.tatercertified.lifesteal.commands.WithdrawCommand;
 import com.github.tatercertified.lifesteal.data.DeathData;
+import com.github.tatercertified.lifesteal.effect.AltarRitualAnimation;
 import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
@@ -19,6 +20,7 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -38,6 +40,7 @@ public class Lifesteal implements ModInitializer {
     public static final String MOD_ID = "lifesteal";
     public static final Map<UUID, DeathData> DEAD_PLAYERS = new HashMap<>();
     public static final Path DEAD_PLAYERS_FILE_PATH = Path.of(FabricLoader.getInstance().getConfigDir().resolve("lifesteal-deaths.json").toString());
+    public static final List<AltarRitualAnimation> ANIMATIONS = new ArrayList<>();
     public static PlayerTeam invulnerableTeam;
 
     @Override
@@ -72,6 +75,17 @@ public class Lifesteal implements ModInitializer {
                 invulnerableTeam = minecraftServer.getScoreboard().addPlayerTeam("invulnerable");
                 invulnerableTeam.setColor(ChatFormatting.DARK_RED);
                 invulnerableTeam.setNameTagVisibility(Team.Visibility.ALWAYS);
+            }
+        });
+
+        ServerTickEvents.START_WORLD_TICK.register(level -> {
+            Iterator<AltarRitualAnimation> iterator = ANIMATIONS.iterator();
+            while (iterator.hasNext()) {
+                AltarRitualAnimation anim = iterator.next();
+                anim.tick(level);
+                if (anim.isDone()) {
+                    iterator.remove();
+                }
             }
         });
 
