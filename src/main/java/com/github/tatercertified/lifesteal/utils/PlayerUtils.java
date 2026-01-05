@@ -211,6 +211,7 @@ public final class PlayerUtils {
      */
     public static void handleWithdraw(ServerPlayer player, int hearts) {
         if (hearts <= 0) {
+            // TODO Replace with "Invalid amount" text
             player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
             return;
         }
@@ -223,8 +224,8 @@ public final class PlayerUtils {
             int heartsToWithdraw = Math.min(hearts, playerMaxHearts - gameRules.get(LifeStealGamerules.MIN_PLAYER_HEARTS));
             int heartsAfterWithdraw = playerMaxHearts - heartsToWithdraw;
             setMaxHearts(player, heartsAfterWithdraw);
-            givePlayerHeart(player, hearts);
-            player.displayClientMessage(LifeStealText.withdrawnHealth(hearts), true);
+            givePlayerHeart(player, heartsToWithdraw);
+            player.displayClientMessage(LifeStealText.withdrawnHealth(heartsToWithdraw), true);
         }
     }
 

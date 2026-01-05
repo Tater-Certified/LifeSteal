@@ -109,3 +109,41 @@ publishing {
         // retrieving dependencies.
     }
 }
+
+tasks.register('generateDatapack', Zip) {
+    group = "build"
+    description = "Generates a Minecraft datapack from the Fabric mod resources"
+
+    // Output ZIP name and location
+    archiveFileName = "lifesteal-example-datapack.zip"
+    destinationDirectory = project.layout.projectDirectory.asFile
+
+    // Include resources/data/*
+    from("src/main/resources/data") {
+        into("data")
+    }
+
+    // Generate pack.mcmeta dynamically
+    doFirst {
+        def packMcmetaFile = layout.buildDirectory.file("generated/pack.mcmeta").get().asFile
+        packMcmetaFile.parentFile.mkdirs()
+
+        packMcmetaFile.text = """{
+  "pack": {
+    "pack_format": 48,
+    "supported_formats": {
+      "min_inclusive": 45,
+      "max_inclusive": 99999
+    },
+    "description": "Example Datapack for LifeSteal by QPCrummer"
+  }
+}
+"""
+    }
+
+    // Add pack.mcmeta to the root of the ZIP
+    from(layout.buildDirectory.file("generated/pack.mcmeta")) {
+        into("")
+    }
+}
+
