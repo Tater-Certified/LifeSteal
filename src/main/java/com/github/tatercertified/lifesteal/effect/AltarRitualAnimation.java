@@ -32,7 +32,6 @@ public class AltarRitualAnimation {
         SPIRAL,
         HEART_FORM,
         HEART_HOLD,
-        EXPLODE,
         DONE
     }
 
@@ -41,6 +40,7 @@ public class AltarRitualAnimation {
     private Vec3 ringCenter;
     private Vec3 heartCenter;
     private Vec3 spiralGoal;
+    private BlockPos altarPos;
 
     private int age = 0;
     private int phaseAge = 0;
@@ -48,8 +48,9 @@ public class AltarRitualAnimation {
     private final List<TrackedParticle> heartParticles = new ArrayList<>();
 
     public static AltarRitualAnimation create(BlockPos altarPos, ServerLevel level) {
-        level.playSound(null, altarPos, SoundEvents.WITHER_AMBIENT, SoundSource.BLOCKS, 1.0f, 1.0f);
+        level.playSound(null, altarPos, SoundEvents.WITHER_AMBIENT, SoundSource.BLOCKS, 1.0f, 0.3f);
         AltarRitualAnimation anim = new AltarRitualAnimation();
+        anim.altarPos = altarPos;
         anim.ringCenter = altarPos.getCenter();
         anim.heartCenter = anim.ringCenter.add(0, 3.0, 0);
         anim.spiralGoal = anim.heartCenter.subtract(0, 1.2, 0);
@@ -62,7 +63,6 @@ public class AltarRitualAnimation {
             case SPIRAL -> spiralPhase(level);
             case HEART_FORM -> heartFormPhase(level);
             case HEART_HOLD -> heartHoldPhase(level);
-            case EXPLODE -> explodePhase(level);
         }
 
         age++;
@@ -156,45 +156,22 @@ public class AltarRitualAnimation {
         }
 
         if (phaseAge > 30) {
+            // TODO Figure out why this sound doesn't play
+            level.playSound(null, altarPos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
             transition(Phase.HEART_HOLD);
         }
     }
 
     private void heartHoldPhase(ServerLevel level) {
         if (shouldSpawnHeld()) {
-            spawnRing(level);
-
             for (TrackedParticle p : heartParticles) {
                 spawn(level, p.pos);
             }
         }
 
         if (phaseAge >= HEART_HOLD_TICKS) {
-            transition(Phase.EXPLODE);
+            transition(Phase.DONE);
         }
-    }
-
-    // STEP 4: EXPLODE
-    // TODO Figure out why explosions aren't working
-    private void explodePhase(ServerLevel level) {
-        for (TrackedParticle p : heartParticles) {
-
-            Vec3 v = new Vec3(
-                    level.random.nextGaussian(),
-                    level.random.nextGaussian(),
-                    level.random.nextGaussian()
-            ).normalize().scale(2.5);
-
-            level.sendParticles(
-                    BLOOD,
-                    p.pos.x, p.pos.y, p.pos.z,
-                    1,
-                    v.x, v.y, v.z,
-                    0
-            );
-        }
-        level.playSound(null, BlockPos.containing(ringCenter), SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
-        transition(Phase.DONE);
     }
 
     // Helper functions
