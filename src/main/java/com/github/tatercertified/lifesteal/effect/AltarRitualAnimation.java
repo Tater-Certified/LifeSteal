@@ -7,70 +7,60 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class AltarRitualAnimation {
+public class AltarRitualAnimation extends ParticleAnimation {
 
     private static final int RING_TICKS = 60;
     private static final int RING_HOLD_TICKS = 20;
     private static final int SPIRAL_TICKS = 80;
     private static final int HEART_HOLD_TICKS = 100;
+    private static final int HEART_FORM_TICKS = 30;
 
     private static final int HEART_PARTICLE_COUNT = 36;
-    private static final double RING_RADIUS = 0.75;
+    private static final double RING_RADIUS = 1.0;
     private static final double HEART_SCALE = 1.2;
 
 
     private static final DustParticleOptions BLOOD =
             new DustParticleOptions(ARGB.color(new Vec3(0.6f, 0.0f, 0.0f)), 1.2f);
 
-    private enum Phase {
-        RING,
-        SPIRAL,
-        HEART_FORM,
-        HEART_HOLD,
-        DONE
-    }
-
-    private Phase phase = Phase.RING;
-
     private Vec3 ringCenter;
     private Vec3 heartCenter;
     private Vec3 spiralGoal;
     private BlockPos altarPos;
 
-    private int age = 0;
-    private int phaseAge = 0;
-
-    private final List<TrackedParticle> heartParticles = new ArrayList<>();
-
-    public static AltarRitualAnimation create(BlockPos altarPos, ServerLevel level) {
-        level.playSound(null, altarPos, SoundEvents.WITHER_AMBIENT, SoundSource.BLOCKS, 1.0f, 0.3f);
-        AltarRitualAnimation anim = new AltarRitualAnimation();
-        anim.altarPos = altarPos;
-        anim.ringCenter = altarPos.getCenter();
-        anim.heartCenter = anim.ringCenter.add(0, 3.0, 0);
-        anim.spiralGoal = anim.heartCenter.subtract(0, 1.2, 0);
-        return anim;
+    public AltarRitualAnimation(BlockPos altarPos, ServerLevel level) {
+        super(altarPos, level);
     }
 
+    @Override
+    public void create(BlockPos altarPos, ServerLevel level) {
+        level.playSound(null, altarPos, SoundEvents.WITHER_AMBIENT, SoundSource.BLOCKS, 1.0f, 0.3f);
+        this.altarPos = altarPos;
+        ringCenter = altarPos.getCenter();
+        heartCenter = ringCenter.add(0, 3.0, 0);
+        spiralGoal = heartCenter.subtract(0, 1.2, 0);
+    }
+
+    @Override
+    void create(Entity reference, BlockPos referencePos) {}
+
+    @Override
     public void tick(ServerLevel level) {
         switch (phase) {
-            case RING -> ringPhase(level);
-            case SPIRAL -> spiralPhase(level);
-            case HEART_FORM -> heartFormPhase(level);
-            case HEART_HOLD -> heartHoldPhase(level);
+            case 0 -> ringPhase(level);
+            case 1 -> spiralPhase(level);
+            case 2 -> heartFormPhase(level);
+            case 3 -> heartHoldPhase(level);
         }
-
-        age++;
-        phaseAge++;
+        super.tick(level);
     }
 
-    public boolean isDone() {
-        return phase == Phase.DONE;
+    @Override
+    public void onDone(ServerLevel level) {
+        level.playSound(null, altarPos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
     }
 
     // STEP 1: RING
@@ -91,7 +81,7 @@ public class AltarRitualAnimation {
                     0.05,
                     Math.sin(angle) * RING_RADIUS
             );
-            spawn(level, pos);
+            spawn(level, pos, BLOOD);
         }
 
         if (phaseAge >= RING_TICKS) {
@@ -101,7 +91,7 @@ public class AltarRitualAnimation {
 
             if (phaseAge >= RING_TICKS + RING_HOLD_TICKS) {
                 initSpiralParticles();
-                transition(Phase.SPIRAL);
+                nextPhase();
             }
         }
     }
@@ -113,13 +103,15 @@ public class AltarRitualAnimation {
             p.t = 0;
             p.delay = (i % 4) * 4;
             p.angleOffset = (i / (double) HEART_PARTICLE_COUNT) * Mth.TWO_PI;
-            heartParticles.add(p);
+            trackedParticles.add(p);
         }
     }
 
     private void spiralPhase(ServerLevel level) {
-        for (TrackedParticle p : heartParticles) {
-            if (p.delay-- > 0) continue;
+        for (TrackedParticle p : trackedParticles) {
+            if (p.delay-- > 0) {
+                continue;
+            }
 
             double t = p.t;
             double angle = t * 6 * Mth.TWO_PI + p.angleOffset;
@@ -131,20 +123,20 @@ public class AltarRitualAnimation {
                     Math.sin(angle) * radius
             );
 
-            spawn(level, pos);
+            spawn(level, pos, BLOOD);
             p.t += 1.0 / SPIRAL_TICKS;
             p.pos = pos;
         }
 
         if (phaseAge >= SPIRAL_TICKS) {
-            transition(Phase.HEART_FORM);
+            nextPhase();
         }
     }
 
     // STEP 3: HEART
     private void heartFormPhase(ServerLevel level) {
         int i = 0;
-        for (TrackedParticle p : heartParticles) {
+        for (TrackedParticle p : trackedParticles) {
             double targetT = (i++ / (double) HEART_PARTICLE_COUNT) * Mth.TWO_PI;
             Vec3 target = heartPoint(targetT)
                     .scale(HEART_SCALE)
@@ -152,25 +144,23 @@ public class AltarRitualAnimation {
 
             if (p.pos == null) p.pos = heartCenter;
             p.pos = p.pos.lerp(target, 0.1);
-            spawn(level, p.pos);
+            spawn(level, p.pos, BLOOD);
         }
 
-        if (phaseAge > 30) {
-            // TODO Figure out why this sound doesn't play
-            level.playSound(null, altarPos, SoundEvents.WITHER_SPAWN, SoundSource.BLOCKS, 1.0f, 1.0f);
-            transition(Phase.HEART_HOLD);
+        if (phaseAge > HEART_FORM_TICKS) {
+            nextPhase();
         }
     }
 
     private void heartHoldPhase(ServerLevel level) {
         if (shouldSpawnHeld()) {
-            for (TrackedParticle p : heartParticles) {
-                spawn(level, p.pos);
+            for (TrackedParticle p : trackedParticles) {
+                spawn(level, p.pos, BLOOD);
             }
         }
 
         if (phaseAge >= HEART_HOLD_TICKS) {
-            transition(Phase.DONE);
+            endPhase();
         }
     }
 
@@ -184,25 +174,12 @@ public class AltarRitualAnimation {
                     0.05,
                     Math.sin(angle) * RING_RADIUS
             );
-            spawn(level, pos);
+            spawn(level, pos, BLOOD);
         }
-    }
-
-    private void spawn(ServerLevel level, Vec3 pos) {
-        level.sendParticles(BLOOD, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
     }
 
     private boolean shouldSpawnHeld() {
         return (age % 3) == 0;
-    }
-
-    private void transition(Phase next) {
-        phase = next;
-        phaseAge = 0;
-    }
-
-    private static double lerp(double a, double b, double t) {
-        return a + (b - a) * t;
     }
 
     // Heart Shape
@@ -214,12 +191,5 @@ public class AltarRitualAnimation {
                         - 0.125 * Math.cos(3 * t)
                         - 0.0625 * Math.cos(4 * t);
         return new Vec3(x, y, 0);
-    }
-
-    private static class TrackedParticle {
-        Vec3 pos;
-        double t;
-        int delay;
-        double angleOffset;
     }
 }

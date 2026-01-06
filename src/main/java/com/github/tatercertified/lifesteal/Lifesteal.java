@@ -8,11 +8,14 @@ import com.github.tatercertified.lifesteal.commands.WithdrawCommand;
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.effect.AltarRitualAnimation;
 import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
+import com.github.tatercertified.lifesteal.effect.ParticleAnimation;
+import com.github.tatercertified.lifesteal.effect.WithdrawRitualAnimation;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.mixin.ServerPlayerServerAccessor;
+import com.github.tatercertified.lifesteal.utils.AnimationCooldownInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.github.tatercertified.lifesteal.world.Ores;
@@ -25,6 +28,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.scores.Team;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,7 +44,7 @@ public class Lifesteal implements ModInitializer {
     public static final String MOD_ID = "lifesteal";
     public static final Map<UUID, DeathData> DEAD_PLAYERS = new HashMap<>();
     public static final Path DEAD_PLAYERS_FILE_PATH = Path.of(FabricLoader.getInstance().getConfigDir().resolve("lifesteal-deaths.json").toString());
-    public static final List<AltarRitualAnimation> ANIMATIONS = new ArrayList<>();
+    public static final List<ParticleAnimation> ANIMATIONS = new ArrayList<>();
     public static PlayerTeam invulnerableTeam;
 
     @Override
@@ -79,11 +83,12 @@ public class Lifesteal implements ModInitializer {
         });
 
         ServerTickEvents.START_WORLD_TICK.register(level -> {
-            Iterator<AltarRitualAnimation> iterator = ANIMATIONS.iterator();
+            Iterator<ParticleAnimation> iterator = ANIMATIONS.iterator();
             while (iterator.hasNext()) {
-                AltarRitualAnimation anim = iterator.next();
+                ParticleAnimation anim = iterator.next();
                 anim.tick(level);
                 if (anim.isDone()) {
+                    anim.onDone(level);
                     iterator.remove();
                 }
             }
@@ -99,12 +104,19 @@ public class Lifesteal implements ModInitializer {
 		 */
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             if (player instanceof ServerPlayer serverPlayer) {
-                if (((ServerLevel) world).getGameRules().get(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.ALTAR
+                GameRules gameRules = ((ServerLevel) world).getGameRules();
+                if (gameRules.get(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.ALTAR
                         && serverPlayer.isShiftKeyDown()
                         && hand == serverPlayer.getUsedItemHand()
                         && serverPlayer.getItemInHand(hand).isEmpty()
                         && HeartItem.isAltar((ServerLevel) world, hitResult.getBlockPos())) {
-                    PlayerUtils.handleWithdraw(serverPlayer, 1);
+                    if (gameRules.get(LifeStealGamerules.DO_ALTAR_ANIMATIONS)) {
+                        if (PlayerUtils.withdrawAnimationAllowed(serverPlayer) && ((AnimationCooldownInterface)serverPlayer).canWithdraw()) {
+                            Lifesteal.ANIMATIONS.add(new WithdrawRitualAnimation(serverPlayer, hitResult.getBlockPos()));
+                        }
+                    } else {
+                        PlayerUtils.handleWithdraw(serverPlayer, 1);
+                    }
                 }
             }
             return InteractionResult.PASS;

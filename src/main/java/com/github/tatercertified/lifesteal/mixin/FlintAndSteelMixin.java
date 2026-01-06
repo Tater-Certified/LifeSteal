@@ -33,12 +33,13 @@ public abstract class FlintAndSteelMixin {
 
     private static void startAltarAnimation(BlockPos pos, ServerLevel level) {
         GameRules gameRules = level.getGameRules();
-        Block altarBlock = LifeStealGamerules.getAltarBlock(gameRules);
-        BlockPos altarPos = isNextTo(pos, level, altarBlock);
-        if (altarPos != null && HeartItem.isAltar(level, altarPos)) {
-            Lifesteal.ANIMATIONS.add(AltarRitualAnimation.create(altarPos, level));
+        if (gameRules.get(LifeStealGamerules.DO_ALTAR_ANIMATIONS)) {
+            Block altarBlock = LifeStealGamerules.getAltarBlock(gameRules);
+            BlockPos altarPos = isNextTo(pos, level, altarBlock);
+            if (altarPos != null && HeartItem.isAltar(level, altarPos)) {
+                Lifesteal.ANIMATIONS.add(new AltarRitualAnimation(altarPos, level));
+            }
         }
-
     }
 
     private static @Nullable BlockPos isNextTo(BlockPos pos, ServerLevel level, Block block) {

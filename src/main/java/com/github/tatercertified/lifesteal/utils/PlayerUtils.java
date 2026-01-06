@@ -210,23 +210,75 @@ public final class PlayerUtils {
      * @param hearts The number of requested hearts
      */
     public static void handleWithdraw(ServerPlayer player, int hearts) {
+        switch (canWithdraw(player, hearts)) {
+            case 1 -> // TODO Replace with "Invalid amount" text
+                    player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+            case 2 -> // Not enough hearts
+                    player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+            default -> executeWithdraw(player, hearts, true);
+        }
+    }
+
+    /**
+     * Checks if the withdraw animation is ok to proceed
+     * @param player The player that is withdrawing hearts
+     * @return If the
+     */
+    public static boolean withdrawAnimationAllowed(ServerPlayer player) {
+        switch (canWithdraw(player, 1)) {
+            case 1 -> {
+                // TODO Replace with "Invalid amount" text
+                player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+                return false;
+            }
+            case 2 -> {
+                // Not enough hearts
+                player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+                return false;
+            }
+            default -> {
+                return true;
+            }
+        }
+    }
+
+    /**
+     * 0 -> Yes
+     * 1 -> Invalid amount
+     * 2 -> Not enough hearts
+     * @param player The player that is withdrawing hearts
+     * @param hearts The number of requested hearts
+     * @return The int code above.
+     */
+    private static int canWithdraw(ServerPlayer player, int hearts) {
         if (hearts <= 0) {
-            // TODO Replace with "Invalid amount" text
-            player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
-            return;
+            return 1;
         }
         GameRules gameRules = player.level().getGameRules();
         int playerMaxHearts = getMaxHearts(player);
         if (playerMaxHearts == gameRules.get(LifeStealGamerules.MIN_PLAYER_HEARTS)) {
-            // Not enough hearts
-            player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+            return 2;
         } else {
-            int heartsToWithdraw = Math.min(hearts, playerMaxHearts - gameRules.get(LifeStealGamerules.MIN_PLAYER_HEARTS));
-            int heartsAfterWithdraw = playerMaxHearts - heartsToWithdraw;
-            setMaxHearts(player, heartsAfterWithdraw);
-            givePlayerHeart(player, heartsToWithdraw);
-            player.displayClientMessage(LifeStealText.withdrawnHealth(heartsToWithdraw), true);
+            return 0;
         }
+    }
+
+    /**
+     * Converts a physical heart to a heart item. This method does not check if the operation is safe.
+     * @param player The player doing the conversion
+     * @param hearts The number of hearts to withdraw
+     * @param giveHeart If the heart should be given as an item
+     */
+    public static void executeWithdraw(ServerPlayer player, int hearts, boolean giveHeart) {
+        GameRules gameRules = player.level().getGameRules();
+        int playerMaxHearts = getMaxHearts(player);
+        int heartsToWithdraw = Math.min(hearts, playerMaxHearts - gameRules.get(LifeStealGamerules.MIN_PLAYER_HEARTS));
+        int heartsAfterWithdraw = playerMaxHearts - heartsToWithdraw;
+        setMaxHearts(player, heartsAfterWithdraw);
+        if (giveHeart) {
+            givePlayerHeart(player, heartsToWithdraw);
+        }
+        player.displayClientMessage(LifeStealText.withdrawnHealth(heartsToWithdraw), true);
     }
 
     /**

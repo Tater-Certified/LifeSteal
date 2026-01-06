@@ -133,6 +133,12 @@ public final class LifeStealGamerules {
     public static final GameRule<@NotNull Integer> LIMITED_CRAFTING_AMOUNT = GameRuleBuilder.forInteger(0).minValue(0)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "limited_heart_crafting_amount"));
 
+    /**
+     * Whether to do basic altar functions or fancy animations
+     */
+    public static final GameRule<@NotNull Boolean> DO_ALTAR_ANIMATIONS = GameRuleBuilder.forBoolean(true)
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "altar_animations"));
+
     private static Block cachedAltarBlock;
 
     public static Block getAltarBlock(GameRules gameRules) {
