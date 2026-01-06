@@ -6,7 +6,6 @@ import com.github.tatercertified.lifesteal.commands.GiftCommand;
 import com.github.tatercertified.lifesteal.commands.ReviveCommand;
 import com.github.tatercertified.lifesteal.commands.WithdrawCommand;
 import com.github.tatercertified.lifesteal.data.DeathData;
-import com.github.tatercertified.lifesteal.effect.AltarRitualAnimation;
 import com.github.tatercertified.lifesteal.effect.InvulnerableStatusEffect;
 import com.github.tatercertified.lifesteal.effect.ParticleAnimation;
 import com.github.tatercertified.lifesteal.effect.WithdrawRitualAnimation;
@@ -15,7 +14,6 @@ import com.github.tatercertified.lifesteal.gamerules.WithdrawMethod;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.mixin.ServerPlayerServerAccessor;
-import com.github.tatercertified.lifesteal.utils.AnimationCooldownInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerInvulnerabilityInterface;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import com.github.tatercertified.lifesteal.world.Ores;
@@ -111,11 +109,11 @@ public class Lifesteal implements ModInitializer {
                         && serverPlayer.getItemInHand(hand).isEmpty()
                         && HeartItem.isAltar((ServerLevel) world, hitResult.getBlockPos())) {
                     if (gameRules.get(LifeStealGamerules.DO_ALTAR_ANIMATIONS)) {
-                        if (PlayerUtils.withdrawAnimationAllowed(serverPlayer) && ((AnimationCooldownInterface)serverPlayer).canWithdraw()) {
+                        if (PlayerUtils.handleWithdraw(serverPlayer, 1, false)) {
                             Lifesteal.ANIMATIONS.add(new WithdrawRitualAnimation(serverPlayer, hitResult.getBlockPos()));
                         }
                     } else {
-                        PlayerUtils.handleWithdraw(serverPlayer, 1);
+                        PlayerUtils.handleWithdraw(serverPlayer, 1, true);
                     }
                 }
             }

@@ -3,11 +3,9 @@ package com.github.tatercertified.lifesteal.effect;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.mixin.DisplayEntityAccessor;
 import com.github.tatercertified.lifesteal.mixin.ItemDisplayInvoker;
-import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.ARGB;
@@ -63,10 +61,9 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
         }
 
         switch (phase) {
-            case 0 -> armRise(level);
-            case 1 -> fingersReach(level);
-            case 2 -> grab(level);
-            case 3 -> retract(level);
+            case 0 -> fingersReach(level);
+            case 1 -> grab(level);
+            case 2 -> retract(level);
         }
 
         super.tick(level);
@@ -74,21 +71,7 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
 
     // Phases
 
-    // Phase 0: Arm grows upward
-    private void armRise(ServerLevel level) {
-        double t = phaseAge / (double) ARM_TICKS;
-        t = Mth.clamp(t, 0, 1);
-
-        Vec3 end = altarCenter.add(0, 1.6 * t, 0);
-
-        spawnSegment(level, altarCenter, end, 6);
-
-        if (phaseAge >= ARM_TICKS) {
-            nextPhase();
-        }
-    }
-
-    // Phase 1: Fingers arc toward player
+    // Phase 0: Fingers arc toward player
     private void fingersReach(ServerLevel level) {
         double t = phaseAge / (double) REACH_TICKS;
         t = Mth.clamp(t, 0, 1);
@@ -117,7 +100,7 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
         }
     }
 
-    // Phase 2: Spawn & grab heart
+    // Phase 1: Spawn & grab heart
     private void grab(ServerLevel level) {
         if (phaseAge == 1) {
             heartDisplay = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
@@ -149,7 +132,6 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
             level.addFreshEntity(heartDisplay);
 
             level.playSound(null, BlockPos.containing(grabPoint), SoundEvents.PHANTOM_BITE, SoundSource.BLOCKS, 1.0f, 0.3f);
-            PlayerUtils.executeWithdraw((ServerPlayer) reference, 1, false);
         }
 
         if (phaseAge >= HOLD_TICKS) {
@@ -157,7 +139,7 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
         }
     }
 
-    // Phase 3: Pull heart back into altar
+    // Phase 2: Pull heart back into altar
     private void retract(ServerLevel level) {
         double t = phaseAge / (double) RETURN_TICKS;
         t = Mth.clamp(t, 0, 1);

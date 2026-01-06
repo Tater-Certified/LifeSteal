@@ -22,12 +22,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayer.class)
-public abstract class ServerPlayerMixin extends Player implements PlayerReviveData, PlayerInvulnerabilityInterface, PlayerMaxHealthInterface, CraftedHeartsInterface, AnimationCooldownInterface {
+public abstract class ServerPlayerMixin extends Player implements PlayerReviveData, PlayerInvulnerabilityInterface, PlayerMaxHealthInterface, CraftedHeartsInterface {
 
     private boolean newlyRevived;
     private int invulnerableTicks = 0;
     private int heartsCrafted = 0;
-    private int withdrawCooldown = 0;
 
     public ServerPlayerMixin(Level world, GameProfile profile) {
         super(world, profile);
@@ -66,9 +65,6 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     private void lifesteal$tickInvulnerability(CallbackInfo ci) {
         if (isReviveInvulnerable()) {
             invulnerableTicks--;
-        }
-        if (withdrawCooldown > 0) {
-            withdrawCooldown--;
         }
     }
     // You cannot be killed by players if invulnerable
@@ -142,14 +138,5 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     @Override
     public void incrementHeartsCrafted() {
         this.heartsCrafted++;
-    }
-
-    @Override
-    public boolean canWithdraw() {
-        boolean canWithdraw = this.withdrawCooldown == 0;
-        if (canWithdraw) {
-            this.withdrawCooldown = 30;
-        }
-        return canWithdraw;
     }
 }

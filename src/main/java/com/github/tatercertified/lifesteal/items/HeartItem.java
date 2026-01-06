@@ -1,5 +1,7 @@
 package com.github.tatercertified.lifesteal.items;
 
+import com.github.tatercertified.lifesteal.Lifesteal;
+import com.github.tatercertified.lifesteal.effect.ReviveRitualAnimation;
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
@@ -21,6 +23,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 import xyz.nucleoid.packettweaker.PacketContext;
@@ -50,13 +53,13 @@ public class HeartItem extends Item implements PolymerItem {
 
     @Override
     public @NonNull InteractionResult useOn(UseOnContext context) {
-
         if (!(context.getLevel() instanceof ServerLevel world)) {
             return super.useOn(context);
         }
         final MinecraftServer server = world.getServer();
+        GameRules gameRules = world.getGameRules();
 
-        if (world.getGameRules().get(LifeStealGamerules.REVIVE_METHOD) != ReviveMethod.ALTAR) {
+        if (gameRules.get(LifeStealGamerules.REVIVE_METHOD) != ReviveMethod.ALTAR) {
             return super.useOn(context);
         }
 
@@ -83,6 +86,9 @@ public class HeartItem extends Item implements PolymerItem {
 
             switch (val) {
                 case 0 -> {
+                    if (gameRules.get(LifeStealGamerules.DO_ALTAR_ANIMATIONS)) {
+                        Lifesteal.ANIMATIONS.add(new ReviveRitualAnimation(pos, world));
+                    }
                     return InteractionResult.SUCCESS;
                 }
                 case 1 -> {

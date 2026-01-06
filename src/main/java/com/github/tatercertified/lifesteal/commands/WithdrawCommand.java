@@ -31,7 +31,7 @@ public final class WithdrawCommand {
 
         if (source.isPlayer() && gameRules.get(LifeStealGamerules.WITHDRAW_METHOD) == WithdrawMethod.COMMAND) {
             ServerPlayer player = source.getPlayer();
-            PlayerUtils.handleWithdraw(player, IntegerArgumentType.getInteger(context, "hearts"));
+            PlayerUtils.handleWithdraw(player, IntegerArgumentType.getInteger(context, "hearts"), true);
             return 1;
         } else {
             source.sendFailure(LifeStealText.WITHDRAW_COMMAND_DISABLED);

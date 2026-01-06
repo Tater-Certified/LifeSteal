@@ -208,24 +208,11 @@ public final class PlayerUtils {
      * Withdraws the specified number of hearts from the player
      * @param player The player that is withdrawing hearts
      * @param hearts The number of requested hearts
+     * @param giveHeart Whether to give a heart
+     * @return If the withdraw was successful
      */
-    public static void handleWithdraw(ServerPlayer player, int hearts) {
+    public static boolean handleWithdraw(ServerPlayer player, int hearts, boolean giveHeart) {
         switch (canWithdraw(player, hearts)) {
-            case 1 -> // TODO Replace with "Invalid amount" text
-                    player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
-            case 2 -> // Not enough hearts
-                    player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
-            default -> executeWithdraw(player, hearts, true);
-        }
-    }
-
-    /**
-     * Checks if the withdraw animation is ok to proceed
-     * @param player The player that is withdrawing hearts
-     * @return If the
-     */
-    public static boolean withdrawAnimationAllowed(ServerPlayer player) {
-        switch (canWithdraw(player, 1)) {
             case 1 -> {
                 // TODO Replace with "Invalid amount" text
                 player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
@@ -237,6 +224,7 @@ public final class PlayerUtils {
                 return false;
             }
             default -> {
+                executeWithdraw(player, hearts, giveHeart);
                 return true;
             }
         }
