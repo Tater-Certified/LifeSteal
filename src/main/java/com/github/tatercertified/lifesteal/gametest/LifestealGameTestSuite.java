@@ -3,6 +3,7 @@ package com.github.tatercertified.lifesteal.gametest;
 import com.github.tatercertified.lifesteal.gametest.structure.TestContext;
 import com.github.tatercertified.lifesteal.gametest.tests.AltarTest;
 import com.github.tatercertified.lifesteal.gametest.tests.HeartConsumptionTest;
+import com.github.tatercertified.lifesteal.gametest.tests.HeartStealTest;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
@@ -16,12 +17,12 @@ public class LifestealGameTestSuite {
         List<com.github.tatercertified.lifesteal.gametest.structure.GameTest> tests = List.of(
                 new HeartConsumptionTest(),
                 new AltarTest(),
-                new HeartStealTest(),
-                new DeathTest(),
-                new ReviveTest(),
-                new HeartStackTest(),
-                new WithdrawCommandTest(),
-                new GiftCommandTest()
+                new HeartStealTest()
+                //new DeathTest(),
+                //new ReviveTest(),
+                //new HeartStackTest(),
+                //new WithdrawCommandTest(),
+                //new GiftCommandTest()
         );
 
         new TestContext(helper, tests).start();
