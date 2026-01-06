@@ -1,4 +1,4 @@
-package com.github.tatercertified.lifesteal.gametest;
+package com.github.tatercertified.lifesteal.gametest.structure;
 
 import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.mixin.FakePlayerAccessor;

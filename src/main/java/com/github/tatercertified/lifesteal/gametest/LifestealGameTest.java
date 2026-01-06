@@ -2,6 +2,7 @@ package com.github.tatercertified.lifesteal.gametest;
 
 import com.github.tatercertified.lifesteal.data.DeathData;
 import com.github.tatercertified.lifesteal.gamerules.*;
+import com.github.tatercertified.lifesteal.gametest.structure.TestSubject;
 import com.github.tatercertified.lifesteal.items.HeartItem;
 import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.LifestealMixinConfig;
