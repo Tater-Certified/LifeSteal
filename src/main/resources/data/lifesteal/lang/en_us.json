@@ -15,6 +15,7 @@
   "lifesteal.gameplay.death_time": "You lost your last life.\nYou will be revived in %s seconds.",
   "lifesteal.gameplay.low_health": "You have insufficient hearts for this task.",
   "lifesteal.gameplay.max_health": "You are already at the maximum number of hearts",
+  "lifesteal.gameplay.invalid_heart_amount": "Invalid heart amount inputted",
   "lifesteal.gameplay.prevent_attack": "You cannot attack players while invulnerable",
   "lifesteal.gameplay.prevent_damage":  "%s is invulnerable",
 

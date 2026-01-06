@@ -178,7 +178,8 @@ public final class PlayerUtils {
      */
     public static int maxHeartsRemoved(ServerPlayer player, int hearts) {
         if (hearts < 0) {
-            return 0;
+            player.displayClientMessage(LifeStealText.INVALID_HEART_AMOUNT, true);
+            return -1;
         }
         GameRules gameRules = player.level().getGameRules();
         int maxHearts = getMaxHearts(player);
@@ -214,8 +215,7 @@ public final class PlayerUtils {
     public static boolean handleWithdraw(ServerPlayer player, int hearts, boolean giveHeart) {
         switch (canWithdraw(player, hearts)) {
             case 1 -> {
-                // TODO Replace with "Invalid amount" text
-                player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+                player.displayClientMessage(LifeStealText.INVALID_HEART_AMOUNT, true);
                 return false;
             }
             case 2 -> {

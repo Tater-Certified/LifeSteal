@@ -10,6 +10,7 @@ public final class LifeStealText {
             DEATH = Component.translatable("lifesteal.gameplay.death"),
             MAX_HEALTH = Component.translatable("lifesteal.gameplay.max_health"),
             LOW_HEALTH = Component.translatable("lifesteal.gameplay.low_health"),
+            INVALID_HEART_AMOUNT = Component.translatable("lifesteal.gameplay.invalid_heart_amount"),
             GIFT_COMMAND_DISABLED = Component.translatable("lifesteal.command.gift.disabled"),
             REVIVE_COMMAND_DISABLED = Component.translatable("lifesteal.command.revive.disabled"),
             WITHDRAW_COMMAND_DISABLED = Component.translatable("lifesteal.command.withdraw.disabled"),

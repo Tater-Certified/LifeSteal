@@ -102,7 +102,7 @@ public final class GiftCommand {
                     }
                 }
                 return 1;
-            } else {
+            } else if (amount == 0) {
                 source.sendFailure(LifeStealText.LOW_HEALTH);
             }
             return 1;
