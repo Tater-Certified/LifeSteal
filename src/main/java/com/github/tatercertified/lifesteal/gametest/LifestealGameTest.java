@@ -7,6 +7,7 @@ import com.github.tatercertified.lifesteal.items.ModItems;
 import com.github.tatercertified.lifesteal.utils.LifestealMixinConfig;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CandleBlock;
@@ -52,7 +53,7 @@ public class LifestealGameTest {
         TestSubject player = spawnSinglePlayerTest(context);
         BlockPos altar_relative = new BlockPos(2, 151, 2);
         BlockPos altar = spawnAltar(context, altar_relative);
-        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, "minecraft:netherite_block", context.getLevel().getServer());
+        context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.NETHERITE_BLOCK), context.getLevel().getServer());
         context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar failed to be created"));
         context.runAfterDelay(1, () -> {
             player.setShiftKeyDown(true);
@@ -64,13 +65,13 @@ public class LifestealGameTest {
             context.assertTrue(maxHealth == 18.0F, Component.nullToEmpty("Max Health Mismatch; Expected: 18.0, Got: " + maxHealth));
         });
         context.runAfterDelay(4, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, "minecraft:diamond_block", context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.DIAMOND_BLOCK), context.getLevel().getServer());
             context.getLevel().setBlockAndUpdate(altar, Blocks.DIAMOND_BLOCK.defaultBlockState());
         });
         context.runAfterDelay(5, () -> context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar block failed to be set")));
 
         context.runAfterDelay(6, () -> {
-            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, "minecraft:netherite_block", context.getLevel().getServer());
+            context.getLevel().getGameRules().set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.NETHERITE_BLOCK), context.getLevel().getServer());
             end(context, player);
         });
     }

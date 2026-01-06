@@ -34,7 +34,7 @@ dependencies {
     modImplementation include("eu.pb4:sgui:${project.sgui_version}")
     implementation include('com.google.code.gson:gson:2.13.1')
     //modImplementation include('com.github.QPCrummer:PolySpring:f35011d7f6')
-    //modApi "maven.modrinth:unruled-api:${project.unruled_version}"
+    modApi "maven.modrinth:unruled-api:${project.unruled_version}"
 }
 
 loom {
