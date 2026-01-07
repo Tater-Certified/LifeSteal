@@ -27,6 +27,7 @@ Configuration is purely managed through gamerules, here is a list of gamerules a
 | lifesteal:heart_craft_in_crafter          | Boolean             | If a heart item can be crafted in a crafter                                                        | `false`                     |
 | lifesteal:limited_heart_crafting_type     | LimitedCraftingType | How limited crafting works: `until_banned`, `forever`, `heart_based`, or `none`                    | `none`                      |
 | lifesteal:limited_heart_crafting_amount   | Integer             | The value/limit of limited crafting. It changes meaning depending on the limited crafting gamerule | `0`                         |
+| lifesteal:altar_animations                | Boolean             | If animations should play when interacting with an altar                                           | `true`                      |
 
 ### Dead Player Json:
 Located in `config/lifesteal-deaths.json`
