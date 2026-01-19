@@ -52,6 +52,12 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
         this.setNewlyRevived(view.getBooleanOr("newly_revived", false));
         this.invulnerableTicks = view.getIntOr("invulnerability_ticks", 0);
         this.heartsCrafted = view.getIntOr("hearts_crafted", 0);
+        if (!view.contains("new_player")) {
+            int invulnerability = this.level().getGameRules().get(LifeStealGamerules.RESPAWN_INVULNERABILITY);
+            if (invulnerability != 0) {
+                this.setReviveInvulnerability();
+            }
+        }
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
@@ -59,6 +65,7 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
         view.putBoolean("newly_revived", this.newlyRevived);
         view.putInt("invulnerability_ticks", this.invulnerableTicks);
         view.putInt("hearts_crafted", this.heartsCrafted);
+        view.putBoolean("new_player", false); // Just a placeholder
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
@@ -67,6 +74,7 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
             invulnerableTicks--;
         }
     }
+
     // You cannot be killed by players if invulnerable
     @Inject(method = "canHarmPlayer", at = @At("HEAD"), cancellable = true)
     private void lifesteal$checkInvulnerability(Player player, CallbackInfoReturnable<Boolean> cir) {

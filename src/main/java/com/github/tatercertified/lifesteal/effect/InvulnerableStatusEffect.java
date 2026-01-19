@@ -23,7 +23,7 @@ import java.util.UUID;
 public class InvulnerableStatusEffect extends MobEffect implements PolymerStatusEffect {
     private UUID player;
     private MinecraftServer server;
-    public static final Holder<MobEffect> INVULNERABLE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "tater"), new InvulnerableStatusEffect());
+    public static final Holder<MobEffect> INVULNERABLE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "invulnerability"), new InvulnerableStatusEffect());
 
     public InvulnerableStatusEffect() {
         super(MobEffectCategory.BENEFICIAL, 16262179, ParticleTypes.MYCELIUM);
