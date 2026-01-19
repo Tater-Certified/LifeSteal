@@ -37,7 +37,7 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
 
     @Inject(method = "die", at = @At("TAIL"))
     private void lifesteal$onDeath(DamageSource damageSource, CallbackInfo ci) {
-        ServerPlayer attacker = damageSource.getEntity() instanceof ServerPlayer ? (ServerPlayer) damageSource.getEntity() : null;
+        ServerPlayer attacker = this.getKillCredit() instanceof ServerPlayer ? (ServerPlayer) this.getKillCredit() : null;
         PlayerUtils.handleDeath((ServerPlayer) (Object) this, attacker);
     }
 
