@@ -5,7 +5,6 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "com.github.tatercertified.lifesteal.utils.LifestealMixinConfig",
   "mixins": [
-    "CombatTrackerAccessor",
     "CrafterBlockMixin",
     "CraftingMenuMixin",
     "DisplayEntityAccessor",
@@ -14,7 +13,9 @@
     "GameRuleRegistryInvoker",
     "ItemDisplayInvoker",
     "ItemStackMixin",
+    "LivingEntityMixin",
     "MilkMixin",
+    "MobEffectMixin",
     "ServerPlayerGameModeMixin",
     "ServerPlayerMixin",
     "ServerPlayerServerAccessor",

@@ -1,8 +1,9 @@
 package com.github.tatercertified.lifesteal.effect;
 import com.github.tatercertified.lifesteal.Lifesteal;
+import com.github.tatercertified.lifesteal.utils.EffectEndEvent;
 import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffects;
@@ -12,17 +13,14 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.core.Holder;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.scores.Scoreboard;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-import java.util.UUID;
-
-public class InvulnerableStatusEffect extends MobEffect implements PolymerStatusEffect {
-    private UUID player;
-    private MinecraftServer server;
+public class InvulnerableStatusEffect extends MobEffect implements PolymerStatusEffect, EffectEndEvent {
     public static final Holder<MobEffect> INVULNERABLE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "invulnerability"), new InvulnerableStatusEffect());
 
     public InvulnerableStatusEffect() {
@@ -49,18 +47,18 @@ public class InvulnerableStatusEffect extends MobEffect implements PolymerStatus
     }
 
     @Override
-    public void removeAttributeModifiers(AttributeMap attributeContainer) {
-        super.removeAttributeModifiers(attributeContainer);
-        server.getScoreboard().removePlayerFromTeam(server.getPlayerList().getPlayer(player).getScoreboardName(), Lifesteal.invulnerableTeam);
-    }
-
-    @Override
-    public void onEffectStarted(LivingEntity entity, int amplifier) {
+    public void onEffectStarted(@NonNull LivingEntity entity, int amplifier) {
         super.onEffectStarted(entity, amplifier);
-        this.player = entity.getUUID();
-        this.server = entity.level().getServer();
     }
 
     public static void register() {
+    }
+
+    @Override
+    public void onEffectFinished(ServerPlayer effectedPlayer) {
+        Scoreboard scoreboard = effectedPlayer.level().getServer().getScoreboard();
+        if (Lifesteal.invulnerableTeam.getPlayers().contains(effectedPlayer.getScoreboardName())) {
+            scoreboard.removePlayerFromTeam(effectedPlayer.getScoreboardName(), Lifesteal.invulnerableTeam);
+        }
     }
 }

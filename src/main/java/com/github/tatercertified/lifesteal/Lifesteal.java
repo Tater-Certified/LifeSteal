@@ -73,7 +73,9 @@ public class Lifesteal implements ModInitializer {
             boolean containsTeam = minecraftServer.getScoreboard().getPlayerTeams().stream()
                     .anyMatch(team -> team.getName().equals("invulnerable"));
 
-            if (!containsTeam) {
+            if (containsTeam) {
+                invulnerableTeam = minecraftServer.getScoreboard().getPlayerTeam("invulnerable");
+            } else {
                 invulnerableTeam = minecraftServer.getScoreboard().addPlayerTeam("invulnerable");
                 invulnerableTeam.setColor(ChatFormatting.DARK_RED);
                 invulnerableTeam.setNameTagVisibility(Team.Visibility.ALWAYS);

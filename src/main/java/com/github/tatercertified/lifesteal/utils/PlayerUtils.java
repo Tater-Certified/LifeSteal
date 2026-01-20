@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerPlayer;
@@ -66,6 +67,14 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity that joined
      */
     public static void handlePlayerJoin(ServerPlayer player) {
+        int playTime = player.getStats().getValue(Stats.CUSTOM.get(Stats.PLAY_TIME));
+        if (playTime == 0) {
+            int invulnerability = player.level().getGameRules().get(LifeStealGamerules.RESPAWN_INVULNERABILITY);
+            if (invulnerability != 0) {
+                ((PlayerInvulnerabilityInterface)(player)).setReviveInvulnerability();
+            }
+        }
+
         DeathData data = Lifesteal.DEAD_PLAYERS.get(player.getUUID());
         if (data != null) {
             // A reviver takes highest priority
@@ -395,7 +404,6 @@ public final class PlayerUtils {
 
         player.sendSystemMessage(LifeStealText.onRevivalText(reviver.getDisplayName()));
         PlayerUtils.setMaxHearts(player, world.getGameRules().get(LifeStealGamerules.MIN_PLAYER_HEARTS));
-        DeathData.removeFromDeathDataList(player.getUUID());
         // These players are not newly revived if a heart wasn't consumed to revive them
         ((PlayerReviveData)player).setNewlyRevived(!fromHeartItem);
         return true;
@@ -419,7 +427,6 @@ public final class PlayerUtils {
         playerData.save();
 
         DeathData.setReviver(profile.id(), reviver.getUUID());
-        DeathData.removeFromDeathDataList(profile.id());
         return true;
     }
 
