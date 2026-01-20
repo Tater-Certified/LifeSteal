@@ -115,6 +115,11 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     }
 
     @Override
+    public void setVulnerable() {
+        this.invulnerableTicks = 1;
+    }
+
+    @Override
     public double getBaseMaxHealth() {
         return this.getAttributeBaseValue(Attributes.MAX_HEALTH);
     }
