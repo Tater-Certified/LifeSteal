@@ -25,8 +25,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class FlintAndSteelMixin {
 
     @Inject(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;gameEvent(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/core/Holder;Lnet/minecraft/core/BlockPos;)V", ordinal = 0))
-    private void lifesteal$checkForAnimation(UseOnContext useOnContext, CallbackInfoReturnable<InteractionResult> cir, @Local Level level, @Local(ordinal = 0) BlockPos pos, @Local(ordinal = 0) BlockState blockState) {
-        if (!level.isClientSide() && blockState.is(BlockTags.CANDLES)) {
+    private void lifesteal$checkForAnimation(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir, @Local(name = "level") Level level, @Local(name = "pos") BlockPos pos, @Local(name = "state") BlockState state) {
+        if (!level.isClientSide() && state.is(BlockTags.CANDLES)) {
             startAltarAnimation(pos, (ServerLevel) level);
         }
     }

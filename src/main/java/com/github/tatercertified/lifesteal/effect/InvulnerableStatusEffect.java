@@ -1,8 +1,8 @@
 package com.github.tatercertified.lifesteal.effect;
 import com.github.tatercertified.lifesteal.Lifesteal;
 import com.github.tatercertified.lifesteal.utils.EffectEndEvent;
-import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
-import net.minecraft.server.MinecraftServer;
+import eu.pb4.polymer.core.api.other.PolymerMobEffect;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -18,9 +18,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.scores.Scoreboard;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
-import xyz.nucleoid.packettweaker.PacketContext;
 
-public class InvulnerableStatusEffect extends MobEffect implements PolymerStatusEffect, EffectEndEvent {
+public class InvulnerableStatusEffect extends MobEffect implements PolymerMobEffect, EffectEndEvent {
     public static final Holder<MobEffect> INVULNERABLE = Registry.registerForHolder(BuiltInRegistries.MOB_EFFECT, Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "invulnerability"), new InvulnerableStatusEffect());
 
     public InvulnerableStatusEffect() {

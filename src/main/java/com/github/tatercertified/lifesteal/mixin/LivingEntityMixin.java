@@ -16,16 +16,16 @@ import java.util.Collection;
 @Mixin(LivingEntity.class)
 public class LivingEntityMixin {
     @Inject(method = "onEffectsRemoved", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/effect/MobEffect;removeAttributeModifiers(Lnet/minecraft/world/entity/ai/attributes/AttributeMap;)V"))
-    private void lifesteal$callEndEvent(Collection<MobEffectInstance> collection, CallbackInfo ci, @Local MobEffectInstance mobEffectInstance) {
+    private void lifesteal$callEndEvent(Collection<MobEffectInstance> effects, CallbackInfo ci, @Local(name = "effect") MobEffectInstance effect) {
         if ((LivingEntity) (Object) this instanceof ServerPlayer serverPlayer){
-            ((EffectEndEvent)(mobEffectInstance.getEffect().value())).onEffectFinished(serverPlayer);
+            ((EffectEndEvent)(effect.getEffect().value())).onEffectFinished(serverPlayer);
         }
     }
 
     @Inject(method = "onEffectUpdated", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/effect/MobEffect;removeAttributeModifiers(Lnet/minecraft/world/entity/ai/attributes/AttributeMap;)V"))
-    private void lifesteal$callEndEvent(MobEffectInstance mobEffectInstance, boolean bl, Entity entity, CallbackInfo ci){
+    private void lifesteal$callEndEvent(MobEffectInstance effect, boolean doRefreshAttributes, Entity source, CallbackInfo ci){
         if ((LivingEntity) (Object) this instanceof ServerPlayer serverPlayer){
-            ((EffectEndEvent)(mobEffectInstance.getEffect().value())).onEffectFinished(serverPlayer);
+            ((EffectEndEvent)(effect.getEffect().value())).onEffectFinished(serverPlayer);
         }
     }
 }

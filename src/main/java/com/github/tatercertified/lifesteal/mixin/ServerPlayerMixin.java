@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -75,16 +76,17 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     @Inject(method = "canHarmPlayer", at = @At("HEAD"), cancellable = true)
     private void lifesteal$checkInvulnerability(Player player, CallbackInfoReturnable<Boolean> cir) {
         if (isReviveInvulnerable()) {
-            player.displayClientMessage(LifeStealText.preventDamage(this.getName()), true);
+            player.sendOverlayMessage(LifeStealText.preventDamage(this.getName()));
             cir.setReturnValue(false);
         }
     }
     // You cannot kill players if invulnerable either
-    @Inject(method = "attack", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;attack(Lnet/minecraft/world/entity/Entity;)V"), cancellable = true)
-    private void lifesteal$preventAttackingPlayers(Entity target, CallbackInfo ci) {
-        if (isReviveInvulnerable() && target instanceof ServerPlayer) {
-            this.displayClientMessage(LifeStealText.PREVENT_ATTACK, true);
-            ci.cancel();
+    @Override
+    public void attack(@NonNull Entity entity) {
+        if (isReviveInvulnerable() && entity instanceof ServerPlayer) {
+            this.sendOverlayMessage(LifeStealText.PREVENT_ATTACK);
+        } else {
+            super.attack(entity);
         }
     }
 

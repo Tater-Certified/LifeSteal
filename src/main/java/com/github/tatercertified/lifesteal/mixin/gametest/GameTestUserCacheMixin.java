@@ -17,8 +17,8 @@ import java.io.File;
 @Mixin(Services.class)
 public class GameTestUserCacheMixin {
     @Inject(method = "create", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/CachedUserNameToIdResolver;<init>(Lcom/mojang/authlib/GameProfileRepository;Ljava/io/File;)V"), cancellable = true)
-    private static void lifesteal$replace(YggdrasilAuthenticationService authenticationService, File rootDirectory, CallbackInfoReturnable<Services> cir, @Local(ordinal = 0) MinecraftSessionService minecraftSessionService, @Local(ordinal = 0) GameProfileRepository gameProfileRepository) {
-        ProfileResolver gameProfileResolver = new ProfileResolver.Cached(minecraftSessionService, LifestealGameTest.gameTestUserCache);
-        cir.setReturnValue(new Services(minecraftSessionService, authenticationService.getServicesKeySet(), gameProfileRepository, LifestealGameTest.gameTestUserCache, gameProfileResolver));
+    private static void lifesteal$replace(YggdrasilAuthenticationService serviceAccess, File nameCacheDir, CallbackInfoReturnable<Services> cir, @Local(name = "sessionService") MinecraftSessionService sessionService, @Local(name = "profileRepository") GameProfileRepository profileRepository) {
+        ProfileResolver gameProfileResolver = new ProfileResolver.Cached(sessionService, LifestealGameTest.gameTestUserCache);
+        cir.setReturnValue(new Services(sessionService, serviceAccess.getServicesKeySet(), profileRepository, LifestealGameTest.gameTestUserCache, gameProfileResolver));
     }
 }

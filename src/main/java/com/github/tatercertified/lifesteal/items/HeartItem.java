@@ -7,6 +7,7 @@ import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.core.component.DataComponents;
@@ -26,7 +27,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 public class HeartItem extends Item implements PolymerItem {
 
@@ -77,7 +77,7 @@ public class HeartItem extends Item implements PolymerItem {
         if (player.isShiftKeyDown() && isAltar(world, pos)) {
             // Can't revive yourself
             if (playerName.equalsIgnoreCase(player.getDisplayName().getString())) {
-                player.displayClientMessage(LifeStealText.noSelfReviving(player.getName()), true);
+                player.sendOverlayMessage(LifeStealText.noSelfReviving(player.getName()));
                 PlayerUtils.failedSound(world, pos);
                 return InteractionResult.FAIL;
             }
@@ -95,7 +95,7 @@ public class HeartItem extends Item implements PolymerItem {
                     return InteractionResult.FAIL;
                 }
                 default -> {
-                    player.displayClientMessage(LifeStealText.notFound(playerName), true);
+                    player.sendOverlayMessage(LifeStealText.notFound(playerName));
                     PlayerUtils.failedSound(world, pos);
                     return InteractionResult.FAIL;
                 }

@@ -4,7 +4,6 @@ import com.github.tatercertified.lifesteal.Lifesteal;
 import eu.pb4.polymer.core.api.item.PolymerBlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.item.Item;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;

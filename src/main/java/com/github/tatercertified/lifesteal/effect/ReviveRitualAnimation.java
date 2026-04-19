@@ -118,7 +118,7 @@ public class ReviveRitualAnimation extends ParticleAnimation {
         int rate = 1 + (int) (progress * 6);
 
         for (int i = 0; i < rate; i++) {
-            Direction d = Direction.Plane.HORIZONTAL.getRandomDirection(level.random);
+            Direction d = Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom());
 
             Vec3 start = altarCenter.add(
                     d.getStepX(),
@@ -126,7 +126,7 @@ public class ReviveRitualAnimation extends ParticleAnimation {
                     d.getStepZ()
             );
 
-            Vec3 pos = start.lerp(heartPos, level.random.nextDouble() * progress);
+            Vec3 pos = start.lerp(heartPos, level.getRandom().nextDouble() * progress);
             spawn(level, pos, ENERGY);
         }
     }
@@ -157,8 +157,8 @@ public class ReviveRitualAnimation extends ParticleAnimation {
             spawn(level, center.add(offset), ENERGY);
         }
 
-        if (level.random.nextFloat() < 0.35f) {
-            Vec3 randomOffset = randomPointInSphere(level.random, SPHERE_RADIUS * 0.9);
+        if (level.getRandom().nextFloat() < 0.35f) {
+            Vec3 randomOffset = randomPointInSphere(level.getRandom(), SPHERE_RADIUS * 0.9);
             spawn(level, center.add(randomOffset), ParticleTypes.ELECTRIC_SPARK);
         }
 
@@ -222,8 +222,8 @@ public class ReviveRitualAnimation extends ParticleAnimation {
 
         if (collapse < 0.9 || (age & 1) == 0) {
             for (int i = 0; i < particleCount; i++) {
-                double a = level.random.nextDouble() * Mth.TWO_PI;
-                double b = level.random.nextDouble() * Math.PI;
+                double a = level.getRandom().nextDouble() * Mth.TWO_PI;
+                double b = level.getRandom().nextDouble() * Math.PI;
 
                 Vec3 offset = new Vec3(
                         Math.cos(a) * Math.sin(b),

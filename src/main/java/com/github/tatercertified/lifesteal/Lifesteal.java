@@ -80,7 +80,7 @@ public class Lifesteal implements ModInitializer {
             }
         });
 
-        ServerTickEvents.START_WORLD_TICK.register(level -> {
+        ServerTickEvents.START_LEVEL_TICK.register(level -> {
             Iterator<ParticleAnimation> iterator = ANIMATIONS.iterator();
             while (iterator.hasNext()) {
                 ParticleAnimation anim = iterator.next();

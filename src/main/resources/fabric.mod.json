@@ -25,6 +25,6 @@
     "fabricloader": "*",
     "fabric": "*",
     "unruled_api": "*",
-    "minecraft": ">=1.21.11"
+    "minecraft": ">=26.1"
   }
 }

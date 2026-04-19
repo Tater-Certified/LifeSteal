@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.14-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version '1.16-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -23,18 +23,16 @@ repositories {
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation include("eu.pb4:polymer-core:${project.polymer_version}")
-    modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translation_api_version}")
-    modImplementation include("eu.pb4:polymer-blocks:${project.polymer_version}")
-    modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
-    modImplementation include("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
-    modImplementation include("eu.pb4:sgui:${project.sgui_version}")
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation include("eu.pb4:polymer-core:${project.polymer_version}")
+    implementation include("xyz.nucleoid:server-translations-api:${project.server_translation_api_version}")
+    implementation include("eu.pb4:polymer-blocks:${project.polymer_version}")
+    implementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
+    implementation include("eu.pb4:polymer-resource-pack-extras:${project.polymer_version}")
+    implementation include("eu.pb4:sgui:${project.sgui_version}")
     implementation include('com.google.code.gson:gson:2.13.1')
-    //modImplementation include('com.github.QPCrummer:PolySpring:f35011d7f6')
-    modApi "maven.modrinth:unruled-api:${project.unruled_version}"
+    implementation "maven.modrinth:unruled-api:${project.unruled_version}"
 }
 
 loom {
@@ -63,7 +61,7 @@ processResources {
     }
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 tasks.withType(JavaCompile).configureEach {
     // ensure that the encoding is set to UTF-8, no matter what the system default is
     // this fixes some edge cases with special characters not displaying correctly

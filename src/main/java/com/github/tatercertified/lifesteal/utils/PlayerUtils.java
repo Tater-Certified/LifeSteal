@@ -154,7 +154,7 @@ public final class PlayerUtils {
             int attackerNewHearts = getMaxHearts(attacker) + heartsAwarded;
             if (attackerNewHearts > gameRules.get(LifeStealGamerules.MAX_PLAYER_HEARTS)) {
                 // They can't get more health, but they can still get an item to prevent heart deletion
-                attacker.displayClientMessage(LifeStealText.MAX_HEALTH, true);
+                attacker.sendOverlayMessage(LifeStealText.MAX_HEALTH);
                 givePlayerHeart(attacker, heartsAwarded);
             } else {
                 setMaxHearts(attacker, attackerNewHearts);
@@ -187,7 +187,7 @@ public final class PlayerUtils {
      */
     public static int maxHeartsRemoved(ServerPlayer player, int hearts) {
         if (hearts < 0) {
-            player.displayClientMessage(LifeStealText.INVALID_HEART_AMOUNT, true);
+            player.sendOverlayMessage(LifeStealText.INVALID_HEART_AMOUNT);
             return -1;
         }
         GameRules gameRules = player.level().getGameRules();
@@ -219,17 +219,17 @@ public final class PlayerUtils {
      * @param player The player that is withdrawing hearts
      * @param hearts The number of requested hearts
      * @param giveHeart Whether to give a heart
-     * @return If the withdraw was successful
+     * @return If the withdrawal was successful
      */
     public static boolean handleWithdraw(ServerPlayer player, int hearts, boolean giveHeart) {
         switch (canWithdraw(player, hearts)) {
             case 1 -> {
-                player.displayClientMessage(LifeStealText.INVALID_HEART_AMOUNT, true);
+                player.sendOverlayMessage(LifeStealText.INVALID_HEART_AMOUNT);
                 return false;
             }
             case 2 -> {
                 // Not enough hearts
-                player.displayClientMessage(LifeStealText.LOW_HEALTH, true);
+                player.sendOverlayMessage(LifeStealText.LOW_HEALTH);
                 return false;
             }
             default -> {
@@ -275,7 +275,7 @@ public final class PlayerUtils {
         if (giveHeart) {
             givePlayerHeart(player, heartsToWithdraw);
         }
-        player.displayClientMessage(LifeStealText.withdrawnHealth(heartsToWithdraw), true);
+        player.sendOverlayMessage(LifeStealText.withdrawnHealth(heartsToWithdraw));
     }
 
     /**
@@ -317,7 +317,7 @@ public final class PlayerUtils {
         GameRules gameRules = player.level().getGameRules();
         int playerNewMaxHearts = getMaxHearts(player) + 1;
         if (playerNewMaxHearts > gameRules.get(LifeStealGamerules.MAX_PLAYER_HEARTS)) {
-            player.displayClientMessage(LifeStealText.MAX_HEALTH, true);
+            player.sendOverlayMessage(LifeStealText.MAX_HEALTH);
             return false;
         } else {
             setMaxHearts(player, playerNewMaxHearts);
@@ -434,7 +434,7 @@ public final class PlayerUtils {
         if (context != null) {
             successSound(context.getLevel(), context.getClickedPos());
             context.getItemInHand().shrink(1);
-            reviver.displayClientMessage(LifeStealText.revived(revived), true);
+            reviver.sendOverlayMessage(LifeStealText.revived(revived));
         }
     }
 
@@ -444,7 +444,7 @@ public final class PlayerUtils {
 
     private static void failed(ServerPlayer reviver, BlockPos alter, Component revived) {
         failedSound(reviver.level(), alter);
-        reviver.displayClientMessage(LifeStealText.playerIsAlive(revived), true);
+        reviver.sendOverlayMessage(LifeStealText.playerIsAlive(revived));
     }
 
     /**
