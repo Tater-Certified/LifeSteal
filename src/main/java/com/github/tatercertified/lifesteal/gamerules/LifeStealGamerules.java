@@ -73,7 +73,6 @@ public final class LifeStealGamerules {
     public static final GameRule<@NotNull Integer> MAX_PLAYER_HEARTS = GameRuleBuilder.forInteger(10).minValue(1)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "max_player_hearts"));
 
-
     /**
      * The block that is to be used as the altar
      */
@@ -95,6 +94,13 @@ public final class LifeStealGamerules {
      */
     public static final GameRule<@NotNull Integer> RESPAWN_INVULNERABILITY = GameRuleBuilder.forInteger(0).minValue(0)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "revival_invulnerability_seconds"));
+
+    /**
+     * The amount of time a player is invulnerable since they started playing
+     * The default value is 0 seconds, which disables the feature
+     */
+    public static final GameRule<@NotNull Integer> NEW_PLAYER_INVULNERABILITY = GameRuleBuilder.forInteger(0).minValue(0)
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "new_player_invulnerability_seconds"));
 
     /**
      * The maximum stack size of the heart item
@@ -121,10 +127,16 @@ public final class LifeStealGamerules {
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "limited_heart_crafting_amount"));
 
     /**
-     * Whether to do basic altar functions or fancy animations
+     * Whether to do fancy animations
      */
     public static final GameRule<@NotNull Boolean> DO_ALTAR_ANIMATIONS = GameRuleBuilder.forBoolean(true)
             .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "altar_animations"));
+
+    /**
+     * Uses Minecraft texture replacements if the resourcepack isn't installed
+     */
+    public static final GameRule<@NotNull Boolean> FALLBACK_TEXTURES = GameRuleBuilder.forBoolean(true)
+            .buildAndRegister(Identifier.fromNamespaceAndPath(Lifesteal.MOD_ID, "fallback_textures"));
 
     private static Block cachedAltarBlock;
 
@@ -134,5 +146,9 @@ public final class LifeStealGamerules {
             cachedAltarBlock = gameRules.get(ALTAR_BLOCK).value();
         }
         return cachedAltarBlock;
+    }
+
+    public static <T> T getStatic(GameRule<T> gameRule, T fallback) {
+        return serverInstance == null ? fallback : serverInstance.getGameRules().get(gameRule);
     }
 }

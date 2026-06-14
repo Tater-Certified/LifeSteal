@@ -59,7 +59,7 @@ public class Lifesteal implements ModInitializer {
 
         // You can't remove the effect through suicide either... sorry
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, b) -> {
-            if (((PlayerInvulnerabilityInterface)oldPlayer).isReviveInvulnerable()) {
+            if (((PlayerInvulnerabilityInterface)oldPlayer).isInvulnerable()) {
                 newPlayer.addEffect(new MobEffectInstance(InvulnerableStatusEffect.INVULNERABLE, ((PlayerInvulnerabilityInterface)oldPlayer).getRemaining(), 0, false, false, true));
                 ((ServerPlayerServerAccessor) newPlayer).getServer().getScoreboard().addPlayerToTeam(newPlayer.getScoreboardName(), invulnerableTeam);
             }

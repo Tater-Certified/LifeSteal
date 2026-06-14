@@ -36,9 +36,6 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     @Shadow
     public abstract ServerLevel level();
 
-    @Shadow
-    public abstract boolean hasDisconnected();
-
     @Inject(method = "die", at = @At("TAIL"))
     private void lifesteal$onDeath(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayer attacker = this.getKillCredit() instanceof ServerPlayer ? (ServerPlayer) this.getKillCredit() : null;
@@ -67,7 +64,7 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void lifesteal$tickInvulnerability(CallbackInfo ci) {
-        if (isReviveInvulnerable()) {
+        if (this.isInvulnerable()) {
             invulnerableTicks--;
         }
     }
@@ -75,7 +72,7 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     // You cannot be killed by players if invulnerable
     @Inject(method = "canHarmPlayer", at = @At("HEAD"), cancellable = true)
     private void lifesteal$checkInvulnerability(Player player, CallbackInfoReturnable<Boolean> cir) {
-        if (isReviveInvulnerable()) {
+        if (this.isInvulnerable()) {
             player.sendOverlayMessage(LifeStealText.preventDamage(this.getName()));
             cir.setReturnValue(false);
         }
@@ -83,7 +80,7 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
     // You cannot kill players if invulnerable either
     @Override
     public void attack(@NonNull Entity entity) {
-        if (isReviveInvulnerable() && entity instanceof ServerPlayer) {
+        if (this.isInvulnerable() && entity instanceof ServerPlayer) {
             this.sendOverlayMessage(LifeStealText.PREVENT_ATTACK);
         } else {
             super.attack(entity);
@@ -102,12 +99,17 @@ public abstract class ServerPlayerMixin extends Player implements PlayerReviveDa
 
     @Override
     public void setReviveInvulnerability() {
-        invulnerableTicks = this.level().getGameRules().get(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20;
+        this.setInvulnerability(this.level().getGameRules().get(LifeStealGamerules.RESPAWN_INVULNERABILITY) * 20);
+    }
+
+    @Override
+    public void setInvulnerability(int ticks) {
+        this.invulnerableTicks = ticks;
         this.addEffect(new MobEffectInstance(InvulnerableStatusEffect.INVULNERABLE, this.getRemaining(), 0, false, false, true));
     }
 
     @Override
-    public boolean isReviveInvulnerable() {
+    public boolean isInvulnerable() {
         return invulnerableTicks != 0;
     }
 

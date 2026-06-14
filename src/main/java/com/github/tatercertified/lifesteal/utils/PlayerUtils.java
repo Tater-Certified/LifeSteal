@@ -67,12 +67,12 @@ public final class PlayerUtils {
      * @param player ServerPlayerEntity that joined
      */
     public static void handlePlayerJoin(ServerPlayer player) {
-        int playTime = player.getStats().getValue(Stats.CUSTOM.get(Stats.PLAY_TIME));
-        if (playTime == 0) {
-            int invulnerability = player.level().getGameRules().get(LifeStealGamerules.RESPAWN_INVULNERABILITY);
-            if (invulnerability != 0) {
-                ((PlayerInvulnerabilityInterface)(player)).setReviveInvulnerability();
-            }
+        // Set new player invulnerability
+        int playTimeSecs = (int) (player.getStats().getValue(Stats.CUSTOM.get(Stats.PLAY_TIME)) * 0.05);
+        int newPlayerInvulnerabilitySecs = player.level().getGameRules().get(LifeStealGamerules.NEW_PLAYER_INVULNERABILITY);
+        if (playTimeSecs < newPlayerInvulnerabilitySecs) {
+            int invulnerabilityTicks = (newPlayerInvulnerabilitySecs - playTimeSecs) * 20;
+            ((PlayerInvulnerabilityInterface)(player)).setInvulnerability(invulnerabilityTicks);
         }
 
         DeathData data = Lifesteal.DEAD_PLAYERS.get(player.getUUID());
@@ -108,8 +108,9 @@ public final class PlayerUtils {
             ((PlayerReviveData)player).setNewlyRevived(true);
         }
         // Check if invulnerability should be applied
-        int invulnerability = gameRules.get(LifeStealGamerules.RESPAWN_INVULNERABILITY);
-        if (invulnerability != 0) {
+        // Doesn't apply invulnerability if they already are invulnerable
+        if (!((PlayerInvulnerabilityInterface)player).isInvulnerable()
+                && gameRules.get(LifeStealGamerules.RESPAWN_INVULNERABILITY) != 0) {
             ((PlayerInvulnerabilityInterface)player).setReviveInvulnerability();
         }
         DeathData.removeFromDeathDataList(player.getUUID());

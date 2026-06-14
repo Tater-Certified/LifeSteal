@@ -15,10 +15,10 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.level.Level;
 
-public class TotemOfRebirth extends Item implements PolymerItem {
+public class TotemOfRebirth extends SmartTexturedPolymerItem {
 
     public TotemOfRebirth(Properties settings) {
-        super(settings);
+        super(settings, Items.TOTEM_OF_UNDYING, true);
     }
 
     @Override
@@ -32,10 +32,5 @@ public class TotemOfRebirth extends Item implements PolymerItem {
     @Override
     public int getDefaultMaxStackSize() {
         return 1;
-    }
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
-        return Items.TOTEM_OF_UNDYING;
     }
 }

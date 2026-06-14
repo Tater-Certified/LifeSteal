@@ -6,8 +6,6 @@ import com.github.tatercertified.lifesteal.gamerules.LifeStealGamerules;
 import com.github.tatercertified.lifesteal.gamerules.ReviveMethod;
 import com.github.tatercertified.lifesteal.utils.LifeStealText;
 import com.github.tatercertified.lifesteal.utils.PlayerUtils;
-import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.core.component.DataComponents;
@@ -28,10 +26,10 @@ import net.minecraft.world.level.gamerules.GameRules;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
-public class HeartItem extends Item implements PolymerItem {
+public class HeartItem extends SmartTexturedPolymerItem {
 
     public HeartItem(Item.Properties settings) {
-        super(settings);
+        super(settings, Items.NETHER_STAR, true);
     }
 
 
@@ -139,12 +137,6 @@ public class HeartItem extends Item implements PolymerItem {
 
     @Override
     public int getDefaultMaxStackSize() {
-        return LifeStealGamerules.serverInstance != null ? LifeStealGamerules.serverInstance.overworld().getGameRules().get(LifeStealGamerules.HEART_STACK_SIZE) : 1;
-    }
-
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
-        return Items.NETHER_STAR;
+        return LifeStealGamerules.getStatic(LifeStealGamerules.HEART_STACK_SIZE, 1);
     }
 }

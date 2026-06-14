@@ -13,7 +13,7 @@ public class MilkMixin {
     @Redirect(method = "apply", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;removeAllEffects()Z"))
     private boolean lifesteal$preventInvulnerabilityRemoval(LivingEntity instance) {
         instance.removeAllEffects();
-        if (instance instanceof ServerPlayer player && ((PlayerInvulnerabilityInterface)player).isReviveInvulnerable()) {
+        if (instance instanceof ServerPlayer player && ((PlayerInvulnerabilityInterface)player).isInvulnerable()) {
             instance.addEffect(new MobEffectInstance(InvulnerableStatusEffect.INVULNERABLE, ((PlayerInvulnerabilityInterface)player).getRemaining(), 0, false, false, true));
         }
         return false;
