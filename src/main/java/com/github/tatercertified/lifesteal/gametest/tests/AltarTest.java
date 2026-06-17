@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.CandleBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 public class AltarTest extends GameTest {
     @Override
@@ -24,12 +25,12 @@ public class AltarTest extends GameTest {
         TestSubject player = GameTestUtils.spawnSinglePlayer(this.helper);
         GameRules gameRules = this.helper.getLevel().getGameRules();
         MinecraftServer server = this.helper.getLevel().getServer();
-        BlockPos altar_pos = spawnAltar(this.helper, new BlockPos(2, 151, 2));
+        BlockPos altar = spawnAltar(this.helper, new BlockPos(2, 151, 2));
         after(1, () -> {
-            player.lookAt(EntityAnchorArgument.Anchor.FEET, altar_pos.getCenter());
+            player.lookAt(EntityAnchorArgument.Anchor.FEET, Vec3.atCenterOf(altar));
             player.setShiftKeyDown(true);
         });
-        after(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.level(), InteractionHand.MAIN_HAND, new BlockHitResult(altar_pos.getCenter(), Direction.NORTH, altar_pos, true)));
+        after(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.level(), InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(altar), Direction.NORTH, altar, true)));
         after(3, () -> {
             double maxHealth = player.getMaxBaseHealth();
             if (maxHealth != 18.0) {
@@ -37,7 +38,7 @@ public class AltarTest extends GameTest {
             }
         });
         after(4, () -> gameRules.set(LifeStealGamerules.ALTAR_BLOCK, BuiltInRegistries.BLOCK.createIntrusiveHolder(Blocks.DIAMOND_BLOCK), server));
-        after(5, () -> UseBlockCallback.EVENT.invoker().interact(player, player.level(), InteractionHand.MAIN_HAND, new BlockHitResult(altar_pos.getCenter(), Direction.NORTH, altar_pos, true)));
+        after(5, () -> UseBlockCallback.EVENT.invoker().interact(player, player.level(), InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(altar), Direction.NORTH, altar, true)));
         after(6, () -> {
             double maxHealth = player.getMaxBaseHealth();
             if (maxHealth != 18.0) {

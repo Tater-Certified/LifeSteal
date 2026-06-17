@@ -1,12 +1,12 @@
 package com.github.tatercertified.lifesteal.data;
 
 import com.github.tatercertified.lifesteal.Lifesteal;
+import com.github.tatercertified.lifesteal.utils.DeadPlayerIdentification;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
-import net.minecraft.util.Tuple;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -122,12 +122,12 @@ public class DeathData {
      * @param server MinecraftServer instance
      * @return List of all dead players' UUIDs and names
      */
-    public static List<Tuple<UUID, String>> getDeadPlayers(MinecraftServer server) {
-        List<Tuple<UUID, String>> dead = new ArrayList<>();
+    public static List<DeadPlayerIdentification> getDeadPlayers(MinecraftServer server) {
+        List<DeadPlayerIdentification> dead = new ArrayList<>();
         for (Map.Entry<UUID, DeathData> entry : Lifesteal.DEAD_PLAYERS.entrySet()) {
             if (entry.getValue().reviverPlayerID == null) {
                 Optional<NameAndId> playerName = server.services().nameToIdCache().get(entry.getKey());
-                playerName.ifPresent(playerConfigEntry -> dead.add(new Tuple<>(entry.getKey(), playerConfigEntry.name())));
+                playerName.ifPresent(playerConfigEntry -> dead.add(new DeadPlayerIdentification(entry.getKey(), playerConfigEntry.name())));
             }
         }
         return dead;

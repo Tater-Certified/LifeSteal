@@ -58,7 +58,7 @@ public class LifestealGameTest {
         context.assertTrue(HeartItem.isAltar(context.getLevel(), altar), Component.nullToEmpty("Altar failed to be created"));
         context.runAfterDelay(1, () -> {
             player.setShiftKeyDown(true);
-            player.lookAt(EntityAnchorArgument.Anchor.FEET, altar.getCenter());
+            player.lookAt(EntityAnchorArgument.Anchor.FEET, Vec3.atCenterOf(altar));
         });
         context.runAfterDelay(2, () -> UseBlockCallback.EVENT.invoker().interact(player, player.level(), InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(altar), Direction.NORTH, altar, true)));
         context.runAfterDelay(3, () -> {
@@ -179,7 +179,7 @@ public class LifestealGameTest {
         context.runAfterDelay(2, () -> {
             players[1].setItemInHand(InteractionHand.MAIN_HAND, heart.copy());
             players[1].setShiftKeyDown(true);
-            players[1].lookAt(EntityAnchorArgument.Anchor.FEET, altar.getCenter());
+            players[1].lookAt(EntityAnchorArgument.Anchor.FEET, Vec3.atCenterOf(altar));
         });
         context.runAfterDelay(3, () -> heart.useOn(new UseOnContext(players[1], InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(altar), Direction.NORTH, altar, true))));
         context.runAfterDelay(5, () -> context.assertFalse(DeathData.isPlayerDead(uuid, 0), Component.nullToEmpty("Player was not revived")));

@@ -16,7 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -47,7 +47,7 @@ public class ReviveRitualAnimation extends ParticleAnimation {
 
     @Override
     void create(BlockPos referencePos, ServerLevel level) {
-        this.altarCenter = referencePos.getCenter();
+        this.altarCenter = Vec3.atCenterOf(referencePos);
         level.playSound(null, referencePos, SoundEvents.ENDER_DRAGON_AMBIENT, SoundSource.BLOCKS, 1.0f, 0.3f);
         spawnHeart(level);
     }
@@ -70,7 +70,7 @@ public class ReviveRitualAnimation extends ParticleAnimation {
 
     // PHASE 0: HEART RISE
     private void spawnHeart(ServerLevel level) {
-        heart = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
+        heart = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, level);
 
         heart.snapTo(
                 altarCenter.x,

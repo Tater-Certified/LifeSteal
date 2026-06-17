@@ -16,7 +16,7 @@ import java.util.function.ToIntFunction;
 @Mixin(GameRules.class)
 public interface GameRuleRegistryInvoker {
     @Invoker("register")
-    public static <T> GameRule<@NotNull T> register(
+    static <T> GameRule<@NotNull T> register(
             String name,
             GameRuleCategory category,
             GameRuleType type,

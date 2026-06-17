@@ -33,7 +33,7 @@ public class OfflinePlayerData {
 
     private final Path dir;
 
-    private static final Logger logger = LogUtils.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     /**
      *
@@ -60,7 +60,7 @@ public class OfflinePlayerData {
             NbtIo.writeCompressed(root, stream);
             Util.safeReplaceFile(cur, tmp, old);
         } catch (IOException ioe) {
-            logger.warn("Cannot save data for {}", holder, ioe);
+            LOGGER.warn("Cannot save data for {}", holder, ioe);
         }
     }
 
@@ -79,7 +79,7 @@ public class OfflinePlayerData {
                 final CompoundTag compound = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
                 return new OfflinePlayerData(profile, compound, dir);
             } catch (IOException ioe) {
-                logger.warn("Unable to read NBT for {}", profile, ioe);
+                LOGGER.warn("Unable to read NBT for {}", profile, ioe);
             }
         }
         return null;

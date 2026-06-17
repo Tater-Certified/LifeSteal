@@ -29,7 +29,7 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.ChatFormatting;
+import net.minecraft.world.scores.TeamColor;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -75,7 +75,7 @@ public class Lifesteal implements ModInitializer {
                 invulnerableTeam = minecraftServer.getScoreboard().getPlayerTeam("invulnerable");
             } else {
                 invulnerableTeam = minecraftServer.getScoreboard().addPlayerTeam("invulnerable");
-                invulnerableTeam.setColor(ChatFormatting.DARK_RED);
+                invulnerableTeam.setColor(Optional.of(TeamColor.DARK_RED));
                 invulnerableTeam.setNameTagVisibility(Team.Visibility.ALWAYS);
             }
         });

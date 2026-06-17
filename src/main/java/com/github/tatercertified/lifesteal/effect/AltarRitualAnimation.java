@@ -39,7 +39,7 @@ public class AltarRitualAnimation extends ParticleAnimation {
     public void create(BlockPos altarPos, ServerLevel level) {
         level.playSound(null, altarPos, SoundEvents.WITHER_AMBIENT, SoundSource.BLOCKS, 1.0f, 0.3f);
         this.altarPos = altarPos;
-        ringCenter = altarPos.getCenter();
+        ringCenter = Vec3.atCenterOf(altarPos);
         heartCenter = ringCenter.add(0, 3.0, 0);
         spiralGoal = heartCenter.subtract(0, 1.2, 0);
     }

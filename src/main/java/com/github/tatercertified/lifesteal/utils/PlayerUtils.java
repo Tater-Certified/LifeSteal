@@ -420,7 +420,7 @@ public final class PlayerUtils {
         if (playerData == null) {
             return false;
         }
-        playerData.setPosition(world, alter.above().getCenter());
+        playerData.setPosition(world, Vec3.atCenterOf(alter.above()));
         playerData.setGamemode(GameType.SURVIVAL);
         playerData.setMaxHearts(world.getGameRules().get(LifeStealGamerules.MIN_PLAYER_HEARTS));
         // These players are not newly revived if a heart was consumed to revive them
@@ -458,7 +458,7 @@ public final class PlayerUtils {
     }
 
     private static void teleport(Player player, ServerLevel target, BlockPos alterPos) {
-        Vec3 pos = alterPos.above().getCenter();
+        Vec3 pos = Vec3.atCenterOf(alterPos.above());
         player.teleport(new TeleportTransition(target, pos, Vec3.ZERO, player.getYRot(), player.getXRot(), TeleportTransition.DO_NOTHING));
     }
 }

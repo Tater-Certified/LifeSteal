@@ -12,7 +12,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Display;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +23,6 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
     private static final DustParticleOptions HAND =
             new DustParticleOptions(ARGB.color(new Vec3(0.02f, 0.02f, 0.02f)), 1.1f);
 
-    private static final int ARM_TICKS = 30;
     private static final int REACH_TICKS = 20;
     private static final int HOLD_TICKS = 10;
     private static final int RETURN_TICKS = 30;
@@ -47,7 +46,7 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
     @Override
     void create(Entity reference, BlockPos referencePos) {
         this.reference = reference;
-        this.altarCenter = referencePos.getCenter().add(0, 0.2, 0);
+        this.altarCenter = Vec3.atCenterOf(referencePos).add(0, 0.2, 0);
         if (reference.level() instanceof ServerLevel serverLevel) {
             serverLevel.playSound(null, referencePos, SoundEvents.PHANTOM_SWOOP, SoundSource.BLOCKS, 1.0f, 0.3f);
         }
@@ -103,7 +102,7 @@ public class WithdrawRitualAnimation extends ParticleAnimation {
     // Phase 1: Spawn & grab heart
     private void grab(ServerLevel level) {
         if (phaseAge == 1) {
-            heartDisplay = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, level);
+            heartDisplay = new Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, level);
 
             heartDisplay.snapTo(
                     grabPoint.x,

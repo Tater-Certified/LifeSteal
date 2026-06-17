@@ -10,12 +10,10 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +28,7 @@ public class RevivalGUI {
         SimpleGui gui = new SimpleGui(MenuType.GENERIC_9x6, player, false);
         gui.setTitle(LifeStealText.TITLE);
         gui.setLockPlayerInventory(true);
-        List<Tuple<@NotNull UUID, @NotNull String>> deadList = DeathData.getDeadPlayers(player.level().getServer());
+        List<DeadPlayerIdentification> deadList = DeathData.getDeadPlayers(player.level().getServer());
         int pages = 1 + deadList.size() / GUI_SIZE;
         int[] currentPage = {0};
 
@@ -50,21 +48,21 @@ public class RevivalGUI {
         }
     }
 
-    private static void fillWithHeads(SimpleGui gui, int currentPage, List<Tuple<@NotNull UUID, @NotNull String>> deadList, ServerPlayer player, InteractionHand hand) {
+    private static void fillWithHeads(SimpleGui gui, int currentPage, List<DeadPlayerIdentification> deadList, ServerPlayer player, InteractionHand hand) {
         for (int i = 0; i < GUI_SIZE; i++) {
             int index = currentPage * GUI_SIZE + i;
             if (index >= deadList.size()) {
                 break;
             }
             gui.setSlot(i, new GuiElementBuilder(Items.PLAYER_HEAD)
-                    .setProfile(deadList.get(index).getA())
-                    .setItemName(Component.literal(deadList.get(index).getB()))
-                    .setCallback(() -> revive(deadList.get(index).getA(), player, hand))
+                    .setProfile(deadList.get(index).uuid())
+                    .setItemName(Component.literal(deadList.get(index).name()))
+                    .setCallback(() -> revive(deadList.get(index).uuid(), player, hand))
             );
         }
     }
 
-    private static void fillControlBar(SimpleGui gui, int[] currentPage, int pages, List<Tuple<@NotNull UUID, @NotNull String>> deadList, ServerPlayer player, InteractionHand hand) {
+    private static void fillControlBar(SimpleGui gui, int[] currentPage, int pages, List<DeadPlayerIdentification> deadList, ServerPlayer player, InteractionHand hand) {
         if (currentPage[0] > 0) {
             gui.setSlot(GUI_SIZE, new GuiElementBuilder(Items.PLAYER_HEAD)
                     .setProfileSkinTexture(ARROW_LEFT)
@@ -76,11 +74,11 @@ public class RevivalGUI {
                     })
             );
         } else {
-            gui.setSlot(GUI_SIZE, new GuiElementBuilder(Items.GRAY_STAINED_GLASS));
+            gui.setSlot(GUI_SIZE, new GuiElementBuilder(Items.STAINED_GLASS_PANE.gray()));
         }
 
         for (int i = GUI_SIZE + 1; i < 53; i++) {
-            gui.setSlot(i, new GuiElementBuilder(Items.GRAY_STAINED_GLASS));
+            gui.setSlot(i, new GuiElementBuilder(Items.STAINED_GLASS_PANE.gray()));
         }
 
         if (currentPage[0] < pages - 1) {
@@ -94,7 +92,7 @@ public class RevivalGUI {
                     })
             );
         } else {
-            gui.setSlot(53, new GuiElementBuilder(Items.GRAY_STAINED_GLASS));
+            gui.setSlot(53, new GuiElementBuilder(Items.STAINED_GLASS_PANE.gray()));
         }
     }
 }
