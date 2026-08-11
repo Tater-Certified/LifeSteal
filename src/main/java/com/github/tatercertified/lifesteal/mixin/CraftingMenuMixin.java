@@ -17,10 +17,10 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(CraftingMenu.class)
 public abstract class CraftingMenuMixin {
     @WrapOperation(method = "slotChangedCraftingGrid", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/crafting/CraftingRecipe;assemble(Lnet/minecraft/world/item/crafting/RecipeInput;)Lnet/minecraft/world/item/ItemStack;"))
-    private static ItemStack lifesteal$checkIfHeartCrafted(CraftingRecipe instance, RecipeInput recipeInput, Operation<ItemStack> original, @Local(argsOnly = true, name = "player") Player player) {
+    private static ItemStack lifesteal$checkIfHeartCrafted(CraftingRecipe instance, RecipeInput recipeInput, Operation<ItemStack> original, @Local(name = "serverPlayer") ServerPlayer player) {
         ItemStack result = original.call(instance, recipeInput);
         if (result.is(ModItems.HEART)) {
-            if (player instanceof ServerPlayer serverPlayer && ((CraftedHeartsInterface)serverPlayer).canCraftHeart()) {
+            if (((CraftedHeartsInterface) serverPlayer).canCraftHeart()) {
                 ((CraftedHeartsInterface) serverPlayer).incrementHeartsCrafted();
                 return result;
             } else {
