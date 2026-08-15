@@ -18,7 +18,7 @@ public abstract class CrafterBlockMixin extends BaseEntityBlock {
     }
 
     @Redirect(method = "dispenseFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", ordinal = 0))
-    private boolean lifesteal$cancelHeartCraft(ItemStack itemStack, @Local(argsOnly = true, name = "level") ServerLevel level) {
+    private boolean lifesteal$cancelHeartCraft(ItemStack itemStack, @Local(argsOnly = true) ServerLevel level) {
         return itemStack.isEmpty() || (itemStack.is(ModItems.HEART) && !level.getGameRules().get(LifeStealGamerules.HEART_CRAFT_IN_CRAFTER));
     }
 }
