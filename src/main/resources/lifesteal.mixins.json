@@ -18,8 +18,7 @@
     "MobEffectMixin",
     "ServerPlayerGameModeMixin",
     "ServerPlayerMixin",
-    "ServerPlayerServerAccessor",
-    "gametest.GameTestUserCacheMixin"
+    "ServerPlayerServerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

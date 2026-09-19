@@ -16,6 +16,7 @@ import net.minecraft.server.players.NameAndId;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerPlayer;
@@ -290,7 +291,7 @@ public final class PlayerUtils {
             if (!player.addItem(heartStack.copy())) {
                 // Quick path for dropping the rest of the hearts to avoid unnecessary checks
                 for (int j = i; j < hearts; j++) {
-                    player.drop(heartStack.copy(), false, true);
+                    player.drop(heartStack.copy(), false, Prediction.SERVER_ONLY);
                 }
                 break;
             }
@@ -305,7 +306,7 @@ public final class PlayerUtils {
     private static void dropHearts(ServerPlayer deadPlayer, int hearts) {
         final ItemStack heartStack = new ItemStack(ModItems.HEART, 1);
         for (int i = 0; i < hearts; i++) {
-            deadPlayer.drop(heartStack.copy(), false, true);
+            deadPlayer.drop(heartStack.copy(), false, Prediction.SERVER_ONLY);
         }
     }
 
